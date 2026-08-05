@@ -9,7 +9,6 @@ const props = defineProps<{
   cityId: CityId
   range?: DateRange
   level: Level | null
-  singleRooms: boolean
 }>()
 
 const emit = defineEmits<{
@@ -50,7 +49,6 @@ const nights = computed(() => (props.range ? nightsBetween(props.range.from, pro
     <TariffCarousel
       :city-id="cityId"
       :nights="nights"
-      :single-rooms="singleRooms"
       :selected="level"
       @choose="emit('choose', $event)"
       @open-item="emit('openItem', $event)"

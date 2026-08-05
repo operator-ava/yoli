@@ -14,7 +14,6 @@ export interface DateRange {
  *  Тариф и даты — по каждому городу отдельно, глобального уровня поездки нет. */
 export const useTripStore = defineStore('trip', () => {
   const people = ref(2)
-  const singleRooms = ref(false)
 
   const ranges = ref<Partial<Record<CityId, DateRange>>>({})
   const levels = ref<Partial<Record<CityId, Level>>>({})
@@ -39,7 +38,7 @@ export const useTripStore = defineStore('trip', () => {
   )
 
   const result = computed(() =>
-    calculate({ people: people.value, singleRooms: singleRooms.value, stops: stops.value }),
+    calculate({ people: people.value, stops: stops.value }),
   )
 
   /** Сводка по всей поездке: границы дат, календарных дней и городов. */
@@ -88,14 +87,12 @@ export const useTripStore = defineStore('trip', () => {
 
   function reset() {
     people.value = 2
-    singleRooms.value = false
     ranges.value = {}
     levels.value = {}
   }
 
   return {
     people,
-    singleRooms,
     ranges,
     levels,
     orderedCities,

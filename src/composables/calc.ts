@@ -8,7 +8,6 @@ import {
   CITY_FACTOR,
   GROUP_DISCOUNT_STEPS,
   SERVICE_FEE_RATE,
-  SINGLE_ROOM_MULTIPLIER,
   TRANSFERS,
   transferKey,
   type CityId,
@@ -24,8 +23,6 @@ export interface TripStop {
 
 export interface CalcInput {
   people: number
-  /** Размещение по одному — надбавка к проживанию. */
-  singleRooms: boolean
   /** Города в хронологическом порядке (по дате заезда). */
   stops: TripStop[]
 }
@@ -75,11 +72,10 @@ export function cityPerPerson(
   cityId: CityId,
   level: Level,
   nights: number,
-  singleRooms: boolean,
 ): { stay: number; food: number; guide: number; sum: number } {
   const rates = BASE_RATES[level]
   const factor = CITY_FACTOR[cityId]
-  const stay = rates.stay * factor * nights * (singleRooms ? SINGLE_ROOM_MULTIPLIER : 1)
+  const stay = rates.stay * factor * nights
   const food = rates.food * factor * nights
   const guide = rates.guide * factor * nights
   return { stay, food, guide, sum: stay + food + guide }
@@ -87,13 +83,8 @@ export function cityPerPerson(
 
 /** Цена тарифа для карточки: на одного человека, С УЖЕ ВКЛЮЧЁННЫМ сервисным сбором.
  *  Групповая скидка сюда не входит — она считается от всей поездки и видна в панели итога. */
-export function tariffCardPrice(
-  cityId: CityId,
-  level: Level,
-  nights: number,
-  singleRooms: boolean,
-): number {
-  return cityPerPerson(cityId, level, nights, singleRooms).sum * (1 + SERVICE_FEE_RATE)
+export function tariffCardPrice(cityId: CityId, level: Level, nights: number): number {
+  return cityPerPerson(cityId, level, nights).sum * (1 + SERVICE_FEE_RATE)
 }
 
 /** Цена переезда на человека. Тариф берётся у города НАЗНАЧЕНИЯ:
@@ -103,7 +94,7 @@ export function transferPrice(from: CityId, to: CityId, level: Level): number | 
 }
 
 export function calculate(input: CalcInput): CalcResult {
-  const { people, singleRooms, stops } = input
+  const { people, stops } = input
 
   let stay = 0
   let food = 0
@@ -111,7 +102,7 @@ export function calculate(input: CalcInput): CalcResult {
   const byCity: CityBreakdown[] = []
 
   for (const stop of stops) {
-    const per = cityPerPerson(stop.cityId, stop.level, stop.nights, singleRooms)
+    const per = cityPerPerson(stop.cityId, stop.level, stop.nights)
     stay += per.stay * people
     food += per.food * people
     guide += per.guide * people

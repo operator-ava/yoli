@@ -18,7 +18,6 @@ let ok = true
 for (const [level, expected] of LEVELS) {
   const r = calculate({
     people: 1,
-    singleRooms: false,
     stops: [{ cityId: 'tashkent', nights: 3, level }],
   })
   const diff = ((r.perPerson - expected) / expected) * 100

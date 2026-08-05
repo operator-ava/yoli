@@ -9,7 +9,8 @@ export type Level = 'econom' | 'medium' | 'lux'
 /** Идентификатор города. */
 export type CityId = 'tashkent' | 'samarkand' | 'bukhara' | 'khiva'
 
-/** Пока true — на экране расчёта висит плашка «Предварительный расчёт». */
+/** Цены не утверждены заказчиком. В интерфейсе флаг ничего не рисует —
+ *  он оставлен как отметка в данных, пока не придёт настоящий прайс. */
 export const PRICES_ARE_DRAFT = true
 
 /** Валюта расчёта. */
@@ -49,9 +50,6 @@ export const TRANSFERS: Record<string, Record<Level, number>> = {
 export function transferKey(a: CityId, b: CityId): string {
   return [a, b].sort().join('|')
 }
-
-/** Надбавка за одноместное размещение — множитель на статью «проживание». */
-export const SINGLE_ROOM_MULTIPLIER = 1.35
 
 /** Сервисный сбор — доля от подытога за вычетом скидки. */
 export const SERVICE_FEE_RATE = 0.08

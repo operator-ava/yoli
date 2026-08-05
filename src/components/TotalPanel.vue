@@ -40,7 +40,7 @@ function summaryText(): string {
       `${rangeLabel(trip.summary.from, trip.summary.to)} · ${trip.summary.days} ${plural(trip.summary.days, 'день', 'дня', 'дней')}`,
     )
   }
-  lines.push(`Человек: ${trip.people}${trip.singleRooms ? ', размещение по одному' : ''}`)
+  lines.push(`Человек: ${trip.people}`)
   lines.push('')
   lines.push('Маршрут:')
   for (const c of r.value.byCity) {
@@ -93,7 +93,8 @@ async function share() {
 
     <!-- Скидка и подсказка-стимул: чем больше группа, тем выгоднее -->
     <div v-if="r.discount > 0" class="discount">
-      Скидка группы {{ percent(r.discountRate) }} · вы экономите {{ money(r.discount) }}
+      Скидка группы <b>{{ percent(r.discountRate) }}</b> · вы экономите
+      <b>{{ money(r.discount) }}</b>
     </div>
     <div v-if="nextStep" class="nudge">
       +{{ nextStep.add }} {{ plural(nextStep.add, 'человек', 'человека', 'человек') }} — скидка
@@ -200,14 +201,16 @@ async function share() {
   transform: rotate(0deg);
 }
 
+/* Без подложки: заливка спорила с ценой. Выделены только числа. */
 .discount {
-  background: var(--brand-yellow);
-  color: var(--text);
   font-size: 13px;
-  font-weight: 600;
-  border-radius: var(--radius-sm);
-  padding: 8px 12px;
-  margin-bottom: 8px;
+  color: var(--text-muted);
+  padding-bottom: 2px;
+}
+
+.discount b {
+  color: var(--accent-strong);
+  font-weight: 700;
 }
 
 .nudge {

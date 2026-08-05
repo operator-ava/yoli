@@ -9,7 +9,6 @@ import BonusBlock from '@/components/BonusBlock.vue'
 const props = defineProps<{
   cityId: CityId
   nights: number
-  singleRooms: boolean
   selected: Level | null
 }>()
 
@@ -28,7 +27,7 @@ function onScroll() {
 }
 
 function price(level: Level) {
-  return tariffCardPrice(props.cityId, level, props.nights, props.singleRooms)
+  return tariffCardPrice(props.cityId, level, props.nights)
 }
 </script>
 

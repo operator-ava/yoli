@@ -5,6 +5,8 @@
   /* Фирменные цвета */
   --brand-yellow: #ffe52a;
   --brand-yellow-soft: #fff4b8;
+  /* Тёмно-жёлтый: жёлтый #FFE52A на белом не читается текстом */
+  --accent-strong: #e8a100;
   --brand-graphite: #23272e;
 
   /* Поверхности и текст */

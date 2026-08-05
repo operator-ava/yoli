@@ -1,15 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useTripStore } from '@/stores/trip'
-import {
-  cityName,
-  MAX_PEOPLE,
-  MIN_PEOPLE,
-  PRICES_ARE_DRAFT,
-  type CityId,
-  type InclusionKey,
-  type Level,
-} from '@/data'
+import { cityName, MAX_PEOPLE, MIN_PEOPLE, type CityId, type InclusionKey, type Level } from '@/data'
 import { plural, rangeLabel } from '@/composables/dates'
 import CityCard from '@/components/CityCard.vue'
 import TotalPanel from '@/components/TotalPanel.vue'
@@ -34,8 +26,6 @@ const summaryLine = computed(() => {
 
 <template>
   <section class="app-content">
-    <p v-if="PRICES_ARE_DRAFT" class="draft">Предварительный расчёт</p>
-
     <h2>Кто едет</h2>
     <div class="card block">
       <div class="counter">
@@ -62,10 +52,6 @@ const summaryLine = computed(() => {
           +
         </button>
       </div>
-      <label class="switch-row tap">
-        <span>{{ trip.singleRooms ? 'По одному' : 'По двое в номере' }}</span>
-        <input v-model="trip.singleRooms" type="checkbox" class="switch" />
-      </label>
     </div>
 
     <h2>Города</h2>
@@ -79,7 +65,6 @@ const summaryLine = computed(() => {
         :city-id="id"
         :range="trip.ranges[id]"
         :level="trip.levels[id] ?? null"
-        :single-rooms="trip.singleRooms"
         @pick-dates="dateSheet = id"
         @choose="trip.setLevel(id, $event)"
         @open-item="itemSheet = { cityId: id, level: $event.level, key: $event.key }"
@@ -129,14 +114,6 @@ const summaryLine = computed(() => {
 </template>
 
 <style scoped>
-.draft {
-  font-size: 12px;
-  color: var(--text-muted);
-  background: var(--brand-yellow-soft);
-  border-radius: var(--radius-sm);
-  padding: 7px 12px;
-  margin: 12px auto 4px;
-}
 
 h2 {
   margin-top: 18px;
@@ -187,48 +164,8 @@ h2 {
   color: var(--text-muted);
 }
 
-.switch-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  border-top: 1px solid var(--border);
-  font-size: 15px;
-  cursor: pointer;
-}
 
-.switch {
-  width: 51px;
-  height: 31px;
-  flex-shrink: 0;
-  appearance: none;
-  background: var(--border);
-  border-radius: 999px;
-  position: relative;
-  transition: background 0.15s;
-  cursor: pointer;
-}
 
-.switch::after {
-  content: '';
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 27px;
-  height: 27px;
-  border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  transition: transform 0.15s;
-}
-
-.switch:checked {
-  background: var(--brand-yellow);
-}
-
-.switch:checked::after {
-  transform: translateX(20px);
-}
 
 .summary {
   font-size: 13px;
