@@ -8,6 +8,8 @@ import TotalPanel from '@/components/TotalPanel.vue'
 import BottomSheet from '@/components/BottomSheet.vue'
 import DateRangeSheet from '@/components/DateRangeSheet.vue'
 import InclusionSheet from '@/components/InclusionSheet.vue'
+import HotelSheet from '@/components/HotelSheet.vue'
+import MealSheet from '@/components/MealSheet.vue'
 
 const trip = useTripStore()
 
@@ -16,6 +18,13 @@ const dateSheet = ref<CityId | null>(null)
 const itemSheet = ref<{ cityId: CityId; level: Level; key: InclusionKey } | null>(null)
 
 const busy = computed(() => (dateSheet.value ? trip.busyNights(dateSheet.value) : new Map()))
+
+/** Выбор тарифа прямо из открытого листа. */
+function chooseFromSheet(level: Level) {
+  if (!itemSheet.value) return
+  trip.setLevel(itemSheet.value.cityId, level)
+  itemSheet.value = null
+}
 
 const summaryLine = computed(() => {
   const s = trip.summary
@@ -96,18 +105,32 @@ const summaryLine = computed(() => {
     />
   </BottomSheet>
 
+  <!-- У гостиницы и питания свои листы, остальное — общий -->
   <BottomSheet v-if="itemSheet" @close="itemSheet = null">
+    <HotelSheet
+      v-if="itemSheet.key === 'hotel'"
+      :city-id="itemSheet.cityId"
+      :level="itemSheet.level"
+      :selected-level="trip.levels[itemSheet.cityId] ?? null"
+      @choose="chooseFromSheet"
+      @close="itemSheet = null"
+    />
+    <MealSheet
+      v-else-if="itemSheet.key === 'food' && trip.ranges[itemSheet.cityId]"
+      :city-id="itemSheet.cityId"
+      :level="itemSheet.level"
+      :range="trip.ranges[itemSheet.cityId]!"
+      :selected-level="trip.levels[itemSheet.cityId] ?? null"
+      @choose="chooseFromSheet"
+      @close="itemSheet = null"
+    />
     <InclusionSheet
+      v-else
       :city-id="itemSheet.cityId"
       :level="itemSheet.level"
       :item-key="itemSheet.key"
       :selected-level="trip.levels[itemSheet.cityId] ?? null"
-      @choose="
-        (l) => {
-          trip.setLevel(itemSheet!.cityId, l)
-          itemSheet = null
-        }
-      "
+      @choose="chooseFromSheet"
       @close="itemSheet = null"
     />
   </BottomSheet>

@@ -8,8 +8,6 @@ export interface Bonus {
   amount: string
 }
 
-/** ⚠️ ТРЕБУЕТ ПОДТВЕРЖДЕНИЯ: по тарифу «Люкс» данных нет.
- *  До получения показываем состав среднего тарифа, новых позиций не добавляем. */
 const MEDIUM: Bonus[] = [
   { name: 'Дед Бобо', amount: '7 часов' },
   { name: 'Переводчик', amount: '7 часов' },
@@ -25,5 +23,10 @@ export const BONUSES: Record<Level, Bonus[]> = {
     { name: 'Маршруты', amount: 'без лимита' },
   ],
   medium: MEDIUM,
-  lux: MEDIUM,
+  lux: [
+    { name: 'Дед Бобо', amount: 'без лимита' },
+    { name: 'Переводчик', amount: 'без лимита' },
+    { name: 'Аудиогид', amount: 'без лимита' },
+    { name: 'Маршруты', amount: 'без лимита' },
+  ],
 }
