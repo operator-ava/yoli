@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import AppHeader from '@/components/AppHeader.vue'
 import BottomNav from '@/components/BottomNav.vue'
 </script>
 
 <template>
-  <!-- Каркас: прокручиваемый экран сверху, постоянный бар снизу -->
+  <!-- Каркас: шапка, прокручиваемый экран, постоянный нижний бар -->
+  <AppHeader />
   <RouterView />
   <BottomNav />
 </template>

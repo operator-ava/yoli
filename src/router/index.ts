@@ -1,30 +1,31 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import RoutesView from '@/views/RoutesView.vue'
+import CalcView from '@/views/CalcView.vue'
 
 // history mode — офлайн-фолбэк на index.html настроен в vite.config.ts
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    { path: '/', name: 'routes', component: RoutesView, meta: { title: 'Маршруты' } },
+    // Главная — расчёт, ядро продукта.
+    { path: '/', name: 'calc', component: CalcView, meta: { title: 'Расчёт' } },
     {
-      path: '/map',
-      name: 'map',
-      component: () => import('@/views/MapView.vue'),
-      meta: { title: 'Карта' },
+      path: '/routes',
+      name: 'routes',
+      component: () => import('@/views/RoutesView.vue'),
+      meta: { title: 'Маршруты' },
     },
     {
-      path: '/guide',
-      name: 'guide',
-      component: () => import('@/views/GuideView.vue'),
-      meta: { title: 'Гид' },
+      path: '/stay',
+      name: 'stay',
+      component: () => import('@/views/StayView.vue'),
+      meta: { title: 'Проживание' },
     },
     {
-      path: '/profile',
-      name: 'profile',
-      component: () => import('@/views/ProfileView.vue'),
-      meta: { title: 'Профиль' },
+      path: '/food',
+      name: 'food',
+      component: () => import('@/views/FoodView.vue'),
+      meta: { title: 'Питание' },
     },
-    // Неизвестный адрес возвращаем на список маршрутов.
+    // Неизвестный адрес возвращаем на расчёт.
     { path: '/:pathMatch(.*)*', redirect: '/' },
   ],
 })

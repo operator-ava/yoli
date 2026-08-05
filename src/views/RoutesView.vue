@@ -1,10 +1,10 @@
 <script setup lang="ts">
-// Экран-заглушка: список маршрутов.
+// Экран-заглушка, наполняется следующим шагом.
 </script>
 
 <template>
   <section class="app-content">
     <h1>Маршруты</h1>
-    <p class="muted">Список маршрутов появится здесь.</p>
+    <p class="muted">Раздел готовится.</p>
   </section>
 </template>

@@ -1,24 +1,17 @@
 <script setup lang="ts">
-// Нижний бар навигации. Подписи здесь — часть каркаса, не контент.
+// Нижний бар навигации: четыре вкладки, главная — «Расчёт».
 const tabs = [
-  { to: '/', label: 'Маршруты', icon: '◎' },
-  { to: '/map', label: 'Карта', icon: '⌖' },
-  { to: '/guide', label: 'Гид', icon: '➤' },
-  { to: '/profile', label: 'Профиль', icon: '☰' },
+  { to: '/', label: 'Расчёт' },
+  { to: '/routes', label: 'Маршруты' },
+  { to: '/stay', label: 'Проживание' },
+  { to: '/food', label: 'Питание' },
 ] as const
 </script>
 
 <template>
   <nav class="bottom-nav">
-    <RouterLink
-      v-for="tab in tabs"
-      :key="tab.to"
-      :to="tab.to"
-      class="tab tap"
-      :aria-label="tab.label"
-    >
-      <span class="icon" aria-hidden="true">{{ tab.icon }}</span>
-      <span class="label">{{ tab.label }}</span>
+    <RouterLink v-for="tab in tabs" :key="tab.to" :to="tab.to" class="tab tap">
+      {{ tab.label }}
     </RouterLink>
   </nav>
 </template>
@@ -26,7 +19,7 @@ const tabs = [
 <style scoped>
 .bottom-nav {
   display: flex;
-  background: var(--surface);
+  background: var(--card);
   border-top: 1px solid var(--border);
   /* Полоса жеста «домой» на iPhone не должна перекрывать вкладки */
   padding-bottom: var(--safe-bottom);
@@ -39,22 +32,20 @@ const tabs = [
   flex: 1;
   min-height: var(--nav-height);
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: 13px;
+  font-weight: 500;
   padding: 6px 4px;
+  border-top: 2px solid transparent;
+  margin-top: -1px;
 }
 
-.icon {
-  font-size: 18px;
-  line-height: 1;
-}
-
-/* Активная вкладка подсвечивается акцентом */
+/* Активная вкладка — фирменный жёлтый */
 .tab.router-link-exact-active {
-  color: var(--accent);
+  color: var(--text);
+  font-weight: 600;
+  border-top-color: var(--brand-yellow);
 }
 </style>
