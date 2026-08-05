@@ -1,10 +1,12 @@
 <script setup lang="ts">
-// Экран-заглушка, наполняется следующим шагом.
+import ShowcaseList from '@/components/ShowcaseList.vue'
+import { ROUTE_CARDS } from '@/data'
 </script>
 
 <template>
-  <section class="app-content">
-    <h1>Маршруты</h1>
-    <p class="muted">Раздел готовится.</p>
-  </section>
+  <ShowcaseList
+    title="Маршруты"
+    note="Точки из программы. Полные описания готовятся."
+    :cards="ROUTE_CARDS"
+  />
 </template>

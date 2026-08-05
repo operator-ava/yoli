@@ -1,10 +1,12 @@
 <script setup lang="ts">
-// Экран-заглушка, наполняется следующим шагом.
+import ShowcaseList from '@/components/ShowcaseList.vue'
+import { STAY_CARDS } from '@/data'
 </script>
 
 <template>
-  <section class="app-content">
-    <h1>Проживание</h1>
-    <p class="muted">Раздел готовится.</p>
-  </section>
+  <ShowcaseList
+    title="Проживание"
+    note="Категории размещения по городам. Отели — после согласования."
+    :cards="STAY_CARDS"
+  />
 </template>
