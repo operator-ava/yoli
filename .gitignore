@@ -36,3 +36,4 @@ logo_yoli.png
 
 # Локальные настройки Claude Code
 .claude/settings.local.json
+.env*
