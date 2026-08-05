@@ -4,12 +4,12 @@
 import sharp from 'sharp'
 import path from 'node:path'
 
-const YELLOW = '#FFD800' // фирменный жёлтый, замерен в логотипе
+const YELLOW = '#FFE52A' // фирменный жёлтый, точный замер по логотипу
 const OUT = path.resolve(import.meta.dirname, '../public')
 const MARK = path.join(OUT, 'brand/mark.webp')
 
 // Вырезаем из знака только чёрную букву «Y», без жёлтого круга:
-// круг в исходнике другого оттенка (#FFE52A) и на фоне #FFD800 давал бы видимый шов.
+// круг в исходнике залит ровно этим же жёлтым, но буква должна лечь на чистый фон.
 async function glyph() {
   const { data, info } = await sharp(MARK).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
   const out = Buffer.alloc(info.width * info.height * 4, 0)

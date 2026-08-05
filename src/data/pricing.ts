@@ -7,7 +7,7 @@
 export type Level = 'econom' | 'medium' | 'lux'
 
 /** Идентификатор города. */
-export type CityId = 'tashkent' | 'samarkand' | 'bukhara' | 'fergana' | 'khiva'
+export type CityId = 'tashkent' | 'samarkand' | 'bukhara' | 'khiva'
 
 /** Пока true — на экране расчёта висит плашка «Предварительный расчёт». */
 export const PRICES_ARE_DRAFT = true
@@ -16,14 +16,8 @@ export const PRICES_ARE_DRAFT = true
 export const CURRENCY = 'USD'
 export const CURRENCY_SYMBOL = '$'
 
-/** Порядок городов по умолчанию — он же порядок посещения. */
-export const DEFAULT_CITY_ORDER: CityId[] = [
-  'tashkent',
-  'samarkand',
-  'bukhara',
-  'fergana',
-  'khiva',
-]
+/** Порядок городов по умолчанию. Фактический порядок вычисляется из дат заезда. */
+export const DEFAULT_CITY_ORDER: CityId[] = ['tashkent', 'samarkand', 'bukhara', 'khiva']
 
 /** Базовые ставки на ЧЕЛОВЕКА в ДЕНЬ для Ташкента, до сервисного сбора. */
 export const BASE_RATES: Record<Level, { stay: number; food: number; guide: number }> = {
@@ -37,7 +31,6 @@ export const CITY_FACTOR: Record<CityId, number> = {
   tashkent: 1.0,
   samarkand: 1.05,
   bukhara: 1.0,
-  fergana: 0.9,
   khiva: 0.95,
 }
 
@@ -48,11 +41,7 @@ export const TRANSFERS: Record<string, Record<Level, number>> = {
   'bukhara|samarkand': { econom: 20, medium: 40, lux: 110 },
   'bukhara|khiva': { econom: 45, medium: 70, lux: 190 },
   'khiva|tashkent': { econom: 90, medium: 140, lux: 260 },
-  'fergana|tashkent': { econom: 30, medium: 55, lux: 130 },
-  'fergana|samarkand': { econom: 50, medium: 80, lux: 175 },
-  'bukhara|fergana': { econom: 65, medium: 100, lux: 210 },
   'khiva|samarkand': { econom: 70, medium: 110, lux: 230 },
-  'fergana|khiva': { econom: 95, medium: 145, lux: 270 },
   'bukhara|tashkent': { econom: 35, medium: 60, lux: 150 },
 }
 

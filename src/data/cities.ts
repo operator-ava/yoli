@@ -12,7 +12,6 @@ export const CITIES: City[] = [
   { id: 'tashkent', name: 'Ташкент', photo: '/photos/cities/tashkent.webp' },
   { id: 'samarkand', name: 'Самарканд', photo: '/photos/cities/samarkand.webp' },
   { id: 'bukhara', name: 'Бухара', photo: '/photos/cities/bukhara.webp' },
-  { id: 'fergana', name: 'Ферганская долина', photo: '/photos/cities/fergana.webp' },
   { id: 'khiva', name: 'Хива', photo: '/photos/cities/khiva.webp' },
 ]
 

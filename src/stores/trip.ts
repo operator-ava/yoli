@@ -24,7 +24,6 @@ export const useTripStore = defineStore('trip', () => {
     tashkent: 3,
     samarkand: 2,
     bukhara: 2,
-    fergana: 2,
     khiva: 2,
   })
   const selected = ref<Set<CityId>>(new Set<CityId>(['tashkent']))
@@ -84,7 +83,7 @@ export const useTripStore = defineStore('trip', () => {
     singleRooms.value = false
     startDate.value = todayISO()
     order.value = [...DEFAULT_CITY_ORDER]
-    nights.value = { tashkent: 3, samarkand: 2, bukhara: 2, fergana: 2, khiva: 2 }
+    nights.value = { tashkent: 3, samarkand: 2, bukhara: 2, khiva: 2 }
     selected.value = new Set<CityId>(['tashkent'])
   }
 
