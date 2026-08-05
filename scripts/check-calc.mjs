@@ -17,10 +17,9 @@ console.log('Проверка: 1 человек, только Ташкент, 3 
 let ok = true
 for (const [level, expected] of LEVELS) {
   const r = calculate({
-    level,
     people: 1,
     singleRooms: false,
-    stops: [{ cityId: 'tashkent', nights: 3 }],
+    stops: [{ cityId: 'tashkent', nights: 3, level }],
   })
   const diff = ((r.perPerson - expected) / expected) * 100
   const pass = Math.abs(diff) <= 1

@@ -1,53 +1,42 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useTripStore } from '@/stores/trip'
 import {
-  CITIES,
-  LEVELS,
-  MAX_NIGHTS,
+  cityName,
   MAX_PEOPLE,
-  MIN_NIGHTS,
   MIN_PEOPLE,
   PRICES_ARE_DRAFT,
   type CityId,
+  type InclusionKey,
+  type Level,
 } from '@/data'
-import { plural, tripPeriod } from '@/composables/format'
+import { plural, rangeLabel } from '@/composables/dates'
+import CityCard from '@/components/CityCard.vue'
 import TotalPanel from '@/components/TotalPanel.vue'
+import BottomSheet from '@/components/BottomSheet.vue'
+import DateRangeSheet from '@/components/DateRangeSheet.vue'
+import InclusionSheet from '@/components/InclusionSheet.vue'
 
 const trip = useTripStore()
 
-// Города в порядке посещения; порядок общий для выбранных и невыбранных.
-const cityList = computed(() =>
-  trip.order.map((id) => CITIES.find((c) => c.id === id)).filter((c) => c !== undefined),
-)
+// Какой лист открыт: календарь города или подробности пункта состава.
+const dateSheet = ref<CityId | null>(null)
+const itemSheet = ref<{ cityId: CityId; level: Level; key: InclusionKey } | null>(null)
 
-const period = computed(() => tripPeriod(trip.startDate, trip.result.nights))
+const busy = computed(() => (dateSheet.value ? trip.busyNights(dateSheet.value) : new Map()))
 
-function isSelected(id: CityId) {
-  return trip.selected.has(id)
-}
+const summaryLine = computed(() => {
+  const s = trip.summary
+  if (!s) return ''
+  return `Поездка ${rangeLabel(s.from, s.to)} · ${s.days} ${plural(s.days, 'день', 'дня', 'дней')} · ${s.cities} ${plural(s.cities, 'город', 'города', 'городов')}`
+})
 </script>
 
 <template>
   <section class="app-content">
-    <!-- Плашка держится, пока цены не утверждены заказчиком -->
     <p v-if="PRICES_ARE_DRAFT" class="draft">Предварительный расчёт</p>
 
-    <h2>Уровень</h2>
-    <div class="levels">
-      <button
-        v-for="l in LEVELS"
-        :key="l.id"
-        class="level card tap"
-        :class="{ active: trip.level === l.id }"
-        :aria-pressed="trip.level === l.id"
-        @click="trip.setLevel(l.id)"
-      >
-        {{ l.name }}
-      </button>
-    </div>
-
-    <h2>Людей</h2>
+    <h2>Кто едет</h2>
     <div class="card block">
       <div class="counter">
         <button
@@ -74,79 +63,69 @@ function isSelected(id: CityId) {
         </button>
       </div>
       <label class="switch-row tap">
-        <span>Размещение по одному</span>
+        <span>{{ trip.singleRooms ? 'По одному' : 'По двое в номере' }}</span>
         <input v-model="trip.singleRooms" type="checkbox" class="switch" />
       </label>
     </div>
 
-    <h2>Дата начала</h2>
-    <div class="card block">
-      <input v-model="trip.startDate" type="date" class="date tap" />
-      <p v-if="period" class="period">{{ period }}</p>
-    </div>
+    <h2>Города</h2>
+    <!-- Порядок вычисляется из дат заезда, стрелок нет -->
+    <p v-if="summaryLine" class="summary">{{ summaryLine }}</p>
 
-    <h2>Города и ночи</h2>
-    <div class="card block cities">
-      <div
-        v-for="(c, i) in cityList"
-        :key="c.id"
-        class="city list-item"
-        :class="{ on: isSelected(c.id) }"
-      >
-        <label class="city-main tap">
-          <input
-            type="checkbox"
-            class="check"
-            :checked="isSelected(c.id)"
-            @change="trip.toggleCity(c.id)"
-          />
-          <span class="city-name">{{ c.name }}</span>
-        </label>
-
-        <div v-if="isSelected(c.id)" class="nights">
-          <button
-            class="round sm"
-            :disabled="trip.nights[c.id] <= MIN_NIGHTS"
-            :aria-label="`Убрать ночь, ${c.name}`"
-            @click="trip.changeNights(c.id, -1)"
-          >
-            −
-          </button>
-          <span class="nights-num tnum">{{ trip.nights[c.id] }}</span>
-          <button
-            class="round sm"
-            :disabled="trip.nights[c.id] >= MAX_NIGHTS"
-            :aria-label="`Добавить ночь, ${c.name}`"
-            @click="trip.changeNights(c.id, 1)"
-          >
-            +
-          </button>
-        </div>
-
-        <div class="order">
-          <button
-            class="arrow"
-            :disabled="i === 0"
-            :aria-label="`Выше, ${c.name}`"
-            @click="trip.move(c.id, -1)"
-          >
-            ↑
-          </button>
-          <button
-            class="arrow"
-            :disabled="i === cityList.length - 1"
-            :aria-label="`Ниже, ${c.name}`"
-            @click="trip.move(c.id, 1)"
-          >
-            ↓
-          </button>
-        </div>
-      </div>
+    <div class="cities">
+      <CityCard
+        v-for="id in trip.orderedCities"
+        :key="id"
+        :city-id="id"
+        :range="trip.ranges[id]"
+        :level="trip.levels[id] ?? null"
+        :single-rooms="trip.singleRooms"
+        @pick-dates="dateSheet = id"
+        @choose="trip.setLevel(id, $event)"
+        @open-item="itemSheet = { cityId: id, level: $event.level, key: $event.key }"
+      />
     </div>
   </section>
 
   <!-- Итог виден всегда, на любом шаге ввода -->
   <TotalPanel />
+
+  <BottomSheet v-if="dateSheet" @close="dateSheet = null">
+    <DateRangeSheet
+      :city-name="cityName(dateSheet)"
+      :value="trip.ranges[dateSheet]"
+      :busy="busy"
+      @apply="
+        (r) => {
+          trip.setRange(dateSheet!, r)
+          dateSheet = null
+        }
+      "
+      @clear="
+        () => {
+          trip.clearRange(dateSheet!)
+          dateSheet = null
+        }
+      "
+      @close="dateSheet = null"
+    />
+  </BottomSheet>
+
+  <BottomSheet v-if="itemSheet" @close="itemSheet = null">
+    <InclusionSheet
+      :city-id="itemSheet.cityId"
+      :level="itemSheet.level"
+      :item-key="itemSheet.key"
+      :selected-level="trip.levels[itemSheet.cityId] ?? null"
+      @choose="
+        (l) => {
+          trip.setLevel(itemSheet!.cityId, l)
+          itemSheet = null
+        }
+      "
+      @close="itemSheet = null"
+    />
+  </BottomSheet>
 </template>
 
 <style scoped>
@@ -161,26 +140,6 @@ function isSelected(id: CityId) {
 
 h2 {
   margin-top: 18px;
-}
-
-.levels {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-
-.level {
-  min-height: 68px;
-  font-size: 15px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.level.active {
-  background: var(--brand-yellow);
-  border-color: var(--brand-yellow);
 }
 
 .block {
@@ -210,13 +169,6 @@ h2 {
 
 .round:disabled {
   color: var(--border);
-}
-
-.round.sm {
-  width: 40px;
-  height: 40px;
-  min-height: 40px;
-  font-size: 20px;
 }
 
 .count {
@@ -278,90 +230,15 @@ h2 {
   transform: translateX(20px);
 }
 
-.date {
-  width: 100%;
-  min-height: var(--tap-min);
-  border: none;
-  background: none;
-  font: inherit;
-  font-size: 17px;
-  color: inherit;
-}
-
-.period {
-  border-top: 1px solid var(--border);
-  margin: 0;
-  padding: 12px 0;
-  font-size: 14px;
-  color: var(--text-muted);
+.summary {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0 0 10px;
 }
 
 .cities {
-  padding: 0 12px;
-}
-
-.city {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  border-top: 1px solid var(--border);
-}
-
-.city:first-child {
-  border-top: none;
-}
-
-.city-main {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-height: var(--tap-min);
-  cursor: pointer;
-}
-
-.check {
-  width: 24px;
-  height: 24px;
-  flex-shrink: 0;
-  accent-color: var(--brand-yellow);
-}
-
-.city-name {
-  font-size: 16px;
-}
-
-.city.on .city-name {
-  font-weight: 600;
-}
-
-.nights {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.nights-num {
-  min-width: 22px;
-  text-align: center;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.order {
   display: flex;
   flex-direction: column;
-}
-
-.arrow {
-  width: 32px;
-  height: 28px;
-  min-height: 28px;
-  font-size: 14px;
-  color: var(--text-muted);
-}
-
-.arrow:disabled {
-  color: var(--border);
+  gap: 10px;
 }
 </style>

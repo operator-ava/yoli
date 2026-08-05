@@ -1,118 +1,112 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import {
-  DEFAULT_CITY_ORDER,
-  MAX_NIGHTS,
-  MAX_PEOPLE,
-  MIN_NIGHTS,
-  MIN_PEOPLE,
-  type CityId,
-  type Level,
-} from '@/data'
+import { CITIES, DEFAULT_CITY_ORDER, MAX_PEOPLE, MIN_PEOPLE, type CityId, type Level } from '@/data'
 import { calculate, type TripStop } from '@/composables/calc'
+import { nightsBetween, nightsOf } from '@/composables/dates'
 
-/** Состояние ввода на экране «Расчёт». */
+/** Диапазон дат пребывания в городе: заезд включительно, выезд — день отъезда. */
+export interface DateRange {
+  from: string
+  to: string
+}
+
+/** Состояние ввода на экране «Расчёт».
+ *  Тариф и даты — по каждому городу отдельно, глобального уровня поездки нет. */
 export const useTripStore = defineStore('trip', () => {
-  const level = ref<Level>('medium')
   const people = ref(2)
   const singleRooms = ref(false)
-  const startDate = ref(todayISO())
 
-  // Порядок в массиве — порядок посещения. Изначально выбран первый город.
-  const order = ref<CityId[]>([...DEFAULT_CITY_ORDER])
-  const nights = ref<Record<CityId, number>>({
-    tashkent: 3,
-    samarkand: 2,
-    bukhara: 2,
-    khiva: 2,
+  const ranges = ref<Partial<Record<CityId, DateRange>>>({})
+  const levels = ref<Partial<Record<CityId, Level>>>({})
+
+  /** Города с датами — по хронологии заезда; следом города без дат. */
+  const orderedCities = computed<CityId[]>(() => {
+    const withDates = DEFAULT_CITY_ORDER.filter((id) => ranges.value[id])
+    withDates.sort((a, b) => ranges.value[a]!.from.localeCompare(ranges.value[b]!.from))
+    const withoutDates = DEFAULT_CITY_ORDER.filter((id) => !ranges.value[id])
+    return [...withDates, ...withoutDates]
   })
-  const selected = ref<Set<CityId>>(new Set<CityId>(['tashkent']))
 
-  /** Города маршрута в порядке посещения. */
+  /** Города, которые входят в расчёт: есть и даты, и выбранный тариф. */
   const stops = computed<TripStop[]>(() =>
-    order.value
-      .filter((id) => selected.value.has(id))
-      .map((id) => ({ cityId: id, nights: nights.value[id] })),
+    orderedCities.value
+      .filter((id) => ranges.value[id] && levels.value[id])
+      .map((id) => ({
+        cityId: id,
+        nights: nightsBetween(ranges.value[id]!.from, ranges.value[id]!.to),
+        level: levels.value[id]!,
+      })),
   )
 
   const result = computed(() =>
-    calculate({
-      level: level.value,
-      people: people.value,
-      singleRooms: singleRooms.value,
-      stops: stops.value,
-    }),
+    calculate({ people: people.value, singleRooms: singleRooms.value, stops: stops.value }),
   )
 
-  function setLevel(next: Level) {
-    level.value = next
+  /** Сводка по всей поездке: границы дат, календарных дней и городов. */
+  const summary = computed(() => {
+    const dated = orderedCities.value.filter((id) => ranges.value[id])
+    if (!dated.length) return null
+    const from = ranges.value[dated[0]]!.from
+    const to = dated.reduce((max, id) => (ranges.value[id]!.to > max ? ranges.value[id]!.to : max), '')
+    return { from, to, days: nightsBetween(from, to) + 1, cities: dated.length }
+  })
+
+  /** Занятые ночи других городов: дата → название города.
+   *  По ним календарь гасит дни, чтобы наложение было физически невозможно. */
+  function busyNights(except: CityId): Map<string, string> {
+    const map = new Map<string, string>()
+    for (const city of CITIES) {
+      if (city.id === except) continue
+      const r = ranges.value[city.id]
+      if (!r) continue
+      for (const night of nightsOf(r.from, r.to)) map.set(night, city.name)
+    }
+    return map
   }
 
   function changePeople(delta: number) {
-    people.value = clamp(people.value + delta, MIN_PEOPLE, MAX_PEOPLE)
+    people.value = Math.min(MAX_PEOPLE, Math.max(MIN_PEOPLE, people.value + delta))
   }
 
-  function toggleCity(id: CityId) {
-    const next = new Set(selected.value)
-    if (next.has(id)) next.delete(id)
-    else next.add(id)
-    selected.value = next
+  function setRange(id: CityId, range: DateRange) {
+    ranges.value = { ...ranges.value, [id]: range }
   }
 
-  function changeNights(id: CityId, delta: number) {
-    nights.value = {
-      ...nights.value,
-      [id]: clamp(nights.value[id] + delta, MIN_NIGHTS, MAX_NIGHTS),
-    }
+  function clearRange(id: CityId) {
+    const next = { ...ranges.value }
+    delete next[id]
+    ranges.value = next
+    // Без дат тариф теряет смысл — сбрасываем вместе.
+    const nextLevels = { ...levels.value }
+    delete nextLevels[id]
+    levels.value = nextLevels
   }
 
-  /** Сдвиг города в порядке посещения. Двигаем по всему списку,
-   *  чтобы порядок сохранялся и для пока не выбранных городов. */
-  function move(id: CityId, delta: number) {
-    const list = [...order.value]
-    const from = list.indexOf(id)
-    const to = from + delta
-    if (from < 0 || to < 0 || to >= list.length) return
-    ;[list[from], list[to]] = [list[to], list[from]]
-    order.value = list
+  function setLevel(id: CityId, level: Level) {
+    levels.value = { ...levels.value, [id]: level }
   }
 
   function reset() {
-    level.value = 'medium'
     people.value = 2
     singleRooms.value = false
-    startDate.value = todayISO()
-    order.value = [...DEFAULT_CITY_ORDER]
-    nights.value = { tashkent: 3, samarkand: 2, bukhara: 2, khiva: 2 }
-    selected.value = new Set<CityId>(['tashkent'])
+    ranges.value = {}
+    levels.value = {}
   }
 
   return {
-    level,
     people,
     singleRooms,
-    startDate,
-    order,
-    nights,
-    selected,
+    ranges,
+    levels,
+    orderedCities,
     stops,
     result,
-    setLevel,
+    summary,
+    busyNights,
     changePeople,
-    toggleCity,
-    changeNights,
-    move,
+    setRange,
+    clearRange,
+    setLevel,
     reset,
   }
 })
-
-function clamp(v: number, min: number, max: number) {
-  return Math.min(max, Math.max(min, v))
-}
-
-function todayISO() {
-  const d = new Date()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${d.getFullYear()}-${m}-${day}`
-}

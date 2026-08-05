@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useTripStore } from '@/stores/trip'
-import { cityName, MAX_PEOPLE } from '@/data'
+import { cityName, LEVELS, MAX_PEOPLE } from '@/data'
 import { nextDiscountStep } from '@/composables/calc'
-import { money, percent, plural, tripPeriod } from '@/composables/format'
+import { money, percent } from '@/composables/format'
+import { plural, rangeLabel, short } from '@/composables/dates'
 
 const trip = useTripStore()
 const open = ref(false)
@@ -25,18 +26,29 @@ const articles = computed(() => [
   { label: 'Сервисный сбор', value: r.value.serviceFee },
 ])
 
+function levelName(id: string) {
+  return LEVELS.find((l) => l.id === id)?.name ?? id
+}
+
 /** Текстовая сводка для буфера обмена. */
 function summaryText(): string {
   const lines: string[] = []
   lines.push('YOLI — предварительный расчёт путешествия по Узбекистану')
   lines.push('')
-  lines.push(`Уровень: ${levelName(trip.level)}`)
+  if (trip.summary) {
+    lines.push(
+      `${rangeLabel(trip.summary.from, trip.summary.to)} · ${trip.summary.days} ${plural(trip.summary.days, 'день', 'дня', 'дней')}`,
+    )
+  }
   lines.push(`Человек: ${trip.people}${trip.singleRooms ? ', размещение по одному' : ''}`)
-  if (r.value.nights > 0) lines.push(tripPeriod(trip.startDate, r.value.nights))
   lines.push('')
   lines.push('Маршрут:')
   for (const c of r.value.byCity) {
-    lines.push(`  ${cityName(c.cityId)} — ${c.nights} ${plural(c.nights, 'ночь', 'ночи', 'ночей')}`)
+    const range = trip.ranges[c.cityId]
+    const dates = range ? `${short(range.from)}–${short(range.to)}, ` : ''
+    lines.push(
+      `  ${cityName(c.cityId)} — ${dates}${c.nights} ${plural(c.nights, 'ночь', 'ночи', 'ночей')}, тариф «${levelName(c.level)}»`,
+    )
   }
   lines.push('')
   for (const a of articles.value) lines.push(`${a.label}: ${money(a.value)}`)
@@ -49,10 +61,6 @@ function summaryText(): string {
   lines.push('')
   lines.push('Цены предварительные, не являются офертой.')
   return lines.join('\n')
-}
-
-function levelName(id: string) {
-  return { econom: 'Эконом', medium: 'Средний', lux: 'Люкс' }[id] ?? id
 }
 
 async function share() {
@@ -71,7 +79,7 @@ async function share() {
   <div class="panel">
     <!-- Тап по шапке панели раскрывает разбивку -->
     <button class="head tap" :aria-expanded="open" @click="open = !open">
-      <div class="main">
+      <div>
         <div class="per-person tnum">{{ money(r.perPerson) }}</div>
         <div class="per-person-label">на человека</div>
       </div>
@@ -104,9 +112,12 @@ async function share() {
       </div>
 
       <h3>По городам</h3>
-      <p v-if="!r.byCity.length" class="muted empty">Города не выбраны.</p>
+      <p v-if="!r.byCity.length" class="muted empty">Выберите даты и тариф хотя бы в одном городе.</p>
       <div v-for="c in r.byCity" :key="c.cityId" class="row">
-        <span>{{ cityName(c.cityId) }} · {{ c.nights }}</span>
+        <span>
+          {{ cityName(c.cityId) }} · {{ c.nights }}
+          {{ plural(c.nights, 'ночь', 'ночи', 'ночей') }} · {{ levelName(c.level) }}
+        </span>
         <span class="tnum">{{ money(c.amount) }}</span>
       </div>
 
@@ -128,7 +139,6 @@ async function share() {
   flex-shrink: 0;
   padding-left: calc(16px + var(--safe-left));
   padding-right: calc(16px + var(--safe-right));
-  /* Панель прижата к нижнему бару, своей safe-area отступ не нужен */
   max-height: 70dvh;
   overflow-y: auto;
   overscroll-behavior: contain;
