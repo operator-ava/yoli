@@ -4,9 +4,5 @@ import { STAY_CARDS } from '@/data'
 </script>
 
 <template>
-  <ShowcaseList
-    title="Проживание"
-    note="Категории размещения по городам. Отели — после согласования."
-    :cards="STAY_CARDS"
-  />
+  <ShowcaseList title-key="showcase.stay.title" note-key="showcase.stay.note" :cards="STAY_CARDS" />
 </template>

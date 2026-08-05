@@ -1,6 +1,15 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { CITIES, DEFAULT_CITY_ORDER, MAX_PEOPLE, MIN_PEOPLE, type CityId, type Level } from '@/data'
+import {
+  CITIES,
+  cityName,
+  DEFAULT_CITY_ORDER,
+  firstHotelId,
+  MAX_PEOPLE,
+  MIN_PEOPLE,
+  type CityId,
+  type Level,
+} from '@/data'
 import { calculate, type TripStop } from '@/composables/calc'
 import { nightsBetween, nightsOf } from '@/composables/dates'
 
@@ -17,6 +26,8 @@ export const useTripStore = defineStore('trip', () => {
 
   const ranges = ref<Partial<Record<CityId, DateRange>>>({})
   const levels = ref<Partial<Record<CityId, Level>>>({})
+  /** Выбранный отель по городу. На цену не влияет. */
+  const hotels = ref<Partial<Record<CityId, string>>>({})
 
   /** Города с датами — по хронологии заезда; следом города без дат. */
   const orderedCities = computed<CityId[]>(() => {
@@ -58,7 +69,7 @@ export const useTripStore = defineStore('trip', () => {
       if (city.id === except) continue
       const r = ranges.value[city.id]
       if (!r) continue
-      for (const night of nightsOf(r.from, r.to)) map.set(night, city.name)
+      for (const night of nightsOf(r.from, r.to)) map.set(night, cityName(city.id))
     }
     return map
   }
@@ -79,22 +90,33 @@ export const useTripStore = defineStore('trip', () => {
     const nextLevels = { ...levels.value }
     delete nextLevels[id]
     levels.value = nextLevels
+    const nextHotels = { ...hotels.value }
+    delete nextHotels[id]
+    hotels.value = nextHotels
   }
 
   function setLevel(id: CityId, level: Level) {
     levels.value = { ...levels.value, [id]: level }
+    // При смене тарифа выбор отеля сбрасывается на первый отель нового уровня.
+    hotels.value = { ...hotels.value, [id]: firstHotelId(id, level) }
+  }
+
+  function setHotel(id: CityId, hotelId: string) {
+    hotels.value = { ...hotels.value, [id]: hotelId }
   }
 
   function reset() {
     people.value = 2
     ranges.value = {}
     levels.value = {}
+    hotels.value = {}
   }
 
   return {
     people,
     ranges,
     levels,
+    hotels,
     orderedCities,
     stops,
     result,
@@ -104,6 +126,7 @@ export const useTripStore = defineStore('trip', () => {
     setRange,
     clearRange,
     setLevel,
+    setHotel,
     reset,
   }
 })

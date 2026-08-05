@@ -2,8 +2,9 @@
 // Источник по трансферу и логистике: YOLi_DedBobo_KB/5_yoli_logistics.md.
 // Названия гостиниц, блюда и марки транспорта НЕ ВЫДУМЫВАЮТСЯ.
 // Пустой пункт (summary === '') в интерфейсе не показывается вовсе.
-import { hotelSummary } from './hotels'
-import { mealSummary } from './meals'
+import { t } from '@/composables/useI18n'
+import { hotelById, hotelsFor } from './hotels'
+import { MEAL_FORMAT, MEAL_LABEL_KEY } from './meals'
 import type { CityId, Level } from './pricing'
 
 /** Пункт состава тарифа. */
@@ -16,13 +17,13 @@ export interface Inclusion {
   details: string[]
 }
 
-/** Порядок и названия пунктов состава. Порядок задан заказчиком. */
-export const INCLUSION_ITEMS: { key: InclusionKey; label: string }[] = [
-  { key: 'hotel', label: 'Гостиница' },
-  { key: 'food', label: 'Питание' },
-  { key: 'transfer', label: 'Трансфер' },
-  { key: 'logistics', label: 'Логистика и маршруты' },
-  { key: 'guide', label: 'Живой гид' },
+/** Порядок и ключи названий пунктов. Порядок задан заказчиком. */
+export const INCLUSION_ITEMS: { key: InclusionKey; labelKey: string }[] = [
+  { key: 'hotel', labelKey: 'inc.hotel' },
+  { key: 'food', labelKey: 'inc.food' },
+  { key: 'transfer', labelKey: 'inc.transfer' },
+  { key: 'logistics', labelKey: 'inc.logistics' },
+  { key: 'guide', labelKey: 'inc.guide' },
 ]
 
 const EMPTY: Inclusion = { summary: '', details: [] }
@@ -31,67 +32,80 @@ const EMPTY: Inclusion = { summary: '', details: [] }
 // ⚠️ ТРЕБУЕТ УТВЕРЖДЕНИЯ: сопоставление классов авто из материалов
 // (эконом / комфорт / бизнес / минивэн) с тарифами эконом / средний / люкс
 // в документах заказчика отсутствует, оно задано вручную.
-const CAR_CLASS: Record<Level, string> = {
-  econom: 'Nexia или Lacetti',
-  medium: 'Malibu или аналог',
-  lux: 'Минивэн H-1 или представительский класс',
+const CAR_KEY: Record<Level, string> = {
+  econom: 'transfer.car.econom',
+  medium: 'transfer.car.medium',
+  lux: 'transfer.car.lux',
 }
 
 // Остальной состав трансфера одинаков для всех уровней — так в материалах.
 const TRANSFER_COMMON = [
-  'Водитель со знанием русского языка и дорог, рейтинг 4.5+',
-  'Бензин на весь маршрут',
-  'Бутилированная вода в машине',
-  'Кондиционер',
-  'Wi-Fi, если доступен в машине',
-  'Помощь с переводом: в ресторане, на заправке',
-  'До трёх остановок по 30–40 минут: отдых, чайхана',
-  'Не входит: входные билеты в музеи, еда и напитки пассажиров',
+  'transfer.d1',
+  'transfer.d2',
+  'transfer.d3',
+  'transfer.d4',
+  'transfer.d5',
+  'transfer.d6',
+  'transfer.d7',
+  'transfer.d8',
 ]
 
 function transfer(level: Level): Inclusion {
+  const car = t(CAR_KEY[level])
   return {
-    summary: CAR_CLASS[level],
-    details: [`Класс автомобиля: ${CAR_CLASS[level]}`, ...TRANSFER_COMMON],
+    summary: car,
+    details: [t('transfer.carLine', { car }), ...TRANSFER_COMMON.map((k) => t(k))],
   }
 }
 
 // ── Логистика и маршруты ────────────────────────────────────────────────────
 // Из раздела «МНОГОДНЕВНАЯ АРЕНДА». Различий по тарифам в материалах нет.
-const LOGISTICS: Inclusion = {
-  summary: 'Водитель-гид на весь маршрут, гибкий план',
-  details: [
-    'Водитель-гид сопровождает весь маршрут',
-    'Гибкий маршрут: план можно менять каждый день',
-    'Остановки без ограничений',
-    'Рекомендации водителя: места и заведения по пути',
-    'Изменение маршрута в процессе пересчитывается без штрафов',
-    'Не входит: ночёвка водителя при многодневной аренде',
-  ],
+function logistics(): Inclusion {
+  return {
+    summary: t('logistics.summary'),
+    details: ['logistics.d1', 'logistics.d2', 'logistics.d3', 'logistics.d4', 'logistics.d5', 'logistics.d6'].map(
+      (k) => t(k),
+    ),
+  }
 }
 
-// ── Живой гид ───────────────────────────────────────────────────────────────
-// ТРЕБУЕТ ДАННЫХ: что входит в тариф — не задано ни по одному городу.
-// Пока пусто, строка в карточке не показывается вовсе.
-const GUIDE: Inclusion = EMPTY
+/** Сводка по гостинице: имя выбранного отеля, иначе краткая категория уровня. */
+export function hotelSummary(cityId: CityId, level: Level, hotelId?: string): string {
+  const chosen = hotelById(cityId, level, hotelId) ?? hotelsFor(cityId, level)[0]
+  return chosen ? chosen.name : t(`hotel.catShort.${level}`)
+}
+
+/** Сводка по питанию: перечисление приёмов пищи. */
+export function mealSummary(level: Level): string {
+  const labels = MEAL_FORMAT[level].meals.map((m) => t(MEAL_LABEL_KEY[m]))
+  return labels.join(' · ')
+}
 
 /** Состав пункта для города и тарифа. */
-export function inclusion(cityId: CityId, level: Level, key: InclusionKey): Inclusion {
+export function inclusion(
+  cityId: CityId,
+  level: Level,
+  key: InclusionKey,
+  hotelId?: string,
+): Inclusion {
   switch (key) {
     case 'hotel':
-      return { summary: hotelSummary(cityId, level), details: [] }
+      return { summary: hotelSummary(cityId, level, hotelId), details: [] }
     case 'food':
       return { summary: mealSummary(level), details: [] }
     case 'transfer':
       return transfer(level)
     case 'logistics':
-      return LOGISTICS
+      return logistics()
     case 'guide':
-      return GUIDE
+      // ТРЕБУЕТ ДАННЫХ: что входит в тариф — не задано ни по одному городу.
+      return EMPTY
   }
 }
 
 /** Пункты, у которых есть что показать. Пустые не выводятся. */
-export function filledItems(cityId: CityId, level: Level) {
-  return INCLUSION_ITEMS.filter((item) => inclusion(cityId, level, item.key).summary !== '')
+export function filledItems(cityId: CityId, level: Level, hotelId?: string) {
+  return INCLUSION_ITEMS.filter(
+    (item) => inclusion(cityId, level, item.key, hotelId).summary !== '',
+  )
 }

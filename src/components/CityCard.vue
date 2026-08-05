@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { city, type CityId, type InclusionKey, type Level } from '@/data'
-import { nightsBetween, plural, short } from '@/composables/dates'
+import { city, cityName, type CityId, type InclusionKey, type Level } from '@/data'
+import { nightsBetween, short } from '@/composables/dates'
+import { count, t } from '@/composables/useI18n'
 import type { DateRange } from '@/stores/trip'
 import TariffCarousel from '@/components/TariffCarousel.vue'
 
@@ -9,6 +10,7 @@ const props = defineProps<{
   cityId: CityId
   range?: DateRange
   level: Level | null
+  hotelId?: string
 }>()
 
 const emit = defineEmits<{
@@ -24,10 +26,10 @@ const nights = computed(() => (props.range ? nightsBetween(props.range.from, pro
 <template>
   <!-- Состояние А: даты не выбраны. Компактная строка, город в расчёт не входит. -->
   <button v-if="!range" class="card empty tap" @click="emit('pickDates')">
-    <img class="thumb" :src="info?.photo" :alt="info?.name" loading="lazy" />
+    <img class="thumb" :src="info?.photo" :alt="cityName(cityId)" loading="lazy" />
     <span class="col">
-      <span class="name">{{ info?.name }}</span>
-      <span class="muted sub">Выберите даты</span>
+      <span class="name">{{ cityName(cityId) }}</span>
+      <span class="muted sub">{{ t('calc.pickDates') }}</span>
     </span>
     <span class="cal" aria-hidden="true">🗓</span>
   </button>
@@ -35,26 +37,26 @@ const nights = computed(() => (props.range ? nightsBetween(props.range.from, pro
   <!-- Состояние Б: даты выбраны, карточка раскрыта. -->
   <article v-else class="card open">
     <header class="head">
-      <img class="thumb" :src="info?.photo" :alt="info?.name" loading="lazy" />
+      <img class="thumb" :src="info?.photo" :alt="cityName(cityId)" loading="lazy" />
       <div class="col">
-        <div class="name">{{ info?.name }}</div>
+        <div class="name">{{ cityName(cityId) }}</div>
         <div class="muted sub">
-          {{ short(range.from) }} – {{ short(range.to) }} · {{ nights }}
-          {{ plural(nights, 'ночь', 'ночи', 'ночей') }}
+          {{ short(range.from) }} – {{ short(range.to) }} · {{ count(nights, 'u.night') }}
         </div>
       </div>
-      <button class="edit" @click="emit('pickDates')">Изменить</button>
+      <button class="edit" @click="emit('pickDates')">{{ t('calc.change') }}</button>
     </header>
 
     <TariffCarousel
       :city-id="cityId"
       :nights="nights"
       :selected="level"
+      :hotel-id="hotelId"
       @choose="emit('choose', $event)"
       @open-item="emit('openItem', $event)"
     />
 
-    <p v-if="!level" class="muted no-level">Выберите тариф</p>
+    <p v-if="!level" class="muted no-level">{{ t('calc.pickTariff') }}</p>
   </article>
 </template>
 

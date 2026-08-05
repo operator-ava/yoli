@@ -5,10 +5,12 @@ import {
   inclusion,
   INCLUSION_ITEMS,
   LEVELS,
+  levelName,
   type CityId,
   type InclusionKey,
   type Level,
 } from '@/data'
+import { t } from '@/composables/useI18n'
 
 // Нижний лист по строке состава: подробности выбранного тарифа
 // и то же самое для двух остальных, чтобы разница читалась глазами.
@@ -22,20 +24,19 @@ const props = defineProps<{
 
 const emit = defineEmits<{ choose: [Level]; close: [] }>()
 
-const itemLabel = computed(
-  () => INCLUSION_ITEMS.find((i) => i.key === props.itemKey)?.label ?? '',
-)
+const itemLabel = computed(() => {
+  const key = INCLUSION_ITEMS.find((i) => i.key === props.itemKey)?.labelKey
+  return key ? t(key) : ''
+})
 
 const current = computed(() => inclusion(props.cityId, props.level, props.itemKey))
 
 const others = computed(() =>
   LEVELS.filter((l) => l.id !== props.level).map((l) => ({
-    name: l.name,
+    name: levelName(l.id),
     data: inclusion(props.cityId, l.id, props.itemKey),
   })),
 )
-
-const levelName = computed(() => LEVELS.find((l) => l.id === props.level)?.name ?? '')
 </script>
 
 <template>
@@ -43,9 +44,9 @@ const levelName = computed(() => LEVELS.find((l) => l.id === props.level)?.name 
     <header class="head">
       <div>
         <h2 class="title">{{ itemLabel }} · {{ cityName(cityId) }}</h2>
-        <p class="sub muted">Тариф «{{ levelName }}»</p>
+        <p class="sub muted">{{ t('sheet.tariff', { name: levelName(level) }) }}</p>
       </div>
-      <button class="close" aria-label="Закрыть" @click="emit('close')">✕</button>
+      <button class="close" :aria-label="t('sheet.close')" @click="emit('close')">✕</button>
     </header>
 
     <div class="scroll">
@@ -54,16 +55,16 @@ const levelName = computed(() => LEVELS.find((l) => l.id === props.level)?.name 
         <li v-for="d in current.details" :key="d">{{ d }}</li>
       </ul>
 
-      <h3>В других тарифах</h3>
+      <h3>{{ t('sheet.others') }}</h3>
       <div v-for="o in others" :key="o.name" class="other">
         <div class="other-name">{{ o.name }}</div>
         <p v-if="o.data.summary" class="muted other-text">{{ o.data.summary }}</p>
-        <p v-else class="muted other-text">Состав уточняется.</p>
+        <p v-else class="muted other-text">{{ t('sheet.pending') }}</p>
       </div>
     </div>
 
     <footer v-if="selectedLevel !== level" class="foot">
-      <button class="btn primary" @click="emit('choose', level)">Выбрать этот тариф</button>
+      <button class="btn primary" @click="emit('choose', level)">{{ t('sheet.choose') }}</button>
     </footer>
   </div>
 </template>

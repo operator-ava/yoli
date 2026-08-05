@@ -1,28 +1,39 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { AMENITIES, cityName, hotel, LEVELS, type CityId, type Level } from '@/data'
+import {
+  amenitiesFor,
+  cityName,
+  hotelById,
+  hotelsFor,
+  LEVEL_STARS,
+  LEVELS,
+  levelName,
+  type CityId,
+  type Level,
+} from '@/data'
+import { t } from '@/composables/useI18n'
+import HotelPhoto from '@/components/HotelPhoto.vue'
 
-// Лист «Гостиница» в стиле карточки отеля.
-// Названий отелей нет — вместо имени показывается категория.
+// Лист «Гостиница». Выбор отеля не влияет на цену.
 const props = defineProps<{
   cityId: CityId
   level: Level
+  hotelId?: string
   selectedLevel: Level | null
 }>()
 
-const emit = defineEmits<{ choose: [Level]; close: [] }>()
+const emit = defineEmits<{ choose: [Level]; pickHotel: [string]; close: [] }>()
 
-const data = computed(() => hotel(props.cityId, props.level))
-const levelName = computed(() => LEVELS.find((l) => l.id === props.level)?.name ?? '')
+const list = computed(() => hotelsFor(props.cityId, props.level))
+const current = computed(() => hotelById(props.cityId, props.level, props.hotelId) ?? list.value[0])
+const others = computed(() => list.value.filter((h) => h.id !== current.value?.id))
+const stars = computed(() => current.value?.stars ?? LEVEL_STARS[props.level])
+const amenities = computed(() => amenitiesFor(props.level))
 
-const amenities = computed(() =>
-  AMENITIES.filter((a) => data.value.amenities.includes(a.key)),
-)
-
-const others = computed(() =>
+const otherLevels = computed(() =>
   LEVELS.filter((l) => l.id !== props.level).map((l) => ({
-    name: l.name,
-    category: hotel(props.cityId, l.id).category,
+    name: levelName(l.id),
+    category: t(`hotel.cat.${l.id}`),
   })),
 )
 </script>
@@ -31,44 +42,55 @@ const others = computed(() =>
   <div class="body">
     <header class="head">
       <div>
-        <h2 class="title">Гостиница · {{ cityName(cityId) }}</h2>
-        <p class="sub muted">Тариф «{{ levelName }}»</p>
+        <h2 class="title">{{ t('hotel.title', { city: cityName(cityId) }) }}</h2>
+        <p class="sub muted">{{ t('sheet.tariff', { name: levelName(level) }) }}</p>
       </div>
-      <button class="close" aria-label="Закрыть" @click="emit('close')">✕</button>
+      <button class="close" :aria-label="t('sheet.close')" @click="emit('close')">✕</button>
     </header>
 
     <div class="scroll">
-      <!-- Фото размещения. Пока фотографий отелей нет — место остаётся пустым. -->
-      <img v-if="data.photo" class="photo" :src="data.photo" :alt="data.category" />
+      <!-- Реальных фото отелей нет — фирменная заглушка -->
+      <HotelPhoto :stars="stars" />
 
-      <!-- Имени отеля нет, показываем категорию -->
-      <div class="category">{{ data.name || data.category }}</div>
-      <div class="city muted">{{ cityName(cityId) }}</div>
+      <!-- Имени нет — показываем категорию уровня -->
+      <div class="name">{{ current?.name || t(`hotel.cat.${level}`) }}</div>
+      <div class="meta muted">
+        <span v-if="current">{{ current.stars }}★ · {{ t(current.areaKey) }} · </span>
+        {{ cityName(cityId) }}
+      </div>
 
-      <p v-if="data.service" class="service">{{ data.service }}</p>
+      <p v-if="current" class="service">{{ t(current.serviceKey) }}</p>
 
-      <!-- Блок удобств рисуется только если удобства заданы в данных -->
       <template v-if="amenities.length">
-        <h3>Удобства</h3>
+        <h3>{{ t('hotel.amenities') }}</h3>
         <div class="amenities">
-          <div v-for="a in amenities" :key="a.key" class="amenity">{{ a.label }}</div>
+          <div v-for="a in amenities" :key="a" class="amenity">{{ t(`am.${a}`) }}</div>
         </div>
       </template>
 
-      <div class="swap">
-        <span>Можно поменять на другой отель этого уровня</span>
-        <span class="muted later">Выбор появится позже</span>
-      </div>
+      <!-- Другие отели этого уровня. Один отель или ни одного — блока нет. -->
+      <template v-if="others.length">
+        <h3>{{ t('hotel.others') }}</h3>
+        <button
+          v-for="h in others"
+          :key="h.id"
+          class="hotel-row"
+          @click="emit('pickHotel', h.id)"
+        >
+          <span class="hotel-name">{{ h.name }}</span>
+          <span class="hotel-meta muted">{{ h.stars }}★ · {{ t(h.areaKey) }}</span>
+        </button>
+      </template>
 
-      <h3>В других тарифах</h3>
-      <div v-for="o in others" :key="o.name" class="other">
+      <h3>{{ t('sheet.others') }}</h3>
+      <div v-for="o in otherLevels" :key="o.name" class="other">
         <div class="other-name">{{ o.name }}</div>
         <p class="muted other-text">{{ o.category }}</p>
       </div>
     </div>
 
     <footer v-if="selectedLevel !== level" class="foot">
-      <button class="btn primary" @click="emit('choose', level)">Выбрать этот тариф</button>
+      <button class="btn primary" @click="emit('choose', level)">{{ t('sheet.choose') }}</button>
     </footer>
   </div>
 </template>
@@ -118,21 +140,13 @@ const others = computed(() =>
   min-height: 0;
 }
 
-.photo {
-  display: block;
-  width: 100%;
-  aspect-ratio: 16 / 10;
-  object-fit: cover;
-  border-radius: var(--radius-sm);
-  margin-bottom: 12px;
-}
-
-.category {
+.name {
   font-size: 17px;
   font-weight: 600;
+  margin-top: 12px;
 }
 
-.city {
+.meta {
   font-size: 13px;
 }
 
@@ -153,32 +167,33 @@ h3 {
 .amenities {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 4px 12px;
+  gap: 2px 12px;
 }
 
 .amenity {
   font-size: 14px;
-  padding: 4px 0;
+  padding: 5px 0;
 }
 
-.swap {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+.hotel-row {
+  width: 100%;
   min-height: var(--tap-min);
-  margin-top: 16px;
-  padding: 0 12px;
-  border: 1px dashed var(--border);
-  border-radius: var(--radius-sm);
-  font-size: 14px;
-  /* Выбор отеля — следующий этап, строка неактивна */
-  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  border-top: 1px solid var(--border);
+  text-align: left;
 }
 
-.later {
-  font-size: 12px;
-  white-space: nowrap;
+.hotel-name {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.hotel-meta {
+  font-size: 13px;
 }
 
 .other {

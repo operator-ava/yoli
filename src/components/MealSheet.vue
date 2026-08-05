@@ -5,12 +5,14 @@ import {
   cuisineForDay,
   dishesFor,
   LEVELS,
+  levelName,
   MEAL_FORMAT,
-  MEAL_LABEL,
+  MEAL_LABEL_KEY,
   type CityId,
   type Level,
 } from '@/data'
 import { addDays, dayMonth, nightsBetween } from '@/composables/dates'
+import { count, t } from '@/composables/useI18n'
 import type { DateRange } from '@/stores/trip'
 
 // Лист «Питание». Кухню человек не выбирает — только смотрит.
@@ -23,7 +25,6 @@ const props = defineProps<{
 
 const emit = defineEmits<{ choose: [Level]; close: [] }>()
 
-const levelName = computed(() => LEVELS.find((l) => l.id === props.level)?.name ?? '')
 const format = computed(() => MEAL_FORMAT[props.level])
 
 /** Дни пребывания: раскладка кухонь детерминированная, рандома нет. */
@@ -37,7 +38,7 @@ const days = computed(() => {
       cuisine,
       meals: format.value.meals.map((m) => ({
         key: m,
-        label: MEAL_LABEL[m],
+        label: t(MEAL_LABEL_KEY[m]),
         courses: dishesFor(cuisine.id, m),
       })),
     }
@@ -46,9 +47,9 @@ const days = computed(() => {
 
 const others = computed(() =>
   LEVELS.filter((l) => l.id !== props.level).map((l) => ({
-    name: l.name,
-    meals: MEAL_FORMAT[l.id].meals.length,
-    venues: MEAL_FORMAT[l.id].venues,
+    name: levelName(l.id),
+    meals: count(MEAL_FORMAT[l.id].meals.length, 'u.meal'),
+    venues: t(MEAL_FORMAT[l.id].venuesKey),
   })),
 )
 </script>
@@ -57,47 +58,47 @@ const others = computed(() =>
   <div class="body">
     <header class="head">
       <div>
-        <h2 class="title">Питание · {{ cityName(cityId) }}</h2>
-        <p class="sub muted">Тариф «{{ levelName }}»</p>
+        <h2 class="title">{{ t('meal.title', { city: cityName(cityId) }) }}</h2>
+        <p class="sub muted">{{ t('sheet.tariff', { name: levelName(level) }) }}</p>
       </div>
-      <button class="close" aria-label="Закрыть" @click="emit('close')">✕</button>
+      <button class="close" :aria-label="t('sheet.close')" @click="emit('close')">✕</button>
     </header>
 
     <div class="scroll">
       <div class="format">
         <div class="format-meals">
-          {{ format.meals.map((m) => MEAL_LABEL[m]).join(' · ') }}
+          {{ format.meals.map((m) => t(MEAL_LABEL_KEY[m])).join(' · ') }}
         </div>
-        <div class="muted format-venues">{{ format.venues }}</div>
+        <div class="muted format-venues">{{ t(format.venuesKey) }}</div>
       </div>
 
-      <h3>По дням</h3>
+      <h3>{{ t('meal.byDays') }}</h3>
       <section v-for="d in days" :key="d.n" class="day">
         <div class="day-head">
-          <span class="day-n">День {{ d.n }} · {{ dayMonth(d.date) }}</span>
-          <span class="cuisine">{{ d.cuisine.name }}</span>
+          <span class="day-n">{{ t('meal.day', { n: d.n, date: dayMonth(d.date) }) }}</span>
+          <span class="cuisine">{{ t(d.cuisine.nameKey) }}</span>
         </div>
         <div v-for="m in d.meals" :key="m.key" class="meal">
           <div class="meal-label">{{ m.label }}</div>
           <!-- Состав раскрыт только там, где блюда подтверждены заказчиком -->
           <div v-if="m.courses.length" class="courses">
-            <div v-for="c in m.courses" :key="c.label" class="course">
-              <span class="course-label muted">{{ c.label }}</span>
-              <span>{{ c.items.join(', ') }}</span>
+            <div v-for="c in m.courses" :key="c.labelKey" class="course">
+              <span class="course-label muted">{{ t(c.labelKey) }}</span>
+              <span>{{ c.itemKeys.map((k) => t(k)).join(', ') }}</span>
             </div>
           </div>
         </div>
       </section>
 
-      <h3>В других тарифах</h3>
+      <h3>{{ t('sheet.others') }}</h3>
       <div v-for="o in others" :key="o.name" class="other">
-        <div class="other-name">{{ o.name }} · {{ o.meals }} приёма пищи</div>
+        <div class="other-name">{{ o.name }} · {{ o.meals }}</div>
         <p class="muted other-text">{{ o.venues }}</p>
       </div>
     </div>
 
     <footer v-if="selectedLevel !== level" class="foot">
-      <button class="btn primary" @click="emit('choose', level)">Выбрать этот тариф</button>
+      <button class="btn primary" @click="emit('choose', level)">{{ t('sheet.choose') }}</button>
     </footer>
   </div>
 </template>

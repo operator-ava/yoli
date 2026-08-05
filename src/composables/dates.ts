@@ -1,35 +1,7 @@
 // Работа с датами. Даты хранятся строкой ISO «ГГГГ-ММ-ДД» — без времени и часовых поясов,
 // чтобы расчёт оставался детерминированным.
-
-const MONTHS_GEN = [
-  'января',
-  'февраля',
-  'марта',
-  'апреля',
-  'мая',
-  'июня',
-  'июля',
-  'августа',
-  'сентября',
-  'октября',
-  'ноября',
-  'декабря',
-]
-
-const MONTHS_NOM = [
-  'Январь',
-  'Февраль',
-  'Март',
-  'Апрель',
-  'Май',
-  'Июнь',
-  'Июль',
-  'Август',
-  'Сентябрь',
-  'Октябрь',
-  'Ноябрь',
-  'Декабрь',
-]
+// Названия месяцев и дней недели берутся из словаря — они переводятся вместе с языком.
+import { list } from './useI18n'
 
 export function todayISO(): string {
   return toISO(new Date())
@@ -65,30 +37,30 @@ export function nightsOf(from: string, to: string): string[] {
   return out
 }
 
-/** «12.08» */
+/** «12.08» — числовой формат, одинаковый в обоих языках. */
 export function short(iso: string): string {
   const d = parseISO(iso)
   return `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}`
 }
 
-/** «12 августа» */
+/** «12 августа» / «12 August» */
 export function dayMonth(iso: string): string {
   const d = parseISO(iso)
-  return `${d.getDate()} ${MONTHS_GEN[d.getMonth()]}`
+  return `${d.getDate()} ${list('dates.monthsGen')[d.getMonth()] ?? ''}`
 }
 
-/** «12–18 августа», а при разных месяцах «28 июля – 3 августа» */
+/** «12–18 августа» / «12–18 August», а при разных месяцах — обе даты полностью. */
 export function rangeLabel(from: string, to: string): string {
   const a = parseISO(from)
   const b = parseISO(to)
   if (a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear()) {
-    return `${a.getDate()}–${b.getDate()} ${MONTHS_GEN[b.getMonth()]}`
+    return `${a.getDate()}–${b.getDate()} ${list('dates.monthsGen')[b.getMonth()] ?? ''}`
   }
   return `${dayMonth(from)} – ${dayMonth(to)}`
 }
 
 export function monthTitle(year: number, month: number): string {
-  return `${MONTHS_NOM[month]} ${year}`
+  return `${list('dates.monthsNom')[month] ?? ''} ${year}`
 }
 
 /** Сетка месяца: недели с понедельника, пустые ячейки — null. */
@@ -100,13 +72,4 @@ export function monthGrid(year: number, month: number): (string | null)[] {
   for (let d = 1; d <= days; d++) cells.push(toISO(new Date(year, month, d)))
   while (cells.length % 7) cells.push(null)
   return cells
-}
-
-/** Склонение: 1 ночь / 2 ночи / 5 ночей. */
-export function plural(n: number, one: string, few: string, many: string): string {
-  const mod10 = n % 10
-  const mod100 = n % 100
-  if (mod10 === 1 && mod100 !== 11) return one
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return few
-  return many
 }

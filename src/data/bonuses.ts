@@ -2,31 +2,20 @@
 import type { Level } from './pricing'
 
 export interface Bonus {
-  /** Название слева. */
-  name: string
-  /** Объём справа. */
-  amount: string
+  /** Ключ названия слева. */
+  nameKey: string
+  /** Ключ объёма справа. */
+  amountKey: string
 }
 
-const MEDIUM: Bonus[] = [
-  { name: 'Дед Бобо', amount: '7 часов' },
-  { name: 'Переводчик', amount: '7 часов' },
-  { name: 'Аудиогид', amount: 'без лимита' },
-  { name: 'Маршруты', amount: 'без лимита' },
-]
+const NAMES = ['bonus.dedBobo', 'bonus.translator', 'bonus.audio', 'bonus.routes']
+
+function set(amounts: string[]): Bonus[] {
+  return NAMES.map((nameKey, i) => ({ nameKey, amountKey: amounts[i] }))
+}
 
 export const BONUSES: Record<Level, Bonus[]> = {
-  econom: [
-    { name: 'Дед Бобо', amount: '3 часа' },
-    { name: 'Переводчик', amount: '3 часа' },
-    { name: 'Аудиогид', amount: 'без лимита' },
-    { name: 'Маршруты', amount: 'без лимита' },
-  ],
-  medium: MEDIUM,
-  lux: [
-    { name: 'Дед Бобо', amount: 'без лимита' },
-    { name: 'Переводчик', amount: 'без лимита' },
-    { name: 'Аудиогид', amount: 'без лимита' },
-    { name: 'Маршруты', amount: 'без лимита' },
-  ],
+  econom: set(['bonus.hours3', 'bonus.hours3', 'bonus.unlimited', 'bonus.unlimited']),
+  medium: set(['bonus.hours7', 'bonus.hours7', 'bonus.unlimited', 'bonus.unlimited']),
+  lux: set(['bonus.unlimited', 'bonus.unlimited', 'bonus.unlimited', 'bonus.unlimited']),
 }

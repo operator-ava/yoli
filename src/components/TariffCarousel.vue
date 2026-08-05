@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { filledItems, inclusion, LEVELS, type CityId, type InclusionKey, type Level } from '@/data'
+import { filledItems, inclusion, LEVELS, levelName, type CityId, type InclusionKey, type Level } from '@/data'
 import { tariffCardPrice } from '@/composables/calc'
 import { money } from '@/composables/format'
-import { plural } from '@/composables/dates'
+import { count, t } from '@/composables/useI18n'
 import BonusBlock from '@/components/BonusBlock.vue'
 
 const props = defineProps<{
   cityId: CityId
   nights: number
   selected: Level | null
+  hotelId?: string
 }>()
 
 const emit = defineEmits<{ choose: [Level]; openItem: [{ level: Level; key: InclusionKey }] }>()
@@ -42,25 +43,23 @@ function price(level: Level) {
         @click="emit('choose', l.id)"
       >
         <header class="top">
-          <div class="name">{{ l.name }}</div>
-          <span v-if="selected === l.id" class="check" aria-label="Выбран">✓</span>
+          <div class="name">{{ levelName(l.id) }}</div>
+          <span v-if="selected === l.id" class="check" :aria-label="t('tariff.selected')">✓</span>
         </header>
 
         <div class="price tnum">{{ money(price(l.id)) }}</div>
-        <div class="per muted">
-          за {{ nights }} {{ plural(nights, 'день', 'дня', 'дней') }} / чел
-        </div>
+        <div class="per muted">{{ t('tariff.per', { days: count(nights, 'u.day') }) }}</div>
 
         <!-- Состав тарифа: пустые пункты не выводятся -->
         <div class="items">
           <button
-            v-for="item in filledItems(cityId, l.id)"
+            v-for="item in filledItems(cityId, l.id, hotelId)"
             :key="item.key"
             class="item"
             @click.stop="emit('openItem', { level: l.id, key: item.key })"
           >
-            <span class="item-name">{{ item.label }}</span>
-            <span class="item-sum muted">{{ inclusion(cityId, l.id, item.key).summary }}</span>
+            <span class="item-name">{{ t(item.labelKey) }}</span>
+            <span class="item-sum muted">{{ inclusion(cityId, l.id, item.key, hotelId).summary }}</span>
             <span class="chev" aria-hidden="true">›</span>
           </button>
         </div>

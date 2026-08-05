@@ -4,9 +4,5 @@ import { FOOD_CARDS } from '@/data'
 </script>
 
 <template>
-  <ShowcaseList
-    title="Питание"
-    note="Питание по городам маршрута. Меню — после согласования."
-    :cards="FOOD_CARDS"
-  />
+  <ShowcaseList title-key="showcase.food.title" note-key="showcase.food.note" :cards="FOOD_CARDS" />
 </template>

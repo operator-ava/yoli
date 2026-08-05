@@ -1,21 +1,22 @@
 <script setup lang="ts">
 import type { ShowcaseCard } from '@/data'
+import { t } from '@/composables/useI18n'
 
 // Витрина: карточки некликабельные, переходов внутрь нет.
-defineProps<{ title: string; note: string; cards: ShowcaseCard[] }>()
+defineProps<{ titleKey: string; noteKey: string; cards: ShowcaseCard[] }>()
 </script>
 
 <template>
   <section class="app-content">
-    <h1>{{ title }}</h1>
-    <p class="note muted">{{ note }}</p>
+    <h1>{{ t(titleKey) }}</h1>
+    <p class="note muted">{{ t(noteKey) }}</p>
 
     <div class="grid">
       <article v-for="c in cards" :key="c.id" class="card item">
-        <img class="photo" :src="c.photo" :alt="c.title" loading="lazy" decoding="async" />
+        <img class="photo" :src="c.photo" :alt="c.title ?? t(c.titleKey!)" loading="lazy" decoding="async" />
         <div class="body">
-          <h3>{{ c.title }}</h3>
-          <p class="muted">{{ c.text }}</p>
+          <h3>{{ c.title ?? t(c.titleKey!) }}</h3>
+          <p class="muted">{{ t(c.textKey) }}</p>
         </div>
       </article>
     </div>

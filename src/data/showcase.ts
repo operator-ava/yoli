@@ -1,23 +1,19 @@
 // Контент витрин: «Маршруты», «Проживание», «Питание».
 // Карточки некликабельные, переходов внутрь нет.
-// Названия точек взяты из фотобанка заказчика как есть. Адреса, часы работы,
-// звёздность и цены здесь НЕ указываются — этих данных у нас нет.
+// Названия точек взяты из фотобанка заказчика как есть — это имена собственные,
+// они не переводятся. Адреса, часы работы, звёздность и цены здесь НЕ указываются.
 import { CITIES } from './cities'
 
 export interface ShowcaseCard {
   id: string
-  title: string
-  /** Пояснение под заголовком. Заглушка до получения текстов от заказчика. */
-  text: string
+  /** Имя собственное — показывается как есть. */
+  title?: string
+  /** Ключ названия в словаре — для карточек по городам. */
+  titleKey?: string
+  /** Ключ пояснения под заголовком. */
+  textKey: string
   photo: string
 }
-
-/** ⚠️ ЗАГЛУШКА: тексты витрин временные, ждут материалов заказчика. */
-const DRAFT_TEXT = {
-  route: 'Точка из программы. Описание готовится.',
-  stay: 'Размещение уровней эконом, средний и люкс. Список отелей — после согласования.',
-  food: 'Питание по программе. Меню и заведения — после согласования.',
-} as const
 
 /** Витрина «Маршруты» — точки из фотобанка проекта. */
 export const ROUTE_CARDS: ShowcaseCard[] = [
@@ -33,20 +29,20 @@ export const ROUTE_CARDS: ShowcaseCard[] = [
   { id: 'poi-81', title: 'Японский сад' },
   { id: 'poi-89', title: 'Дворец Худояр-хана' },
   { id: 'poi-91', title: 'Шёлковая фабрика Ёдгорлик' },
-].map((p) => ({ ...p, text: DRAFT_TEXT.route, photo: `/photos/poi/${p.id}.webp` }))
+].map((p) => ({ ...p, textKey: 'showcase.routes.text', photo: `/photos/poi/${p.id}.webp` }))
 
 /** Витрина «Проживание» — по городам маршрута. */
 export const STAY_CARDS: ShowcaseCard[] = CITIES.map((c) => ({
   id: `stay-${c.id}`,
-  title: c.name,
-  text: DRAFT_TEXT.stay,
+  titleKey: c.nameKey,
+  textKey: 'showcase.stay.text',
   photo: c.photo,
 }))
 
 /** Витрина «Питание» — по городам маршрута. */
 export const FOOD_CARDS: ShowcaseCard[] = CITIES.map((c) => ({
   id: `food-${c.id}`,
-  title: c.name,
-  text: DRAFT_TEXT.food,
+  titleKey: c.nameKey,
+  textKey: 'showcase.food.text',
   photo: c.photo,
 }))

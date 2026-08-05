@@ -2,7 +2,8 @@
 import { computed, ref } from 'vue'
 import { useTripStore } from '@/stores/trip'
 import { cityName, MAX_PEOPLE, MIN_PEOPLE, type CityId, type InclusionKey, type Level } from '@/data'
-import { plural, rangeLabel } from '@/composables/dates'
+import { count, plural, t } from '@/composables/useI18n'
+import { rangeLabel } from '@/composables/dates'
 import CityCard from '@/components/CityCard.vue'
 import TotalPanel from '@/components/TotalPanel.vue'
 import BottomSheet from '@/components/BottomSheet.vue'
@@ -29,33 +30,35 @@ function chooseFromSheet(level: Level) {
 const summaryLine = computed(() => {
   const s = trip.summary
   if (!s) return ''
-  return `Поездка ${rangeLabel(s.from, s.to)} · ${s.days} ${plural(s.days, 'день', 'дня', 'дней')} · ${s.cities} ${plural(s.cities, 'город', 'города', 'городов')}`
+  return t('calc.trip', {
+    range: rangeLabel(s.from, s.to),
+    days: count(s.days, 'u.day'),
+    cities: count(s.cities, 'u.city'),
+  })
 })
 </script>
 
 <template>
   <section class="app-content">
-    <h2>Кто едет</h2>
+    <h2>{{ t('calc.who') }}</h2>
     <div class="card block">
       <div class="counter">
         <button
           class="round"
           :disabled="trip.people <= MIN_PEOPLE"
-          aria-label="Убрать человека"
+          :aria-label="t('calc.minusPerson')"
           @click="trip.changePeople(-1)"
         >
           −
         </button>
         <div class="count">
           <span class="count-num tnum">{{ trip.people }}</span>
-          <span class="count-label">{{
-            plural(trip.people, 'человек', 'человека', 'человек')
-          }}</span>
+          <span class="count-label">{{ plural(trip.people, 'u.person') }}</span>
         </div>
         <button
           class="round"
           :disabled="trip.people >= MAX_PEOPLE"
-          aria-label="Добавить человека"
+          :aria-label="t('calc.plusPerson')"
           @click="trip.changePeople(1)"
         >
           +
@@ -63,7 +66,7 @@ const summaryLine = computed(() => {
       </div>
     </div>
 
-    <h2>Города</h2>
+    <h2>{{ t('calc.cities') }}</h2>
     <!-- Порядок вычисляется из дат заезда, стрелок нет -->
     <p v-if="summaryLine" class="summary">{{ summaryLine }}</p>
 
@@ -74,6 +77,7 @@ const summaryLine = computed(() => {
         :city-id="id"
         :range="trip.ranges[id]"
         :level="trip.levels[id] ?? null"
+        :hotel-id="trip.hotels[id]"
         @pick-dates="dateSheet = id"
         @choose="trip.setLevel(id, $event)"
         @open-item="itemSheet = { cityId: id, level: $event.level, key: $event.key }"
@@ -111,8 +115,10 @@ const summaryLine = computed(() => {
       v-if="itemSheet.key === 'hotel'"
       :city-id="itemSheet.cityId"
       :level="itemSheet.level"
+      :hotel-id="trip.hotels[itemSheet.cityId]"
       :selected-level="trip.levels[itemSheet.cityId] ?? null"
       @choose="chooseFromSheet"
+      @pick-hotel="trip.setHotel(itemSheet.cityId, $event)"
       @close="itemSheet = null"
     />
     <MealSheet

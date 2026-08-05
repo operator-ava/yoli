@@ -4,9 +4,5 @@ import { ROUTE_CARDS } from '@/data'
 </script>
 
 <template>
-  <ShowcaseList
-    title="Маршруты"
-    note="Точки из программы. Полные описания готовятся."
-    :cards="ROUTE_CARDS"
-  />
+  <ShowcaseList title-key="showcase.routes.title" note-key="showcase.routes.note" :cards="ROUTE_CARDS" />
 </template>

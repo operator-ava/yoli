@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { addDays, monthGrid, monthTitle, nightsBetween, nightsOf, plural, rangeLabel, short, todayISO } from '@/composables/dates'
+import { addDays, monthGrid, monthTitle, nightsBetween, nightsOf, rangeLabel, short, todayISO } from '@/composables/dates'
+import { count, list, t } from '@/composables/useI18n'
 import type { DateRange } from '@/stores/trip'
 
 const props = defineProps<{
@@ -13,7 +14,6 @@ const props = defineProps<{
 
 const emit = defineEmits<{ apply: [DateRange]; clear: []; close: [] }>()
 
-const WEEKDAYS = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс']
 const MONTHS_AHEAD = 12
 
 const from = ref<string | null>(props.value?.from ?? null)
@@ -78,9 +78,9 @@ function pick(day: string) {
 const nights = computed(() => (from.value && to.value ? nightsBetween(from.value, to.value) : 0))
 
 const hint = computed(() => {
-  if (!from.value) return 'Выберите день заезда'
-  if (!to.value) return `Заезд ${short(from.value)} · выберите день выезда`
-  return `${short(from.value)} – ${short(to.value)} · ${nights.value} ${plural(nights.value, 'ночь', 'ночи', 'ночей')}`
+  if (!from.value) return t('dates.pickIn')
+  if (!to.value) return t('dates.pickOut', { date: short(from.value) })
+  return `${short(from.value)} – ${short(to.value)} · ${count(nights.value, 'u.night')}`
 })
 
 function apply() {
@@ -92,14 +92,14 @@ function apply() {
   <div class="sheet-body">
     <header class="head">
       <div>
-        <h2 class="title">Даты · {{ cityName }}</h2>
+        <h2 class="title">{{ t('dates.title', { city: cityName }) }}</h2>
         <p class="hint muted">{{ hint }}</p>
       </div>
-      <button class="close" aria-label="Закрыть" @click="emit('close')">✕</button>
+      <button class="close" :aria-label="t('sheet.close')" @click="emit('close')">✕</button>
     </header>
 
     <div class="weekdays">
-      <span v-for="w in WEEKDAYS" :key="w">{{ w }}</span>
+      <span v-for="w in list('dates.weekdays')" :key="w">{{ w }}</span>
     </div>
 
     <div class="scroll">
@@ -118,7 +118,7 @@ function apply() {
                 off: isDisabled(day),
               }"
               :disabled="isDisabled(day)"
-              :title="busyCity(day) ? `Занято: ${busyCity(day)}` : undefined"
+              :title="busyCity(day) ? t('dates.busy', { city: busyCity(day)! }) : undefined"
               @click="pick(day)"
             >
               <span class="num">{{ Number(day.slice(-2)) }}</span>
@@ -131,9 +131,9 @@ function apply() {
     </div>
 
     <footer class="foot">
-      <button v-if="value" class="btn" @click="emit('clear')">Убрать город</button>
+      <button v-if="value" class="btn" @click="emit('clear')">{{ t('dates.remove') }}</button>
       <button class="btn primary" :disabled="!from || !to" @click="apply()">
-        {{ from && to ? `Готово · ${rangeLabel(from, to)}` : 'Готово' }}
+        {{ from && to ? t('dates.doneWith', { range: rangeLabel(from, to) }) : t('dates.done') }}
       </button>
     </footer>
   </div>

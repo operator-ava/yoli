@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useTripStore } from '@/stores/trip'
-import { cityName, LEVELS, MAX_PEOPLE } from '@/data'
+import { cityName, levelName, MAX_PEOPLE } from '@/data'
 import { nextDiscountStep } from '@/composables/calc'
 import { money, percent } from '@/composables/format'
-import { plural, rangeLabel, short } from '@/composables/dates'
+import { rangeLabel, short } from '@/composables/dates'
+import { count, plural, t } from '@/composables/useI18n'
 
 const trip = useTripStore()
 const open = ref(false)
@@ -19,47 +20,45 @@ const nextStep = computed(() => {
 })
 
 const articles = computed(() => [
-  { label: 'Проживание', value: r.value.stay },
-  { label: 'Питание', value: r.value.food },
-  { label: 'Гид и экскурсии', value: r.value.guide },
-  { label: 'Переезды', value: r.value.transfers },
-  { label: 'Сервисный сбор', value: r.value.serviceFee },
+  { label: t('art.stay'), value: r.value.stay },
+  { label: t('art.food'), value: r.value.food },
+  { label: t('art.guide'), value: r.value.guide },
+  { label: t('art.transfers'), value: r.value.transfers },
+  { label: t('art.fee'), value: r.value.serviceFee },
 ])
-
-function levelName(id: string) {
-  return LEVELS.find((l) => l.id === id)?.name ?? id
-}
 
 /** Текстовая сводка для буфера обмена. */
 function summaryText(): string {
   const lines: string[] = []
-  lines.push('YOLI — предварительный расчёт путешествия по Узбекистану')
+  lines.push(t('share.title'))
   lines.push('')
   if (trip.summary) {
     lines.push(
-      `${rangeLabel(trip.summary.from, trip.summary.to)} · ${trip.summary.days} ${plural(trip.summary.days, 'день', 'дня', 'дней')}`,
+      `${rangeLabel(trip.summary.from, trip.summary.to)} · ${count(trip.summary.days, 'u.day')}`,
     )
   }
-  lines.push(`Человек: ${trip.people}`)
+  lines.push(t('share.people', { n: trip.people }))
   lines.push('')
-  lines.push('Маршрут:')
+  lines.push(t('share.route'))
   for (const c of r.value.byCity) {
     const range = trip.ranges[c.cityId]
     const dates = range ? `${short(range.from)}–${short(range.to)}, ` : ''
     lines.push(
-      `  ${cityName(c.cityId)} — ${dates}${c.nights} ${plural(c.nights, 'ночь', 'ночи', 'ночей')}, тариф «${levelName(c.level)}»`,
+      `  ${cityName(c.cityId)} — ${dates}${count(c.nights, 'u.night')}, ${levelName(c.level)}`,
     )
   }
   lines.push('')
   for (const a of articles.value) lines.push(`${a.label}: ${money(a.value)}`)
   if (r.value.discount > 0) {
-    lines.push(`Скидка группы ${percent(r.value.discountRate)}: −${money(r.value.discount)}`)
+    lines.push(
+      `${t('art.discount', { rate: percent(r.value.discountRate) })}: −${money(r.value.discount)}`,
+    )
   }
   lines.push('')
-  lines.push(`Итого за группу: ${money(r.value.total)}`)
-  lines.push(`На человека: ${money(r.value.perPerson)}`)
+  lines.push(t('share.total', { sum: money(r.value.total) }))
+  lines.push(t('share.perPerson', { sum: money(r.value.perPerson) }))
   lines.push('')
-  lines.push('Цены предварительные, не являются офертой.')
+  lines.push(t('share.note'))
   return lines.join('\n')
 }
 
@@ -81,11 +80,11 @@ async function share() {
     <button class="head tap" :aria-expanded="open" @click="open = !open">
       <div>
         <div class="per-person tnum">{{ money(r.perPerson) }}</div>
-        <div class="per-person-label">на человека</div>
+        <div class="per-person-label">{{ t('total.perPerson') }}</div>
       </div>
       <div class="side">
         <div class="group tnum">
-          за группу из {{ trip.people }}: <b>{{ money(r.total) }}</b>
+          {{ t('total.forGroup', { n: trip.people }) }} <b>{{ money(r.total) }}</b>
         </div>
         <div class="chevron" :class="{ open }" aria-hidden="true">⌃</div>
       </div>
@@ -93,39 +92,43 @@ async function share() {
 
     <!-- Скидка и подсказка-стимул: чем больше группа, тем выгоднее -->
     <div v-if="r.discount > 0" class="discount">
-      Скидка группы <b>{{ percent(r.discountRate) }}</b> · вы экономите
+      {{ t('total.discount') }} <b>{{ percent(r.discountRate) }}</b> · {{ t('total.saving') }}
       <b>{{ money(r.discount) }}</b>
     </div>
     <div v-if="nextStep" class="nudge">
-      +{{ nextStep.add }} {{ plural(nextStep.add, 'человек', 'человека', 'человек') }} — скидка
-      {{ percent(nextStep.rate) }}
+      {{
+        t('total.nudge', {
+          n: nextStep.add,
+          people: plural(nextStep.add, 'u.person'),
+          rate: percent(nextStep.rate),
+        })
+      }}
     </div>
 
     <div v-if="open" class="details">
-      <h3>По статьям</h3>
+      <h3>{{ t('total.byArticles') }}</h3>
       <div v-for="a in articles" :key="a.label" class="row">
         <span>{{ a.label }}</span>
         <span class="tnum">{{ money(a.value) }}</span>
       </div>
       <div v-if="r.discount > 0" class="row minus">
-        <span>Скидка группы {{ percent(r.discountRate) }}</span>
+        <span>{{ t('art.discount', { rate: percent(r.discountRate) }) }}</span>
         <span class="tnum">−{{ money(r.discount) }}</span>
       </div>
 
-      <h3>По городам</h3>
-      <p v-if="!r.byCity.length" class="muted empty">Выберите даты и тариф хотя бы в одном городе.</p>
+      <h3>{{ t('total.byCities') }}</h3>
+      <p v-if="!r.byCity.length" class="muted empty">{{ t('total.empty') }}</p>
       <div v-for="c in r.byCity" :key="c.cityId" class="row">
         <span>
-          {{ cityName(c.cityId) }} · {{ c.nights }}
-          {{ plural(c.nights, 'ночь', 'ночи', 'ночей') }} · {{ levelName(c.level) }}
+          {{ cityName(c.cityId) }} · {{ count(c.nights, 'u.night') }} · {{ levelName(c.level) }}
         </span>
         <span class="tnum">{{ money(c.amount) }}</span>
       </div>
 
       <div class="actions">
-        <button class="btn" @click="trip.reset()">Сбросить</button>
+        <button class="btn" @click="trip.reset()">{{ t('total.reset') }}</button>
         <button class="btn primary" @click="share()">
-          {{ copied ? 'Скопировано' : 'Поделиться расчётом' }}
+          {{ copied ? t('total.copied') : t('total.share') }}
         </button>
       </div>
     </div>

@@ -1,75 +1,170 @@
-// Размещение по городам и тарифам.
+// ⚠️ МАКЕТНОЕ НАПОЛНЕНИЕ. Названия — узнаваемые ташкентские гостиницы, НЕ ПРОВЕРЕНЫ
+// и НЕ ЗАКОНТРАКТОВАНЫ. Требует подтверждения заказчиком перед показом клиенту.
 //
-// ⚠️ ТРЕБУЕТ УТВЕРЖДЕНИЯ ЗАКАЗЧИКОМ: категории размещения по уровням —
-// реконструкция, в материалах заказчика различий по уровням нет.
-//
-// ⚠️ ТРЕБУЕТ ДАННЫХ: названий отелей у нас нет. Поле name пустое,
-// в интерфейсе вместо имени показывается категория. Имена НЕ ВЫДУМЫВАЮТСЯ.
+// Самарканд, Бухара и Хива пока без отелей — там показывается категория без имени.
+// Выбор отеля НЕ ВЛИЯЕТ на цену.
 import type { CityId, Level } from './pricing'
 
-/** Возможные удобства. Показываются только те, что заданы в данных отеля. */
+/** Возможные удобства. */
 export type AmenityKey =
   | 'wifi'
   | 'breakfast'
   | 'ac'
   | 'hairdryer'
   | 'safe'
+  | 'shower'
   | 'bath'
   | 'cleaning'
   | 'reception'
+  | 'robe'
+  | 'roomService'
 
-export const AMENITIES: { key: AmenityKey; label: string }[] = [
-  { key: 'wifi', label: 'Wi-Fi' },
-  { key: 'breakfast', label: 'Завтрак' },
-  { key: 'ac', label: 'Кондиционер' },
-  { key: 'hairdryer', label: 'Фен' },
-  { key: 'safe', label: 'Сейф' },
-  { key: 'bath', label: 'Душ или ванна' },
-  { key: 'cleaning', label: 'Уборка' },
-  { key: 'reception', label: 'Ресепшн 24/7' },
+/** Ключ удобства → ключ строки в словаре. */
+export const AMENITY_KEYS: AmenityKey[] = [
+  'wifi',
+  'breakfast',
+  'ac',
+  'hairdryer',
+  'safe',
+  'shower',
+  'bath',
+  'cleaning',
+  'reception',
+  'robe',
+  'roomService',
 ]
 
+/** ⚠️ ТРЕБУЕТ ПОДТВЕРЖДЕНИЯ: набор удобств по уровням — реконструкция.
+ *  Задаётся на уровень, а не на отель. */
+export const AMENITIES_BY_LEVEL: Record<Level, AmenityKey[]> = {
+  econom: ['wifi', 'breakfast', 'ac', 'shower', 'cleaning'],
+  medium: ['wifi', 'breakfast', 'ac', 'hairdryer', 'safe', 'bath', 'cleaning', 'reception'],
+  lux: [
+    'wifi',
+    'breakfast',
+    'ac',
+    'hairdryer',
+    'safe',
+    'bath',
+    'cleaning',
+    'reception',
+    'robe',
+    'roomService',
+  ],
+}
+
 export interface Hotel {
-  /** ⚠️ ТРЕБУЕТ ДАННЫХ. Пока пусто — показывается категория. */
+  id: string
+  /** Имя собственное — не переводится. */
   name: string
-  /** Категория размещения: то, что показываем вместо имени. */
-  category: string
-  /** Описание обслуживания. ⚠️ ТРЕБУЕТ ДАННЫХ — заполняет заказчик. */
-  service: string
-  /** ⚠️ ТРЕБУЕТ ДАННЫХ: пока пусто, блок удобств не рисуется. */
-  amenities: AmenityKey[]
-  /** Фото размещения. Пусто — в листе остаётся пустое место, заглушки не рисуем.
-   *  В фотобанке заказчика только достопримечательности, отелей там нет. */
-  photo: string
+  stars: number
+  /** Ключ строки района в словаре. */
+  areaKey: string
+  /** Ключ строки описания обслуживания в словаре. */
+  serviceKey: string
 }
 
-/** ⚠️ ТРЕБУЕТ УТВЕРЖДЕНИЯ: категории по уровням заданы вручную. */
-const BY_LEVEL: Record<Level, Pick<Hotel, 'category'>> = {
-  econom: { category: '3★, гостевой дом или отель в шаговой доступности от центра' },
-  medium: { category: '4★ в центре города' },
-  lux: { category: '5★ или бутик-отель исторического квартала' },
+/** ⚠️ ТРЕБУЕТ УТВЕРЖДЕНИЯ: категории размещения по уровням — реконструкция. */
+export const LEVEL_STARS: Record<Level, number> = { econom: 3, medium: 4, lux: 5 }
+
+const TASHKENT: Record<Level, Hotel[]> = {
+  econom: [
+    {
+      id: 'tas-uzbekistan',
+      name: 'Hotel Uzbekistan',
+      stars: 3,
+      areaKey: 'hotel.area.tasAmirTemur',
+      serviceKey: 'hotel.service.tasUzbekistan',
+    },
+    {
+      id: 'tas-shodlik',
+      name: 'Shodlik Palace Hotel',
+      stars: 3,
+      areaKey: 'hotel.area.tasCenter',
+      serviceKey: 'hotel.service.tasShodlik',
+    },
+    {
+      id: 'tas-orzu',
+      name: 'Grand Orzu Hotel',
+      stars: 3,
+      areaKey: 'hotel.area.tasMirabad',
+      serviceKey: 'hotel.service.tasOrzu',
+    },
+  ],
+  medium: [
+    {
+      id: 'tas-lotte',
+      name: 'Lotte City Hotel Tashkent Palace',
+      stars: 4,
+      areaKey: 'hotel.area.tasCenter',
+      serviceKey: 'hotel.service.tasLotte',
+    },
+    {
+      id: 'tas-ramada',
+      name: 'Ramada by Wyndham Tashkent',
+      stars: 4,
+      areaKey: 'hotel.area.tasMirabad',
+      serviceKey: 'hotel.service.tasRamada',
+    },
+    {
+      id: 'tas-grandmir',
+      name: 'Grand Mir Hotel',
+      stars: 4,
+      areaKey: 'hotel.area.tasCenter',
+      serviceKey: 'hotel.service.tasGrandMir',
+    },
+    {
+      id: 'tas-international',
+      name: 'International Hotel Tashkent',
+      stars: 4,
+      areaKey: 'hotel.area.tasYunusabad',
+      serviceKey: 'hotel.service.tasInternational',
+    },
+    {
+      id: 'tas-citypalace',
+      name: 'City Palace Hotel',
+      stars: 4,
+      areaKey: 'hotel.area.tasCenter',
+      serviceKey: 'hotel.service.tasCityPalace',
+    },
+  ],
+  lux: [
+    {
+      id: 'tas-hyatt',
+      name: 'Hyatt Regency Tashkent',
+      stars: 5,
+      areaKey: 'hotel.area.tasCity',
+      serviceKey: 'hotel.service.tasHyatt',
+    },
+    {
+      id: 'tas-hilton',
+      name: 'Hilton Tashkent City',
+      stars: 5,
+      areaKey: 'hotel.area.tasCity',
+      serviceKey: 'hotel.service.tasHilton',
+    },
+  ],
 }
 
-/** Короткая версия категории — для строки в карточке тарифа. */
-const SHORT_BY_LEVEL: Record<Level, string> = {
-  econom: '3★, рядом с центром',
-  medium: '4★, центр города',
-  lux: '5★ или бутик-отель',
+const BY_CITY: Partial<Record<CityId, Record<Level, Hotel[]>>> = {
+  tashkent: TASHKENT,
 }
 
-/** Размещение для города и тарифа. Пока не зависит от города —
- *  ровно настолько, насколько это подтверждено данными. */
-export function hotel(_cityId: CityId, level: Level): Hotel {
-  return {
-    name: '', // ⚠️ ТРЕБУЕТ ДАННЫХ
-    category: BY_LEVEL[level].category,
-    service: '', // ⚠️ ТРЕБУЕТ ДАННЫХ
-    amenities: [], // ⚠️ ТРЕБУЕТ ДАННЫХ
-    photo: '', // ⚠️ ТРЕБУЕТ ДАННЫХ
-  }
+/** Отели города на уровне. Пусто — показывается категория без имени. */
+export function hotelsFor(cityId: CityId, level: Level): Hotel[] {
+  return BY_CITY[cityId]?.[level] ?? []
 }
 
-/** Сводка одной строкой для карточки тарифа. */
-export function hotelSummary(_cityId: CityId, level: Level): string {
-  return SHORT_BY_LEVEL[level]
+export function hotelById(cityId: CityId, level: Level, id: string | undefined): Hotel | undefined {
+  if (!id) return undefined
+  return hotelsFor(cityId, level).find((h) => h.id === id)
+}
+
+/** Первый отель уровня — на него сбрасывается выбор при смене тарифа. */
+export function firstHotelId(cityId: CityId, level: Level): string | undefined {
+  return hotelsFor(cityId, level)[0]?.id
+}
+
+export function amenitiesFor(level: Level): AmenityKey[] {
+  return AMENITIES_BY_LEVEL[level]
 }

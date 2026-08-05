@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { nextTick, ref, watch } from 'vue'
 import { BONUSES, type Level } from '@/data'
+import { t } from '@/composables/useI18n'
 
 // Блок «В подарок». Без иконок и эмодзи — только название и объём.
 const props = defineProps<{ level: Level }>()
@@ -28,12 +29,12 @@ watch(
 
 <template>
   <div class="gift">
-    <div class="cap">В подарок</div>
+    <div class="cap">{{ t('bonus.title') }}</div>
     <div ref="box" class="box" :style="{ height }">
       <div ref="inner">
-        <div v-for="b in BONUSES[level]" :key="b.name" class="row">
-          <span>{{ b.name }}</span>
-          <span class="amount">{{ b.amount }}</span>
+        <div v-for="b in BONUSES[level]" :key="b.nameKey" class="row">
+          <span>{{ t(b.nameKey) }}</span>
+          <span class="amount">{{ t(b.amountKey) }}</span>
         </div>
       </div>
     </div>

@@ -1,17 +1,19 @@
 <script setup lang="ts">
+import { t } from '@/composables/useI18n'
+
 // Нижний бар навигации: четыре вкладки, главная — «Расчёт».
 const tabs = [
-  { to: '/', label: 'Расчёт' },
-  { to: '/routes', label: 'Маршруты' },
-  { to: '/stay', label: 'Проживание' },
-  { to: '/food', label: 'Питание' },
+  { to: '/', key: 'nav.calc' },
+  { to: '/routes', key: 'nav.routes' },
+  { to: '/stay', key: 'nav.stay' },
+  { to: '/food', key: 'nav.food' },
 ] as const
 </script>
 
 <template>
   <nav class="bottom-nav">
     <RouterLink v-for="tab in tabs" :key="tab.to" :to="tab.to" class="tab tap">
-      {{ tab.label }}
+      {{ t(tab.key) }}
     </RouterLink>
   </nav>
 </template>

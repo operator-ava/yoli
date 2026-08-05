@@ -5,23 +5,24 @@
 //
 // ⚠️ ТРЕБУЕТ ДАННЫХ: блюда расписаны ТОЛЬКО для узбекского обеда — единственный
 // набор, подтверждённый заказчиком. Для остальных кухонь и приёмов пищи блюда
-// НЕ ВЫДУМЫВАЮТСЯ, поле пустое. Заказчик обещал список из двенадцати кухонь —
-// структура рассчитана на произвольное их число.
+// НЕ ВЫДУМЫВАЮТСЯ. Заказчик обещал список из двенадцати кухонь — структура
+// рассчитана на произвольное их число и произвольное число подач.
 import type { Level } from './pricing'
 
 export type CuisineId = string
 
 export interface Cuisine {
   id: CuisineId
-  name: string
+  /** Ключ названия в словаре. */
+  nameKey: string
 }
 
 /** Кухни. Список открыт — добавление новых не требует правок логики. */
 export const CUISINES: Cuisine[] = [
-  { id: 'uzbek', name: 'Узбекская кухня' },
-  { id: 'chinese', name: 'Китайская кухня' },
-  { id: 'russian', name: 'Русская кухня' },
-  { id: 'japanese', name: 'Японская кухня' },
+  { id: 'uzbek', nameKey: 'cuisine.uzbek' },
+  { id: 'chinese', nameKey: 'cuisine.chinese' },
+  { id: 'russian', nameKey: 'cuisine.russian' },
+  { id: 'japanese', nameKey: 'cuisine.japanese' },
 ]
 
 /** Порядок раскладки кухонь по дням: узбекской больше всего, дальше по убыванию.
@@ -50,61 +51,41 @@ export function cuisineForDay(index: number, total: number): Cuisine {
 /** Приём пищи. */
 export type MealKey = 'breakfast' | 'lunch' | 'dinner'
 
-export const MEAL_LABEL: Record<MealKey, string> = {
-  breakfast: 'Завтрак',
-  lunch: 'Обед',
-  dinner: 'Ужин',
+export const MEAL_LABEL_KEY: Record<MealKey, string> = {
+  breakfast: 'meal.breakfast',
+  lunch: 'meal.lunch',
+  dinner: 'meal.dinner',
 }
 
 export interface MealFormat {
   meals: MealKey[]
-  /** Формат заведений на этом уровне. */
-  venues: string
+  /** Ключ строки с форматом заведений на этом уровне. */
+  venuesKey: string
 }
 
 /** ⚠️ ТРЕБУЕТ УТВЕРЖДЕНИЯ ЗАКАЗЧИКОМ. */
 export const MEAL_FORMAT: Record<Level, MealFormat> = {
-  econom: {
-    meals: ['breakfast', 'lunch'],
-    venues: 'Кафе и чайханы городского формата',
-  },
-  medium: {
-    meals: ['breakfast', 'lunch', 'dinner'],
-    venues: 'Рестораны с национальной и европейской картой',
-  },
-  lux: {
-    meals: ['breakfast', 'lunch', 'dinner'],
-    venues: 'Авторские и панорамные рестораны, ужин с программой',
-  },
+  econom: { meals: ['breakfast', 'lunch'], venuesKey: 'meal.venues.econom' },
+  medium: { meals: ['breakfast', 'lunch', 'dinner'], venuesKey: 'meal.venues.medium' },
+  lux: { meals: ['breakfast', 'lunch', 'dinner'], venuesKey: 'meal.venues.lux' },
 }
 
-/** Подача блюда: название подачи и что в ней. */
+/** Подача: ключ названия подачи и ключи блюд. Число подач произвольное. */
 export interface Course {
-  label: string
-  items: string[]
+  labelKey: string
+  itemKeys: string[]
 }
 
 /** Блюда для кухни и приёма пищи. Заполнен только узбекский обед —
  *  единственный набор, подтверждённый заказчиком. */
 const DISHES: Record<string, Course[]> = {
   'uzbek|lunch': [
-    { label: 'Первое', items: ['Мастава'] },
-    { label: 'Второе', items: ['Плов'] },
-    { label: 'К столу', items: ['Самса', 'Шашлык'] },
+    { labelKey: 'course.first', itemKeys: ['dish.mastava'] },
+    { labelKey: 'course.second', itemKeys: ['dish.plov'] },
+    { labelKey: 'course.table', itemKeys: ['dish.samsa', 'dish.shashlik'] },
   ],
 }
 
 export function dishesFor(cuisineId: CuisineId, meal: MealKey): Course[] {
   return DISHES[`${cuisineId}|${meal}`] ?? []
-}
-
-/** Сводка одной строкой для карточки тарифа. */
-export function mealSummary(level: Level): string {
-  const labels = MEAL_FORMAT[level].meals.map((m) => MEAL_LABEL[m].toLowerCase())
-  if (labels.length <= 1) return labels[0] ?? ''
-  return capitalize(labels.slice(0, -1).join(', ') + ' и ' + labels[labels.length - 1])
-}
-
-function capitalize(s: string): string {
-  return s.charAt(0).toUpperCase() + s.slice(1)
 }
