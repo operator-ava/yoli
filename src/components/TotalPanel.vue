@@ -4,7 +4,7 @@ import { useTripStore } from '@/stores/trip'
 import { cityName, levelName, MAX_PEOPLE } from '@/data'
 import { ARTICLES } from '@/composables/calc'
 import { nextDiscountStep } from '@/composables/calc'
-import { allocate, exactUnits, formatUnits, money, percent, steppedUnits } from '@/composables/format'
+import { allocate, exactUnits, formatUnits, percent, steppedUnits } from '@/composables/format'
 import { rangeLabel, short } from '@/composables/dates'
 import { count, plural, t } from '@/composables/useI18n'
 
@@ -24,7 +24,11 @@ const nextStep = computed(() => {
 // Итог округляется шагом валюты, скидка выводится без шага,
 // а строки раскладываются по долям так, чтобы сумма сошлась копейка в копейку.
 const view = computed(() => {
-  const totalUnits = steppedUnits(r.value.total)
+  // Цена на человека — это то, что человек читает первым, поэтому округляем её,
+  // а итог за группу выводим как «на человека × люди». Тогда умножение в уме
+  // всегда сходится с тем, что написано в панели.
+  const perPersonUnits = steppedUnits(r.value.perPerson)
+  const totalUnits = perPersonUnits * trip.people
   const discountUnits = exactUnits(r.value.discount)
   const base = totalUnits + discountUnits
 
@@ -38,6 +42,7 @@ const view = computed(() => {
   )
 
   return {
+    perPersonUnits,
     totalUnits,
     discountUnits,
     articles: ARTICLES.map((a, i) => ({
@@ -78,7 +83,7 @@ function summaryText(): string {
   }
   lines.push('')
   lines.push(t('share.total', { sum: formatUnits(view.value.totalUnits) }))
-  lines.push(t('share.perPerson', { sum: money(r.value.perPerson) }))
+  lines.push(t('share.perPerson', { sum: formatUnits(view.value.perPersonUnits) }))
   lines.push('')
   lines.push(t('share.note'))
   return lines.join('\n')
@@ -101,7 +106,7 @@ async function share() {
     <!-- Тап по шапке панели раскрывает разбивку -->
     <button class="head tap" :aria-expanded="open" @click="open = !open">
       <div>
-        <div class="per-person tnum">{{ money(r.perPerson) }}</div>
+        <div class="per-person tnum">{{ formatUnits(view.perPersonUnits) }}</div>
         <div class="per-person-label">{{ t('total.perPerson') }}</div>
       </div>
       <div class="side">

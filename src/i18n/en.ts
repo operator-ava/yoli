@@ -110,6 +110,9 @@ export const en: Dict = {
   'dates.monthTitle': '{month} {year}',
 
   // Bottom sheets
+  'update.title': 'A new version is available',
+  'update.button': 'Update',
+  'update.later': 'Later',
   'sheet.close': 'Close',
   'sheet.tariff': '{name} tariff',
   'sheet.others': 'Other tariffs',

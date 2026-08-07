@@ -109,6 +109,9 @@ export const zh: Dict = {
   'dates.monthTitle': '{year}年{month}',
 
   // 底部弹层
+  'update.title': '有新版本可用',
+  'update.button': '更新',
+  'update.later': '稍后',
   'sheet.close': '关闭',
   'sheet.tariff': '{name}套餐',
   'sheet.others': '其他套餐',
