@@ -5,11 +5,6 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
-  // Метка сборки: по ней запоминаем, что человек отложил обновление
-  // именно этой версии, и не показываем плашку повторно.
-  define: {
-    __APP_BUILD__: JSON.stringify(String(Date.now())),
-  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
@@ -18,11 +13,8 @@ export default defineConfig({
   plugins: [
     vue(),
     VitePWA({
-      // Сам ничего не перезагружает: новая сборка ждёт, пока человек нажмёт «Обновить».
-      registerType: 'prompt',
-      // Регистрацией занимается useRegisterSW в UpdateBanner.vue,
-      // отдельный скрипт в index.html не нужен.
-      injectRegister: null,
+      // Сервис-воркер обновляется сам: новая версия применяется со второго открытия.
+      registerType: 'autoUpdate',
       // Иконки лежат в public/ — добавляем их в precache явно.
       includeAssets: ['favicon.png', 'apple-touch-icon.png', 'brand/*.webp', 'photos/cities/*.webp'],
       manifest: {

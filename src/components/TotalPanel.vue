@@ -113,7 +113,13 @@ async function share() {
         <div class="group tnum">
           {{ t('total.forGroup', { n: trip.people }) }} <b>{{ formatUnits(view.totalUnits) }}</b>
         </div>
-        <div class="chevron" :class="{ open }" aria-hidden="true">⌃</div>
+        <div
+          class="chevron"
+          :style="{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }"
+          aria-hidden="true"
+        >
+          ⌃
+        </div>
       </div>
     </button>
 
@@ -220,15 +226,13 @@ async function share() {
   font-weight: 600;
 }
 
+/* Стрелка показывает, куда поедет панель:
+   свёрнута — вверх, раскрыта — вниз. Поворот задаётся из шаблона,
+   здесь только плавность. */
 .chevron {
   font-size: 16px;
   color: var(--text-muted);
   transition: transform 0.15s;
-  transform: rotate(180deg);
-}
-
-.chevron.open {
-  transform: rotate(0deg);
 }
 
 /* Без подложки: заливка спорила с ценой. Выделены только числа. */

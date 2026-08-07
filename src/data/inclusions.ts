@@ -25,9 +25,9 @@ export interface InclusionContext {
 
 /** Порядок и ключи названий пунктов. Порядок задан заказчиком. */
 export const INCLUSION_ITEMS: { key: InclusionKey; labelKey: string }[] = [
+  { key: 'transfer', labelKey: 'inc.transfer' },
   { key: 'hotel', labelKey: 'inc.hotel' },
   { key: 'food', labelKey: 'inc.food' },
-  { key: 'transfer', labelKey: 'inc.transfer' },
   { key: 'logistics', labelKey: 'inc.logistics' },
   { key: 'guide', labelKey: 'inc.guide' },
 ]

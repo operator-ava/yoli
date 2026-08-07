@@ -12,18 +12,6 @@
         "5180"
       ],
       "port": 5180
-    },
-    {
-      "name": "yoli-preview",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": [
-        "run",
-        "preview",
-        "--",
-        "--port",
-        "5181"
-      ],
-      "port": 5181
     }
   ]
 }

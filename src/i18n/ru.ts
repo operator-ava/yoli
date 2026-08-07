@@ -107,9 +107,6 @@ export const ru: Dict = {
   'dates.monthTitle': '{month} {year}',
 
   // Нижние листы
-  'update.title': 'Доступна новая версия',
-  'update.button': 'Обновить',
-  'update.later': 'Позже',
   'sheet.close': 'Закрыть',
   'sheet.tariff': 'Тариф «{name}»',
   'sheet.others': 'В других тарифах',
