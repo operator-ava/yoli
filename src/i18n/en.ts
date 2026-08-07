@@ -17,7 +17,6 @@ export const en: Dict = {
   'u.day': ['day', 'days'],
   'u.city': ['city', 'cities'],
   'u.meal': ['meal', 'meals'],
-  'u.star': ['star', 'stars'],
 
   // Estimate screen
   'calc.who': 'Who is travelling',
@@ -155,56 +154,42 @@ export const en: Dict = {
 
   // Hotel
   'hotel.title': 'Hotel · {city}',
-  'hotel.amenities': 'Amenities',
-  'hotel.others': 'Other hotels of this level',
-  'hotel.cat.econom': '3★, guesthouse or hotel within walking distance of the centre',
-  'hotel.cat.medium': '4★ in the city centre',
-  'hotel.cat.lux': '5★ or a boutique hotel in the historic quarter',
-  'hotel.catShort.econom': '3★, near the centre',
-  'hotel.catShort.medium': '4★, city centre',
-  'hotel.catShort.lux': '5★ or boutique hotel',
 
-  // Tashkent areas
-  'hotel.area.tasCenter': 'City centre',
-  'hotel.area.tasAmirTemur': 'City centre, by Amir Temur square',
-  'hotel.area.tasMirabad': 'Mirabad district',
-  'hotel.area.tasYunusabad': 'Yunusabad district',
-  'hotel.area.tasCity': 'Tashkent City',
-
-  // Service descriptions
-  'hotel.service.tasUzbekistan':
-    'A large city hotel a step away from the main squares. Basic service, front desk around the clock.',
-  'hotel.service.tasShodlik':
-    'A quiet hotel in the centre, away from the main roads. Simple city accommodation.',
-  'hotel.service.tasOrzu':
-    'A small hotel in a residential area closer to the railway station. Basic service, quiet rooms.',
-  'hotel.service.tasLotte':
-    'An international chain hotel in the centre. Consistent service, front desk and breakfast included.',
-  'hotel.service.tasRamada':
-    'A business-format chain hotel. Predictable service, convenient for groups.',
-  'hotel.service.tasGrandMir':
-    'A city hotel in the centre with its own grounds. Attentive service, quiet rooms.',
-  'hotel.service.tasInternational':
-    'A large hotel in the business part of the city. Suited to groups and business trips.',
-  'hotel.service.tasCityPalace':
-    'A hotel in the centre next to transport hubs. Standard service for its level.',
-  'hotel.service.tasHyatt':
-    'A high-category hotel in the new business quarter. Personal service, spacious rooms.',
-  'hotel.service.tasHilton':
-    'An international chain hotel in Tashkent City. High level of service, modern rooms.',
-
-  // Amenities
-  'am.wifi': 'Wi-Fi',
-  'am.breakfast': 'Breakfast',
-  'am.ac': 'Air conditioning',
-  'am.hairdryer': 'Hairdryer',
-  'am.safe': 'Safe',
-  'am.shower': 'Shower',
-  'am.bath': 'Bathtub',
-  'am.cleaning': 'Daily cleaning',
-  'am.reception': '24/7 reception',
-  'am.robe': 'Robe and slippers',
-  'am.roomService': 'Room service',
+  'hotel.cat.econom': '2–3★ hotel',
+  'hotel.cat.medium': '3–4★ hotel',
+  'hotel.cat.lux': '4–5★ hotel',
+  'hotel.catName.econom': 'Economy',
+  'hotel.catName.medium': 'Standard class',
+  'hotel.catName.lux': 'Luxury',
+  'hotel.note': 'The particular hotel is selected once the booking is confirmed. We guarantee the category and the conditions listed above.',
+  'hotel.benefit.econom.1': 'Located within the city, with easy access to the main routes',
+  'hotel.benefit.econom.2': 'A private room with its own bathroom',
+  'hotel.benefit.econom.3': 'Air conditioning in the room',
+  'hotel.benefit.econom.4': 'Breakfast included',
+  'hotel.benefit.econom.5': 'Daily cleaning, linen changed on the hotel schedule',
+  'hotel.benefit.econom.6': 'Wi-Fi on the premises',
+  'hotel.benefit.econom.7': 'Reception during working hours',
+  'hotel.benefit.econom.8': 'Luggage storage before check-in and after check-out',
+  'hotel.benefit.medium.1': 'Located in the tourist part of the city, key sights within walking distance',
+  'hotel.benefit.medium.2': 'A spacious room of higher comfort',
+  'hotel.benefit.medium.3': 'Air conditioning, TV, work desk, safe',
+  'hotel.benefit.medium.4': 'Extended buffet breakfast',
+  'hotel.benefit.medium.5': 'Restaurant or cafe on the premises',
+  'hotel.benefit.medium.6': 'Fitness area or swimming pool',
+  'hotel.benefit.medium.7': 'Daily cleaning and linen change',
+  'hotel.benefit.medium.8': 'Wi-Fi throughout the premises',
+  'hotel.benefit.medium.9': 'Reception around the clock',
+  'hotel.benefit.medium.10': 'Luggage storage, assistance with transport',
+  'hotel.benefit.lux.1': 'Located in the central part of the city, within walking distance of the main sights',
+  'hotel.benefit.lux.2': 'A top-category room or junior suite, larger floor area',
+  'hotel.benefit.lux.3': 'Fully equipped room: air conditioning, safe, minibar, seating area',
+  'hotel.benefit.lux.4': 'Premium breakfast, a restaurant or several dining options on the premises',
+  'hotel.benefit.lux.5': 'Swimming pool, spa area or relaxation area',
+  'hotel.benefit.lux.6': 'Room service and concierge service',
+  'hotel.benefit.lux.7': 'Cleaning twice a day, daily linen change',
+  'hotel.benefit.lux.8': 'Early check-in and late check-out where the hotel can offer it',
+  'hotel.benefit.lux.9': 'Welcome set on arrival',
+  'hotel.benefit.lux.10': 'Personal assistance throughout the stay',
 
   // Meals
   'meal.title': 'Meals · {city}',
@@ -243,9 +228,8 @@ export const en: Dict = {
   'showcase.routes.note': 'Points from the programme. Full descriptions are in progress.',
   'showcase.routes.text': 'A point from the programme. Description in progress.',
   'showcase.stay.title': 'Stay',
-  'showcase.stay.note': 'Accommodation categories by city. Hotels to be confirmed.',
-  'showcase.stay.text':
-    'Economy, standard and luxury accommodation. Hotel list to be confirmed.',
+  'showcase.stay.note': 'Accommodation categories by city along the route.',
+  'showcase.stay.text': 'Hotels of the 2–3★, 3–4★ and 4–5★ categories. The category and its conditions are guaranteed.',
   'showcase.food.title': 'Meals',
   'showcase.food.note': 'Meals by city along the route. Menus to be confirmed.',
   'showcase.food.text': 'Meals as per the programme. Menus and venues to be confirmed.',

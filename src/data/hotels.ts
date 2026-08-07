@@ -1,170 +1,50 @@
-// ⚠️ МАКЕТНОЕ НАПОЛНЕНИЕ. Названия — узнаваемые ташкентские гостиницы, НЕ ПРОВЕРЕНЫ
-// и НЕ ЗАКОНТРАКТОВАНЫ. Требует подтверждения заказчиком перед показом клиенту.
+// Размещение описывается КАТЕГОРИЕЙ, а не конкретным отелем.
 //
-// Самарканд, Бухара и Хива пока без отелей — там показывается категория без имени.
-// Выбор отеля НЕ ВЛИЯЕТ на цену.
-import type { CityId, Level } from './pricing'
+// Причина: заказчик работает по модели «сначала оплата, потом бронирование».
+// Наличие мест на момент расчёта неизвестно, поэтому называть отель нельзя —
+// это обещание, которое можно не сдержать. Названий, адресов, районов
+// и расстояний до конкретных объектов здесь нет и быть не должно.
+//
+// Каждая категория описана ПОЛНОСТЬЮ и читается сама по себе:
+// отсылок «всё из предыдущей категории» нет.
+import type { Level } from './pricing'
 
-/** Возможные удобства. */
-export type AmenityKey =
-  | 'wifi'
-  | 'breakfast'
-  | 'ac'
-  | 'hairdryer'
-  | 'safe'
-  | 'shower'
-  | 'bath'
-  | 'cleaning'
-  | 'reception'
-  | 'robe'
-  | 'roomService'
-
-/** Ключ удобства → ключ строки в словаре. */
-export const AMENITY_KEYS: AmenityKey[] = [
-  'wifi',
-  'breakfast',
-  'ac',
-  'hairdryer',
-  'safe',
-  'shower',
-  'bath',
-  'cleaning',
-  'reception',
-  'robe',
-  'roomService',
-]
-
-/** ⚠️ ТРЕБУЕТ ПОДТВЕРЖДЕНИЯ: набор удобств по уровням — реконструкция.
- *  Задаётся на уровень, а не на отель. */
-export const AMENITIES_BY_LEVEL: Record<Level, AmenityKey[]> = {
-  econom: ['wifi', 'breakfast', 'ac', 'shower', 'cleaning'],
-  medium: ['wifi', 'breakfast', 'ac', 'hairdryer', 'safe', 'bath', 'cleaning', 'reception'],
-  lux: [
-    'wifi',
-    'breakfast',
-    'ac',
-    'hairdryer',
-    'safe',
-    'bath',
-    'cleaning',
-    'reception',
-    'robe',
-    'roomService',
-  ],
+export interface HotelCategory {
+  /** Ключ названия категории: «Отель 2–3★». */
+  labelKey: string
+  /** Ключ уровня: «Эконом», «Средний класс», «Люкс». */
+  nameKey: string
+  /** Звёздность для заглушки фото: «2–3★». */
+  starsLabel: string
+  /** Ключи строк с привилегиями категории. */
+  benefitKeys: string[]
 }
 
-export interface Hotel {
-  id: string
-  /** Имя собственное — не переводится. */
-  name: string
-  stars: number
-  /** Ключ строки района в словаре. */
-  areaKey: string
-  /** Ключ строки описания обслуживания в словаре. */
-  serviceKey: string
+function benefits(level: string, count: number): string[] {
+  return Array.from({ length: count }, (_, i) => `hotel.benefit.${level}.${i + 1}`)
 }
 
-/** ⚠️ ТРЕБУЕТ УТВЕРЖДЕНИЯ: категории размещения по уровням — реконструкция. */
-export const LEVEL_STARS: Record<Level, number> = { econom: 3, medium: 4, lux: 5 }
-
-const TASHKENT: Record<Level, Hotel[]> = {
-  econom: [
-    {
-      id: 'tas-uzbekistan',
-      name: 'Hotel Uzbekistan',
-      stars: 3,
-      areaKey: 'hotel.area.tasAmirTemur',
-      serviceKey: 'hotel.service.tasUzbekistan',
-    },
-    {
-      id: 'tas-shodlik',
-      name: 'Shodlik Palace Hotel',
-      stars: 3,
-      areaKey: 'hotel.area.tasCenter',
-      serviceKey: 'hotel.service.tasShodlik',
-    },
-    {
-      id: 'tas-orzu',
-      name: 'Grand Orzu Hotel',
-      stars: 3,
-      areaKey: 'hotel.area.tasMirabad',
-      serviceKey: 'hotel.service.tasOrzu',
-    },
-  ],
-  medium: [
-    {
-      id: 'tas-lotte',
-      name: 'Lotte City Hotel Tashkent Palace',
-      stars: 4,
-      areaKey: 'hotel.area.tasCenter',
-      serviceKey: 'hotel.service.tasLotte',
-    },
-    {
-      id: 'tas-ramada',
-      name: 'Ramada by Wyndham Tashkent',
-      stars: 4,
-      areaKey: 'hotel.area.tasMirabad',
-      serviceKey: 'hotel.service.tasRamada',
-    },
-    {
-      id: 'tas-grandmir',
-      name: 'Grand Mir Hotel',
-      stars: 4,
-      areaKey: 'hotel.area.tasCenter',
-      serviceKey: 'hotel.service.tasGrandMir',
-    },
-    {
-      id: 'tas-international',
-      name: 'International Hotel Tashkent',
-      stars: 4,
-      areaKey: 'hotel.area.tasYunusabad',
-      serviceKey: 'hotel.service.tasInternational',
-    },
-    {
-      id: 'tas-citypalace',
-      name: 'City Palace Hotel',
-      stars: 4,
-      areaKey: 'hotel.area.tasCenter',
-      serviceKey: 'hotel.service.tasCityPalace',
-    },
-  ],
-  lux: [
-    {
-      id: 'tas-hyatt',
-      name: 'Hyatt Regency Tashkent',
-      stars: 5,
-      areaKey: 'hotel.area.tasCity',
-      serviceKey: 'hotel.service.tasHyatt',
-    },
-    {
-      id: 'tas-hilton',
-      name: 'Hilton Tashkent City',
-      stars: 5,
-      areaKey: 'hotel.area.tasCity',
-      serviceKey: 'hotel.service.tasHilton',
-    },
-  ],
+export const HOTEL_CATEGORIES: Record<Level, HotelCategory> = {
+  econom: {
+    labelKey: 'hotel.cat.econom',
+    nameKey: 'hotel.catName.econom',
+    starsLabel: '2–3★',
+    benefitKeys: benefits('econom', 8),
+  },
+  medium: {
+    labelKey: 'hotel.cat.medium',
+    nameKey: 'hotel.catName.medium',
+    starsLabel: '3–4★',
+    benefitKeys: benefits('medium', 10),
+  },
+  lux: {
+    labelKey: 'hotel.cat.lux',
+    nameKey: 'hotel.catName.lux',
+    starsLabel: '4–5★',
+    benefitKeys: benefits('lux', 10),
+  },
 }
 
-const BY_CITY: Partial<Record<CityId, Record<Level, Hotel[]>>> = {
-  tashkent: TASHKENT,
-}
-
-/** Отели города на уровне. Пусто — показывается категория без имени. */
-export function hotelsFor(cityId: CityId, level: Level): Hotel[] {
-  return BY_CITY[cityId]?.[level] ?? []
-}
-
-export function hotelById(cityId: CityId, level: Level, id: string | undefined): Hotel | undefined {
-  if (!id) return undefined
-  return hotelsFor(cityId, level).find((h) => h.id === id)
-}
-
-/** Первый отель уровня — на него сбрасывается выбор при смене тарифа. */
-export function firstHotelId(cityId: CityId, level: Level): string | undefined {
-  return hotelsFor(cityId, level)[0]?.id
-}
-
-export function amenitiesFor(level: Level): AmenityKey[] {
-  return AMENITIES_BY_LEVEL[level]
+export function hotelCategory(level: Level): HotelCategory {
+  return HOTEL_CATEGORIES[level]
 }

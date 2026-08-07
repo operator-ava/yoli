@@ -77,7 +77,6 @@ const summaryLine = computed(() => {
         :city-id="id"
         :range="trip.ranges[id]"
         :level="trip.levels[id] ?? null"
-        :hotel-id="trip.hotels[id]"
         @pick-dates="dateSheet = id"
         @choose="trip.setLevel(id, $event)"
         @open-item="itemSheet = { cityId: id, level: $event.level, key: $event.key }"
@@ -115,10 +114,8 @@ const summaryLine = computed(() => {
       v-if="itemSheet.key === 'hotel'"
       :city-id="itemSheet.cityId"
       :level="itemSheet.level"
-      :hotel-id="trip.hotels[itemSheet.cityId]"
       :selected-level="trip.levels[itemSheet.cityId] ?? null"
       @choose="chooseFromSheet"
-      @pick-hotel="trip.setHotel(itemSheet.cityId, $event)"
       @close="itemSheet = null"
     />
     <MealSheet

@@ -10,7 +10,6 @@ const props = defineProps<{
   cityId: CityId
   range?: DateRange
   level: Level | null
-  hotelId?: string
 }>()
 
 const emit = defineEmits<{
@@ -29,9 +28,9 @@ const nights = computed(() => (props.range ? nightsBetween(props.range.from, pro
     <img class="thumb" :src="info?.photo" :alt="cityName(cityId)" loading="lazy" />
     <span class="col">
       <span class="name">{{ cityName(cityId) }}</span>
-      <span class="muted sub">{{ t('calc.pickDates') }}</span>
     </span>
-    <span class="cal" aria-hidden="true">🗓</span>
+    <!-- Контрастный призыв к действию вместо иконки -->
+    <span class="cta">{{ t('calc.pickDates') }}</span>
   </button>
 
   <!-- Состояние Б: даты выбраны, карточка раскрыта. -->
@@ -51,7 +50,6 @@ const nights = computed(() => (props.range ? nightsBetween(props.range.from, pro
       :city-id="cityId"
       :nights="nights"
       :selected="level"
-      :hotel-id="hotelId"
       @choose="emit('choose', $event)"
       @open-item="emit('openItem', $event)"
     />
@@ -77,7 +75,6 @@ const nights = computed(() => (props.range ? nightsBetween(props.range.from, pro
   gap: 12px;
   padding: 8px 12px 8px 8px;
   text-align: left;
-  opacity: 0.75;
 }
 
 .open {
@@ -116,10 +113,16 @@ const nights = computed(() => (props.range ? nightsBetween(props.range.from, pro
   font-size: 13px;
 }
 
-.cal {
-  font-size: 20px;
+/* Видно, что от человека требуется действие */
+.cta {
   flex-shrink: 0;
-  padding-right: 4px;
+  background: var(--brand-yellow);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 10px 14px;
+  white-space: nowrap;
 }
 
 .edit {

@@ -3,7 +3,7 @@
 // Названия гостиниц, блюда и марки транспорта НЕ ВЫДУМЫВАЮТСЯ.
 // Пустой пункт (summary === '') в интерфейсе не показывается вовсе.
 import { t } from '@/composables/useI18n'
-import { hotelById, hotelsFor } from './hotels'
+import { hotelCategory } from './hotels'
 import { MEAL_FORMAT, MEAL_LABEL_KEY } from './meals'
 import type { CityId, Level } from './pricing'
 
@@ -69,10 +69,9 @@ function logistics(): Inclusion {
   }
 }
 
-/** Сводка по гостинице: имя выбранного отеля, иначе краткая категория уровня. */
-export function hotelSummary(cityId: CityId, level: Level, hotelId?: string): string {
-  const chosen = hotelById(cityId, level, hotelId) ?? hotelsFor(cityId, level)[0]
-  return chosen ? chosen.name : t(`hotel.catShort.${level}`)
+/** Сводка по гостинице: категория, а не конкретный объект. */
+export function hotelSummary(level: Level): string {
+  return t(hotelCategory(level).labelKey)
 }
 
 /** Сводка по питанию: перечисление приёмов пищи. */
@@ -82,15 +81,10 @@ export function mealSummary(level: Level): string {
 }
 
 /** Состав пункта для города и тарифа. */
-export function inclusion(
-  cityId: CityId,
-  level: Level,
-  key: InclusionKey,
-  hotelId?: string,
-): Inclusion {
+export function inclusion(_cityId: CityId, level: Level, key: InclusionKey): Inclusion {
   switch (key) {
     case 'hotel':
-      return { summary: hotelSummary(cityId, level, hotelId), details: [] }
+      return { summary: hotelSummary(level), details: [] }
     case 'food':
       return { summary: mealSummary(level), details: [] }
     case 'transfer':
@@ -104,8 +98,6 @@ export function inclusion(
 }
 
 /** Пункты, у которых есть что показать. Пустые не выводятся. */
-export function filledItems(cityId: CityId, level: Level, hotelId?: string) {
-  return INCLUSION_ITEMS.filter(
-    (item) => inclusion(cityId, level, item.key, hotelId).summary !== '',
-  )
+export function filledItems(cityId: CityId, level: Level) {
+  return INCLUSION_ITEMS.filter((item) => inclusion(cityId, level, item.key).summary !== '')
 }

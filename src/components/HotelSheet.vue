@@ -1,40 +1,26 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import {
-  amenitiesFor,
-  cityName,
-  hotelById,
-  hotelsFor,
-  LEVEL_STARS,
-  LEVELS,
-  levelName,
-  type CityId,
-  type Level,
-} from '@/data'
+import { cityName, hotelCategory, LEVELS, type CityId, type Level } from '@/data'
 import { t } from '@/composables/useI18n'
 import HotelPhoto from '@/components/HotelPhoto.vue'
 
-// Лист «Гостиница». Выбор отеля не влияет на цену.
+// Лист «Гостиница»: обещание КАТЕГОРИИ, а не конкретного объекта.
+// Названий отелей, адресов и расстояний здесь нет.
 const props = defineProps<{
   cityId: CityId
   level: Level
-  hotelId?: string
   selectedLevel: Level | null
 }>()
 
-const emit = defineEmits<{ choose: [Level]; pickHotel: [string]; close: [] }>()
+const emit = defineEmits<{ choose: [Level]; close: [] }>()
 
-const list = computed(() => hotelsFor(props.cityId, props.level))
-const current = computed(() => hotelById(props.cityId, props.level, props.hotelId) ?? list.value[0])
-const others = computed(() => list.value.filter((h) => h.id !== current.value?.id))
-const stars = computed(() => current.value?.stars ?? LEVEL_STARS[props.level])
-const amenities = computed(() => amenitiesFor(props.level))
+const cat = computed(() => hotelCategory(props.level))
 
-const otherLevels = computed(() =>
-  LEVELS.filter((l) => l.id !== props.level).map((l) => ({
-    name: levelName(l.id),
-    category: t(`hotel.cat.${l.id}`),
-  })),
+const others = computed(() =>
+  LEVELS.filter((l) => l.id !== props.level).map((l) => {
+    const c = hotelCategory(l.id)
+    return { id: l.id, label: t(c.labelKey), name: t(c.nameKey) }
+  }),
 )
 </script>
 
@@ -42,50 +28,26 @@ const otherLevels = computed(() =>
   <div class="body">
     <header class="head">
       <div>
-        <h2 class="title">{{ t('hotel.title', { city: cityName(cityId) }) }}</h2>
-        <p class="sub muted">{{ t('sheet.tariff', { name: levelName(level) }) }}</p>
+        <h2 class="title">{{ t(cat.labelKey) }}</h2>
+        <p class="sub muted">{{ t(cat.nameKey) }} · {{ cityName(cityId) }}</p>
       </div>
       <button class="close" :aria-label="t('sheet.close')" @click="emit('close')">✕</button>
     </header>
 
     <div class="scroll">
-      <!-- Реальных фото отелей нет — фирменная заглушка -->
-      <HotelPhoto :stars="stars" />
+      <HotelPhoto :label="cat.starsLabel" />
 
-      <!-- Имени нет — показываем категорию уровня -->
-      <div class="name">{{ current?.name || t(`hotel.cat.${level}`) }}</div>
-      <div class="meta muted">
-        <span v-if="current">{{ current.stars }}★ · {{ t(current.areaKey) }} · </span>
-        {{ cityName(cityId) }}
-      </div>
+      <!-- Категория описана полностью и читается сама по себе -->
+      <ul class="benefits">
+        <li v-for="key in cat.benefitKeys" :key="key">{{ t(key) }}</li>
+      </ul>
 
-      <p v-if="current" class="service">{{ t(current.serviceKey) }}</p>
-
-      <template v-if="amenities.length">
-        <h3>{{ t('hotel.amenities') }}</h3>
-        <div class="amenities">
-          <div v-for="a in amenities" :key="a" class="amenity">{{ t(`am.${a}`) }}</div>
-        </div>
-      </template>
-
-      <!-- Другие отели этого уровня. Один отель или ни одного — блока нет. -->
-      <template v-if="others.length">
-        <h3>{{ t('hotel.others') }}</h3>
-        <button
-          v-for="h in others"
-          :key="h.id"
-          class="hotel-row"
-          @click="emit('pickHotel', h.id)"
-        >
-          <span class="hotel-name">{{ h.name }}</span>
-          <span class="hotel-meta muted">{{ h.stars }}★ · {{ t(h.areaKey) }}</span>
-        </button>
-      </template>
+      <p class="note muted">{{ t('hotel.note') }}</p>
 
       <h3>{{ t('sheet.others') }}</h3>
-      <div v-for="o in otherLevels" :key="o.name" class="other">
-        <div class="other-name">{{ o.name }}</div>
-        <p class="muted other-text">{{ o.category }}</p>
+      <div v-for="o in others" :key="o.id" class="other">
+        <div class="other-name">{{ o.label }}</div>
+        <p class="muted other-text">{{ o.name }}</p>
       </div>
     </div>
 
@@ -133,26 +95,44 @@ const otherLevels = computed(() =>
   flex-shrink: 0;
 }
 
+/* Список привилегий длинный — лист прокручивается */
 .scroll {
   overflow-y: auto;
   overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   flex: 1;
   min-height: 0;
 }
 
-.name {
-  font-size: 17px;
-  font-weight: 600;
-  margin-top: 12px;
+.benefits {
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
 }
 
-.meta {
-  font-size: 13px;
-}
-
-.service {
+.benefits li {
+  position: relative;
   font-size: 14px;
-  margin: 10px 0 0;
+  line-height: 1.45;
+  padding: 7px 0 7px 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.benefits li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 15px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--brand-yellow);
+}
+
+.note {
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 12px 0 0;
 }
 
 h3 {
@@ -162,38 +142,6 @@ h3 {
   letter-spacing: 0.06em;
   color: var(--text-muted);
   margin: 20px 0 8px;
-}
-
-.amenities {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 2px 12px;
-}
-
-.amenity {
-  font-size: 14px;
-  padding: 5px 0;
-}
-
-.hotel-row {
-  width: 100%;
-  min-height: var(--tap-min);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 2px;
-  border-top: 1px solid var(--border);
-  text-align: left;
-}
-
-.hotel-name {
-  font-size: 15px;
-  font-weight: 600;
-}
-
-.hotel-meta {
-  font-size: 13px;
 }
 
 .other {

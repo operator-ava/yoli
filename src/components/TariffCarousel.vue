@@ -10,7 +10,6 @@ const props = defineProps<{
   cityId: CityId
   nights: number
   selected: Level | null
-  hotelId?: string
 }>()
 
 const emit = defineEmits<{ choose: [Level]; openItem: [{ level: Level; key: InclusionKey }] }>()
@@ -53,13 +52,13 @@ function price(level: Level) {
         <!-- Состав тарифа: пустые пункты не выводятся -->
         <div class="items">
           <button
-            v-for="item in filledItems(cityId, l.id, hotelId)"
+            v-for="item in filledItems(cityId, l.id)"
             :key="item.key"
             class="item"
             @click.stop="emit('openItem', { level: l.id, key: item.key })"
           >
             <span class="item-name">{{ t(item.labelKey) }}</span>
-            <span class="item-sum muted">{{ inclusion(cityId, l.id, item.key, hotelId).summary }}</span>
+            <span class="item-sum muted">{{ inclusion(cityId, l.id, item.key).summary }}</span>
             <span class="chev" aria-hidden="true">›</span>
           </button>
         </div>

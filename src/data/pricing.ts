@@ -55,15 +55,17 @@ export function transferKey(a: CityId, b: CityId): string {
 export const SERVICE_FEE_RATE = 0.08
 
 /** Скидка за размер группы: ступени по числу человек.
- *  from — нижняя граница ступени включительно. */
+ *  from — нижняя граница ступени включительно.
+ *  Двое — базовая цена без скидки, скидка действует от трёх человек.
+ *  Потолок 22%. */
 export const GROUP_DISCOUNT_STEPS: { from: number; rate: number }[] = [
-  { from: 1, rate: 0 },
-  { from: 2, rate: 0.05 },
-  { from: 3, rate: 0.08 },
-  { from: 5, rate: 0.12 },
-  { from: 7, rate: 0.15 },
-  { from: 10, rate: 0.18 },
-  { from: 15, rate: 0.22 },
+  { from: 2, rate: 0 },
+  { from: 3, rate: 0.05 },
+  { from: 5, rate: 0.08 },
+  { from: 7, rate: 0.12 },
+  { from: 10, rate: 0.15 },
+  { from: 15, rate: 0.18 },
+  { from: 18, rate: 0.22 },
 ]
 
 /** Границы ввода. Минимум два человека: цены рассчитаны при двухместном
