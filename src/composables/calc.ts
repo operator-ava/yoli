@@ -1,24 +1,32 @@
 // Формула расчёта. Детерминированная: одни и те же входные данные всегда дают
-// один и тот же результат. Округлений внутри нет — только на выводе.
-// Все числа берутся из /src/data/pricing.ts, здесь их не появляется.
+// один и тот же результат. Все числа берутся из /src/data/pricing.ts.
+//
+// Считаем ОТ СЕБЕСТОИМОСТИ: цена = себестоимость / (1 − маржа),
+// округление вверх до шага. Все внутренние расчёты — в долларах,
+// конвертация в валюту языка происходит только при выводе на экран.
 //
 // Тариф выбирается В КАЖДОМ ГОРОДЕ ОТДЕЛЬНО — глобального уровня поездки нет.
 import {
-  BASE_RATES,
-  CITY_FACTOR,
+  COST_ITEMS,
+  DAILY_COST,
   GROUP_DISCOUNT_STEPS,
-  SERVICE_FEE_RATE,
-  TRANSFERS,
-  transferKey,
+  MARGIN_RATE,
+  PRICE_ROUND_STEP,
+  TRANSFER_COST,
   type CityId,
+  type CostItem,
   type Level,
+  type TransferKind,
 } from '@/data/pricing'
 
-/** Город в маршруте: даты уже разобраны в число ночей, тариф выбран. */
+/** Город в маршруте: даты уже разобраны в число дней, тариф выбран. */
 export interface TripStop {
   cityId: CityId
+  /** Дней пребывания — оно же число ночей. */
   nights: number
   level: Level
+  /** Первый город маршрута — из аэропорта, остальные — переездом. */
+  transfer: TransferKind
 }
 
 export interface CalcInput {
@@ -27,23 +35,24 @@ export interface CalcInput {
   stops: TripStop[]
 }
 
+/** Статьи, которые видит человек: себестоимостные плюс трансфер. */
+export type Article = CostItem | 'transfer'
+export const ARTICLES: Article[] = [...COST_ITEMS, 'transfer']
+
 export interface CityBreakdown {
   cityId: CityId
   nights: number
   level: Level
-  /** Проживание + питание + гид по этому городу, без переездов и сбора. */
+  /** Цена города за всю группу, уже с маржой и округлением. */
   amount: number
 }
 
 export interface CalcResult {
-  stay: number
-  food: number
-  guide: number
-  transfers: number
+  /** Суммы по статьям за всю группу. */
+  articles: Record<Article, number>
   subtotal: number
   discountRate: number
   discount: number
-  serviceFee: number
   total: number
   perPerson: number
   nights: number
@@ -67,82 +76,71 @@ export function nextDiscountStep(people: number): { add: number; rate: number } 
   return { add: next.from - people, rate: next.rate }
 }
 
-/** Статьи по одному городу на ОДНОГО человека, без сервисного сбора. */
-export function cityPerPerson(
-  cityId: CityId,
+/** Себестоимость города на одного человека, по статьям, в долларах. */
+export function cityCost(
   level: Level,
-  nights: number,
-): { stay: number; food: number; guide: number; sum: number } {
-  const rates = BASE_RATES[level]
-  const factor = CITY_FACTOR[cityId]
-  const stay = rates.stay * factor * nights
-  const food = rates.food * factor * nights
-  const guide = rates.guide * factor * nights
-  return { stay, food, guide, sum: stay + food + guide }
+  days: number,
+  transfer: TransferKind,
+): { byArticle: Record<Article, number>; total: number } {
+  const daily = DAILY_COST[level]
+  const byArticle = {} as Record<Article, number>
+  let total = 0
+  for (const item of COST_ITEMS) {
+    const value = daily[item] * days
+    byArticle[item] = value
+    total += value
+  }
+  const transferCost = TRANSFER_COST[transfer][level]
+  byArticle.transfer = transferCost
+  total += transferCost
+  return { byArticle, total }
 }
 
-/** Цена тарифа для карточки: на одного человека, С УЖЕ ВКЛЮЧЁННЫМ сервисным сбором.
- *  Групповая скидка сюда не входит — она считается от всей поездки и видна в панели итога. */
-export function tariffCardPrice(cityId: CityId, level: Level, nights: number): number {
-  return cityPerPerson(cityId, level, nights).sum * (1 + SERVICE_FEE_RATE)
+/** Наценка и округление вверх до шага. */
+function withMargin(cost: number): number {
+  const price = cost / (1 - MARGIN_RATE)
+  return Math.ceil(price / PRICE_ROUND_STEP) * PRICE_ROUND_STEP
 }
 
-/** Цена переезда на человека. Тариф берётся у города НАЗНАЧЕНИЯ:
- *  переезд считается частью прибытия в город. */
-export function transferPrice(from: CityId, to: CityId, level: Level): number | undefined {
-  return TRANSFERS[transferKey(from, to)]?.[level]
+/** Цена города на ОДНОГО человека: с маржой, округлённая вверх до шага.
+ *  Это то самое число, что стоит на карточке тарифа. */
+export function cityPrice(level: Level, days: number, transfer: TransferKind): number {
+  return withMargin(cityCost(level, days, transfer).total)
 }
 
 export function calculate(input: CalcInput): CalcResult {
   const { people, stops } = input
 
-  let stay = 0
-  let food = 0
-  let guide = 0
+  const articles = {} as Record<Article, number>
+  for (const a of ARTICLES) articles[a] = 0
+
   const byCity: CityBreakdown[] = []
+  let subtotal = 0
 
   for (const stop of stops) {
-    const per = cityPerPerson(stop.cityId, stop.level, stop.nights)
-    stay += per.stay * people
-    food += per.food * people
-    guide += per.guide * people
-    byCity.push({
-      cityId: stop.cityId,
-      nights: stop.nights,
-      level: stop.level,
-      amount: per.sum * people,
-    })
-  }
+    const cost = cityCost(stop.level, stop.nights, stop.transfer)
+    const price = withMargin(cost.total)
+    const amount = price * people
 
-  // Переезды: по соседним парам хронологической цепочки, на человека за участок.
-  let transfers = 0
-  for (let i = 0; i < stops.length - 1; i++) {
-    const from = stops[i].cityId
-    const to = stops[i + 1].cityId
-    const price = transferPrice(from, to, stops[i + 1].level)
-    if (price === undefined) {
-      // Пары нет в таблице — считаем нулём и говорим об этом вслух.
-      console.warn(`[calc] нет цены переезда для пары ${from} → ${to}, взят 0`)
-      continue
+    // Статьи раскладываем пропорционально долям себестоимости,
+    // чтобы их сумма в точности совпадала с округлённой ценой города.
+    for (const a of ARTICLES) {
+      articles[a] += cost.total > 0 ? (amount * cost.byArticle[a]) / cost.total : 0
     }
-    transfers += price * people
+
+    subtotal += amount
+    byCity.push({ cityId: stop.cityId, nights: stop.nights, level: stop.level, amount })
   }
 
-  const subtotal = stay + food + guide + transfers
   const rate = discountRate(people)
   const discount = subtotal * rate
-  const serviceFee = (subtotal - discount) * SERVICE_FEE_RATE
-  const total = subtotal - discount + serviceFee
+  const total = subtotal - discount
 
   return {
-    stay,
-    food,
-    guide,
-    transfers,
+    articles,
     subtotal,
     discountRate: rate,
     discount,
-    serviceFee,
     total,
     perPerson: people > 0 ? total / people : 0,
     nights: stops.reduce((sum, s) => sum + s.nights, 0),

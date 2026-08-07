@@ -8,6 +8,7 @@ import {
   MIN_PEOPLE,
   type CityId,
   type Level,
+  type TransferKind,
 } from '@/data'
 import { calculate, type TripStop } from '@/composables/calc'
 import { nightsBetween, nightsOf } from '@/composables/dates'
@@ -36,14 +37,32 @@ export const useTripStore = defineStore('trip', () => {
     return [...withDates, ...withoutDates]
   })
 
+  /** Города с датами в хронологическом порядке. Позиция определяет вид трансфера. */
+  const datedCities = computed<CityId[]>(() =>
+    orderedCities.value.filter((id) => ranges.value[id]),
+  )
+
+  /** Вид трансфера города: первый по календарю едет из аэропорта,
+   *  остальные — переездом из предыдущего города. */
+  function transferKind(id: CityId): TransferKind {
+    return datedCities.value[0] === id ? 'airport' : 'intercity'
+  }
+
+  /** Предыдущий город по хронологии. null — если город первый или без дат. */
+  function previousCity(id: CityId): CityId | null {
+    const i = datedCities.value.indexOf(id)
+    return i > 0 ? datedCities.value[i - 1] : null
+  }
+
   /** Города, которые входят в расчёт: есть и даты, и выбранный тариф. */
   const stops = computed<TripStop[]>(() =>
-    orderedCities.value
-      .filter((id) => ranges.value[id] && levels.value[id])
+    datedCities.value
+      .filter((id) => levels.value[id])
       .map((id) => ({
         cityId: id,
         nights: nightsBetween(ranges.value[id]!.from, ranges.value[id]!.to),
         level: levels.value[id]!,
+        transfer: transferKind(id),
       })),
   )
 
@@ -53,7 +72,7 @@ export const useTripStore = defineStore('trip', () => {
 
   /** Сводка по всей поездке: границы дат, календарных дней и городов. */
   const summary = computed(() => {
-    const dated = orderedCities.value.filter((id) => ranges.value[id])
+    const dated = datedCities.value
     if (!dated.length) return null
     const from = ranges.value[dated[0]]!.from
     const to = dated.reduce((max, id) => (ranges.value[id]!.to > max ? ranges.value[id]!.to : max), '')
@@ -106,6 +125,9 @@ export const useTripStore = defineStore('trip', () => {
     ranges,
     levels,
     orderedCities,
+    datedCities,
+    transferKind,
+    previousCity,
     stops,
     result,
     summary,

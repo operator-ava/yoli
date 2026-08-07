@@ -1,7 +1,15 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useTripStore } from '@/stores/trip'
-import { cityName, MAX_PEOPLE, MIN_PEOPLE, type CityId, type InclusionKey, type Level } from '@/data'
+import {
+  cityName,
+  MAX_PEOPLE,
+  MIN_PEOPLE,
+  type CityId,
+  type InclusionContext,
+  type InclusionKey,
+  type Level,
+} from '@/data'
 import { count, plural, t } from '@/composables/useI18n'
 import { rangeLabel } from '@/composables/dates'
 import CityCard from '@/components/CityCard.vue'
@@ -11,6 +19,7 @@ import DateRangeSheet from '@/components/DateRangeSheet.vue'
 import InclusionSheet from '@/components/InclusionSheet.vue'
 import HotelSheet from '@/components/HotelSheet.vue'
 import MealSheet from '@/components/MealSheet.vue'
+import TransferSheet from '@/components/TransferSheet.vue'
 
 const trip = useTripStore()
 
@@ -19,6 +28,12 @@ const dateSheet = ref<CityId | null>(null)
 const itemSheet = ref<{ cityId: CityId; level: Level; key: InclusionKey } | null>(null)
 
 const busy = computed(() => (dateSheet.value ? trip.busyNights(dateSheet.value) : new Map()))
+
+/** Контекст города: вид трансфера и предыдущий город по хронологии. */
+function ctxFor(id: CityId): InclusionContext {
+  const prev = trip.previousCity(id)
+  return { transfer: trip.transferKind(id), previousCity: prev ? cityName(prev) : undefined }
+}
 
 /** Выбор тарифа прямо из открытого листа. */
 function chooseFromSheet(level: Level) {
@@ -77,6 +92,7 @@ const summaryLine = computed(() => {
         :city-id="id"
         :range="trip.ranges[id]"
         :level="trip.levels[id] ?? null"
+        :ctx="ctxFor(id)"
         @pick-dates="dateSheet = id"
         @choose="trip.setLevel(id, $event)"
         @open-item="itemSheet = { cityId: id, level: $event.level, key: $event.key }"
@@ -118,6 +134,15 @@ const summaryLine = computed(() => {
       @choose="chooseFromSheet"
       @close="itemSheet = null"
     />
+    <TransferSheet
+      v-else-if="itemSheet.key === 'transfer'"
+      :level="itemSheet.level"
+      :kind="ctxFor(itemSheet.cityId).transfer"
+      :previous-city="ctxFor(itemSheet.cityId).previousCity"
+      :selected-level="trip.levels[itemSheet.cityId] ?? null"
+      @choose="chooseFromSheet"
+      @close="itemSheet = null"
+    />
     <MealSheet
       v-else-if="itemSheet.key === 'food' && trip.ranges[itemSheet.cityId]"
       :city-id="itemSheet.cityId"
@@ -132,6 +157,7 @@ const summaryLine = computed(() => {
       :city-id="itemSheet.cityId"
       :level="itemSheet.level"
       :item-key="itemSheet.key"
+      :ctx="ctxFor(itemSheet.cityId)"
       :selected-level="trip.levels[itemSheet.cityId] ?? null"
       @choose="chooseFromSheet"
       @close="itemSheet = null"

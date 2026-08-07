@@ -57,12 +57,6 @@ export const zh: Dict = {
   'total.copied': '已复制',
 
   // 费用项目
-  'art.stay': '住宿',
-  'art.food': '餐饮',
-  'art.guide': '导游与游览',
-  'art.transfers': '城际交通',
-  'art.fee': '服务费',
-  'art.discount': '团队折扣 {rate}',
 
   // 复制到剪贴板的文本
   'share.title': 'YOLI — 乌兹别克斯坦行程初步报价',
@@ -129,18 +123,14 @@ export const zh: Dict = {
   'inc.guide': '当地导游',
 
   // 用车
-  'transfer.car.econom': 'Nexia 或 Lacetti',
-  'transfer.car.medium': 'Malibu 或同级车型',
-  'transfer.car.lux': 'H-1 商务车或行政级车型',
-  'transfer.carLine': '车型等级：{car}',
-  'transfer.d1': '会讲俄语、熟悉路况的司机，评分 4.5 分以上',
-  'transfer.d2': '全程油费',
-  'transfer.d3': '车内瓶装饮用水',
-  'transfer.d4': '空调',
-  'transfer.d5': '车内如配备则提供 Wi-Fi',
-  'transfer.d6': '翻译协助：餐厅、加油站等场合',
-  'transfer.d7': '最多三次 30–40 分钟停靠：休息、茶馆',
-  'transfer.d8': '不含：博物馆门票、乘客的餐饮',
+  'logistics.d7': '会讲俄语、熟悉路况的司机，评分 4.5 分以上',
+  'logistics.d8': '全程油费',
+  'logistics.d9': '车内瓶装饮用水',
+  'logistics.d10': '空调',
+  'logistics.d11': '车内如配备则提供 Wi-Fi',
+  'logistics.d12': '翻译协助：餐厅、加油站等场合',
+  'logistics.d13': '最多三次 30–40 分钟停靠：休息、茶馆',
+  'logistics.d14': '不含：博物馆门票、乘客的餐饮',
 
   // 行程与用车安排
   'logistics.summary': '全程司机兼导游，行程灵活',
@@ -152,6 +142,28 @@ export const zh: Dict = {
   'logistics.d6': '不含：多日租车时司机的住宿',
 
   // 酒店
+  'transfer.airport.row': '机场接机',
+  'transfer.airport.d1': '工作人员在机场举牌接机，协助搬运行李并送达酒店。',
+  'transfer.airport.d2': '航班延误时司机会等候。',
+  'transfer.airport.econom': '配空调的轿车',
+  'transfer.airport.medium': '高舒适度轿车或商务车',
+  'transfer.airport.lux': '商务级轿车，接机时提供迎宾礼包',
+  'transfer.intercity.row': '从{city}出发的城际接送',
+  'transfer.intercity.d1': '从上一座城市的酒店直达下一座城市的酒店。',
+  'transfer.intercity.d2': '途中停靠可与司机协商安排。',
+  'transfer.intercity.econom': '配空调的轿车',
+  'transfer.intercity.medium': '高舒适度轿车或商务车，途中可停靠',
+  'transfer.intercity.lux': '商务级轿车，沿途停靠，车上备有饮用水与小食',
+  'transfer.note': '具体车辆在预订确认后安排。我们保证车辆等级及以上所列条件。',
+  'art.stay': '住宿',
+  'art.food': '餐饮',
+  'art.transport': '市内交通',
+  'art.tickets': '门票',
+  'art.guide': '当地导游',
+  'art.dedBobo': '波波爷爷',
+  'art.transfer': '接送用车',
+  'art.discount': '团队折扣 {rate}',
+
   'hotel.title': '酒店 · {city}',
 
   'hotel.cat.econom': '2–3星级酒店',

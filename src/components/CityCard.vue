@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { city, cityName, type CityId, type InclusionKey, type Level } from '@/data'
+import { city, cityName, type CityId, type InclusionContext, type InclusionKey, type Level } from '@/data'
 import { nightsBetween, short } from '@/composables/dates'
 import { count, t } from '@/composables/useI18n'
 import type { DateRange } from '@/stores/trip'
@@ -10,6 +10,7 @@ const props = defineProps<{
   cityId: CityId
   range?: DateRange
   level: Level | null
+  ctx: InclusionContext
 }>()
 
 const emit = defineEmits<{
@@ -50,6 +51,7 @@ const nights = computed(() => (props.range ? nightsBetween(props.range.from, pro
       :city-id="cityId"
       :nights="nights"
       :selected="level"
+      :ctx="ctx"
       @choose="emit('choose', $event)"
       @open-item="emit('openItem', $event)"
     />

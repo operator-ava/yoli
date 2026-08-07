@@ -24,7 +24,7 @@ function load(): Locale {
   return 'ru'
 }
 
-const locale = ref<Locale>(load())
+export const locale = ref<Locale>(load())
 
 /** Значение атрибута lang в <html> для каждого языка. */
 const HTML_LANG: Record<Locale, string> = { ru: 'ru', en: 'en', zh: 'zh-Hans' }

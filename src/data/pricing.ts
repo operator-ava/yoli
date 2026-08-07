@@ -1,7 +1,8 @@
-// ⚠️ ПРЕДВАРИТЕЛЬНЫЕ ЦЕНЫ. Выведены из опорных пакетов заказчика (1900/2500/5200 за 3 дня
-// на человека). НЕ УТВЕРЖДЁННЫЙ ПРАЙС. Заменить по получении таблицы от заказчика.
+// ⚠️ ПРЕДВАРИТЕЛЬНЫЕ ЦЕНЫ. Себестоимость получена от заказчика.
+// НЕ УТВЕРЖДЁННЫЙ ПРАЙС. Заменить по получении окончательной таблицы.
 //
 // Здесь и только здесь живут все числа расчёта. В компонентах чисел нет.
+// Цена считается ОТ СЕБЕСТОИМОСТИ, а не задаётся готовым числом.
 
 /** Уровень поездки. */
 export type Level = 'econom' | 'medium' | 'lux'
@@ -13,46 +14,67 @@ export type CityId = 'tashkent' | 'samarkand' | 'bukhara' | 'khiva'
  *  он оставлен как отметка в данных, пока не придёт настоящий прайс. */
 export const PRICES_ARE_DRAFT = true
 
-/** Валюта расчёта. */
-export const CURRENCY = 'USD'
-export const CURRENCY_SYMBOL = '$'
-
 /** Порядок городов по умолчанию. Фактический порядок вычисляется из дат заезда. */
 export const DEFAULT_CITY_ORDER: CityId[] = ['tashkent', 'samarkand', 'bukhara', 'khiva']
 
-/** Базовые ставки на ЧЕЛОВЕКА в ДЕНЬ для Ташкента, до сервисного сбора. */
-export const BASE_RATES: Record<Level, { stay: number; food: number; guide: number }> = {
-  econom: { stay: 320, food: 150, guide: 115 }, // 585
-  medium: { stay: 430, food: 195, guide: 145 }, // 770
-  lux: { stay: 900, food: 400, guide: 305 }, // 1605
+/** Статьи себестоимости. Порядок здесь задаёт порядок строк в разбивке. */
+export const COST_ITEMS = ['stay', 'food', 'transport', 'tickets', 'guide', 'dedBobo'] as const
+export type CostItem = (typeof COST_ITEMS)[number]
+
+/** Себестоимость на ЧЕЛОВЕКА в ДЕНЬ при двухместном размещении, в долларах.
+ *  Итого в день: эконом 121, средний 174, люкс 292. */
+export const DAILY_COST: Record<Level, Record<CostItem, number>> = {
+  econom: { stay: 24, food: 17, transport: 30, tickets: 20, guide: 25, dedBobo: 5 },
+  medium: { stay: 42, food: 32, transport: 40, tickets: 20, guide: 35, dedBobo: 5 },
+  lux: { stay: 92, food: 60, transport: 65, tickets: 20, guide: 50, dedBobo: 5 },
 }
 
-/** Коэффициенты городов — множатся на базовые ставки. */
-export const CITY_FACTOR: Record<CityId, number> = {
-  tashkent: 1.0,
-  samarkand: 1.05,
-  bukhara: 1.0,
-  khiva: 0.95,
+/** Вид трансфера: в первый город маршрута едем из аэропорта,
+ *  во второй и далее — переездом из предыдущего города. */
+export type TransferKind = 'airport' | 'intercity'
+
+/** Себестоимость трансфера, разово на ЧЕЛОВЕКА, в долларах. */
+export const TRANSFER_COST: Record<TransferKind, Record<Level, number>> = {
+  airport: { econom: 12, medium: 18, lux: 30 },
+  intercity: { econom: 50, medium: 65, lux: 90 },
 }
 
-/** Переезды между городами, на ЧЕЛОВЕКА за участок. Матрица симметричная:
- *  ключ собирается из двух id, отсортированных по алфавиту. */
-export const TRANSFERS: Record<string, Record<Level, number>> = {
-  'samarkand|tashkent': { econom: 25, medium: 45, lux: 120 },
-  'bukhara|samarkand': { econom: 20, medium: 40, lux: 110 },
-  'bukhara|khiva': { econom: 45, medium: 70, lux: 190 },
-  'khiva|tashkent': { econom: 90, medium: 140, lux: 260 },
-  'khiva|samarkand': { econom: 70, medium: 110, lux: 230 },
-  'bukhara|tashkent': { econom: 35, medium: 60, lux: 150 },
+/** МАРЖА. Единственный рычаг наценки — заказчик крутит именно эту константу.
+ *  цена = себестоимость / (1 − MARGIN_RATE) */
+export const MARGIN_RATE = 0.4
+
+/** Цена города округляется вверх до этого шага, в долларах. */
+export const PRICE_ROUND_STEP = 10
+
+// ── Валюты ──────────────────────────────────────────────────────────────────
+
+export type CurrencyCode = 'USD' | 'RUB' | 'CNY'
+
+/** Курсы к доллару. ОБНОВЛЯЮТСЯ ВРУЧНУЮ.
+ *  Дата последнего обновления: 07.08.2026.
+ *  Из интернета курс НЕ запрашивается: внешний запрос ломает офлайн
+ *  и меняет цену под клиентом. */
+export const RATES_UPDATED = '07.08.2026'
+export const RATES: Record<CurrencyCode, number> = {
+  USD: 1,
+  RUB: 82.17,
+  CNY: 6.75,
 }
 
-/** Ключ пары городов, порядок не важен. */
-export function transferKey(a: CityId, b: CityId): string {
-  return [a, b].sort().join('|')
+/** Шаг округления при выводе на экран, в единицах валюты. */
+export const CURRENCY_STEP: Record<CurrencyCode, number> = {
+  USD: 10,
+  RUB: 100,
+  CNY: 10,
 }
 
-/** Сервисный сбор — доля от подытога за вычетом скидки. */
-export const SERVICE_FEE_RATE = 0.08
+export const CURRENCY_SYMBOL: Record<CurrencyCode, string> = {
+  USD: '$',
+  RUB: '₽',
+  CNY: '¥',
+}
+
+// ── Скидка и границы ввода ──────────────────────────────────────────────────
 
 /** Скидка за размер группы: ступени по числу человек.
  *  from — нижняя граница ступени включительно.

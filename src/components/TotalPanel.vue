@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { useTripStore } from '@/stores/trip'
 import { cityName, levelName, MAX_PEOPLE } from '@/data'
+import { ARTICLES } from '@/composables/calc'
 import { nextDiscountStep } from '@/composables/calc'
 import { money, percent } from '@/composables/format'
 import { rangeLabel, short } from '@/composables/dates'
@@ -19,13 +20,10 @@ const nextStep = computed(() => {
   return nextDiscountStep(trip.people)
 })
 
-const articles = computed(() => [
-  { label: t('art.stay'), value: r.value.stay },
-  { label: t('art.food'), value: r.value.food },
-  { label: t('art.guide'), value: r.value.guide },
-  { label: t('art.transfers'), value: r.value.transfers },
-  { label: t('art.fee'), value: r.value.serviceFee },
-])
+// Статьи и их порядок задаёт pricing.ts, здесь только подписи.
+const articles = computed(() =>
+  ARTICLES.map((a) => ({ key: a, label: t(`art.${a}`), value: r.value.articles[a] })),
+)
 
 /** Текстовая сводка для буфера обмена. */
 function summaryText(): string {
@@ -107,7 +105,7 @@ async function share() {
 
     <div v-if="open" class="details">
       <h3>{{ t('total.byArticles') }}</h3>
-      <div v-for="a in articles" :key="a.label" class="row">
+      <div v-for="a in articles" :key="a.key" class="row">
         <span>{{ a.label }}</span>
         <span class="tnum">{{ money(a.value) }}</span>
       </div>

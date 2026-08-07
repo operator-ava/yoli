@@ -57,12 +57,6 @@ export const en: Dict = {
   'total.copied': 'Copied',
 
   // Line items
-  'art.stay': 'Accommodation',
-  'art.food': 'Meals',
-  'art.guide': 'Guide and tours',
-  'art.transfers': 'Transfers',
-  'art.fee': 'Service fee',
-  'art.discount': 'Group discount {rate}',
 
   // Clipboard summary
   'share.title': 'YOLI — preliminary estimate for a trip across Uzbekistan',
@@ -130,18 +124,14 @@ export const en: Dict = {
   'inc.guide': 'Local guide',
 
   // Transfer
-  'transfer.car.econom': 'Nexia or Lacetti',
-  'transfer.car.medium': 'Malibu or similar',
-  'transfer.car.lux': 'H-1 minivan or executive class',
-  'transfer.carLine': 'Car class: {car}',
-  'transfer.d1': 'Driver who speaks Russian and knows the roads, rating 4.5+',
-  'transfer.d2': 'Fuel for the whole route',
-  'transfer.d3': 'Bottled water in the car',
-  'transfer.d4': 'Air conditioning',
-  'transfer.d5': 'Wi-Fi where the car has it',
-  'transfer.d6': 'Help with translation: at a restaurant, at a petrol station',
-  'transfer.d7': 'Up to three stops of 30–40 minutes: rest, teahouse',
-  'transfer.d8': 'Not included: museum tickets, food and drinks for passengers',
+  'logistics.d7': 'Driver who speaks Russian and knows the roads, rating 4.5+',
+  'logistics.d8': 'Fuel for the whole route',
+  'logistics.d9': 'Bottled water in the car',
+  'logistics.d10': 'Air conditioning',
+  'logistics.d11': 'Wi-Fi where the car has it',
+  'logistics.d12': 'Help with translation: at a restaurant, at a petrol station',
+  'logistics.d13': 'Up to three stops of 30–40 minutes: rest, teahouse',
+  'logistics.d14': 'Not included: museum tickets, food and drinks for passengers',
 
   // Logistics
   'logistics.summary': 'Driver-guide for the whole route, flexible plan',
@@ -153,6 +143,28 @@ export const en: Dict = {
   'logistics.d6': 'Not included: driver accommodation on multi-day rentals',
 
   // Hotel
+  'transfer.airport.row': 'Airport transfer',
+  'transfer.airport.d1': 'Meeting at the airport with a name sign, help with luggage, delivery to the hotel.',
+  'transfer.airport.d2': 'The driver waits if the flight is delayed.',
+  'transfer.airport.econom': 'Passenger car with air conditioning',
+  'transfer.airport.medium': 'Higher-comfort car or minivan',
+  'transfer.airport.lux': 'Business-class car, meeting with a welcome set',
+  'transfer.intercity.row': 'Transfer from {city}',
+  'transfer.intercity.d1': 'The drive from the hotel in the previous city to the hotel in the next one.',
+  'transfer.intercity.d2': 'Stops along the way as agreed with the driver.',
+  'transfer.intercity.econom': 'Passenger car with air conditioning',
+  'transfer.intercity.medium': 'Higher-comfort car or minivan, stops along the way',
+  'transfer.intercity.lux': 'Business-class car, stops along the route, water and snacks on the road',
+  'transfer.note': 'The particular car is selected once the booking is confirmed. We guarantee the class and the conditions listed above.',
+  'art.stay': 'Accommodation',
+  'art.food': 'Meals',
+  'art.transport': 'City transport',
+  'art.tickets': 'Entrance tickets',
+  'art.guide': 'Local guide',
+  'art.dedBobo': 'Ded Bobo',
+  'art.transfer': 'Transfer',
+  'art.discount': 'Group discount {rate}',
+
   'hotel.title': 'Hotel · {city}',
 
   'hotel.cat.econom': '2–3★ hotel',

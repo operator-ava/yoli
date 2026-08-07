@@ -1,39 +1,35 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import {
-  cityName,
-  inclusion,
-  itemLabel,
-  LEVELS,
-  levelName,
-  type CityId,
-  type InclusionContext,
-  type InclusionKey,
-  type Level,
-} from '@/data'
+import { LEVELS, levelName, type Level, type TransferKind } from '@/data'
 import { t } from '@/composables/useI18n'
 
-// Нижний лист по строке состава: подробности выбранного тарифа
-// и то же самое для двух остальных, чтобы разница читалась глазами.
+// Лист трансфера. Вид зависит от позиции города в маршруте:
+// первый город — из аэропорта, остальные — переезд из предыдущего.
 const props = defineProps<{
-  cityId: CityId
   level: Level
-  itemKey: InclusionKey
-  ctx: InclusionContext
-  /** Тариф, выбранный в городе сейчас. */
+  kind: TransferKind
+  /** Название предыдущего города, для переезда между городами. */
+  previousCity?: string
   selectedLevel: Level | null
 }>()
 
 const emit = defineEmits<{ choose: [Level]; close: [] }>()
 
-const label = computed(() => itemLabel(props.itemKey, props.ctx))
+const title = computed(() =>
+  props.kind === 'airport'
+    ? t('transfer.airport.row')
+    : t('transfer.intercity.row', { city: props.previousCity ?? '' }),
+)
 
-const current = computed(() => inclusion(props.cityId, props.level, props.itemKey, props.ctx))
+const lines = computed(() => [t(`transfer.${props.kind}.d1`), t(`transfer.${props.kind}.d2`)])
+
+const current = computed(() => t(`transfer.${props.kind}.${props.level}`))
 
 const others = computed(() =>
   LEVELS.filter((l) => l.id !== props.level).map((l) => ({
+    id: l.id,
     name: levelName(l.id),
-    data: inclusion(props.cityId, l.id, props.itemKey, props.ctx),
+    text: t(`transfer.${props.kind}.${l.id}`),
   })),
 )
 </script>
@@ -42,23 +38,23 @@ const others = computed(() =>
   <div class="body">
     <header class="head">
       <div>
-        <h2 class="title">{{ label }} · {{ cityName(cityId) }}</h2>
+        <h2 class="title">{{ title }}</h2>
         <p class="sub muted">{{ t('sheet.tariff', { name: levelName(level) }) }}</p>
       </div>
       <button class="close" :aria-label="t('sheet.close')" @click="emit('close')">✕</button>
     </header>
 
     <div class="scroll">
-      <p class="summary">{{ current.summary }}</p>
-      <ul v-if="current.details.length" class="list">
-        <li v-for="d in current.details" :key="d">{{ d }}</li>
-      </ul>
+      <p v-for="l in lines" :key="l" class="line">{{ l }}</p>
+
+      <div class="level-line">{{ current }}</div>
+
+      <p class="note muted">{{ t('transfer.note') }}</p>
 
       <h3>{{ t('sheet.others') }}</h3>
-      <div v-for="o in others" :key="o.name" class="other">
+      <div v-for="o in others" :key="o.id" class="other">
         <div class="other-name">{{ o.name }}</div>
-        <p v-if="o.data.summary" class="muted other-text">{{ o.data.summary }}</p>
-        <p v-else class="muted other-text">{{ t('sheet.pending') }}</p>
+        <p class="muted other-text">{{ o.text }}</p>
       </div>
     </div>
 
@@ -109,24 +105,30 @@ const others = computed(() =>
 .scroll {
   overflow-y: auto;
   overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   flex: 1;
   min-height: 0;
 }
 
-.summary {
+.line {
+  font-size: 14px;
+  line-height: 1.45;
+  margin: 0 0 8px;
+}
+
+.level-line {
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
   font-size: 15px;
   font-weight: 600;
-  margin: 0 0 10px;
+  margin-top: 6px;
 }
 
-.list {
-  margin: 0;
-  padding-left: 18px;
-}
-
-.list li {
-  font-size: 14px;
-  padding: 3px 0;
+.note {
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 12px 0 0;
 }
 
 h3 {

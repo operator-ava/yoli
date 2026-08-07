@@ -1,7 +1,17 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { filledItems, inclusion, LEVELS, levelName, type CityId, type InclusionKey, type Level } from '@/data'
-import { tariffCardPrice } from '@/composables/calc'
+import {
+  filledItems,
+  inclusion,
+  itemLabel,
+  LEVELS,
+  levelName,
+  type CityId,
+  type InclusionContext,
+  type InclusionKey,
+  type Level,
+} from '@/data'
+import { cityPrice } from '@/composables/calc'
 import { money } from '@/composables/format'
 import { count, t } from '@/composables/useI18n'
 import BonusBlock from '@/components/BonusBlock.vue'
@@ -10,6 +20,7 @@ const props = defineProps<{
   cityId: CityId
   nights: number
   selected: Level | null
+  ctx: InclusionContext
 }>()
 
 const emit = defineEmits<{ choose: [Level]; openItem: [{ level: Level; key: InclusionKey }] }>()
@@ -27,7 +38,7 @@ function onScroll() {
 }
 
 function price(level: Level) {
-  return tariffCardPrice(props.cityId, level, props.nights)
+  return cityPrice(level, props.nights, props.ctx.transfer)
 }
 </script>
 
@@ -52,13 +63,13 @@ function price(level: Level) {
         <!-- Состав тарифа: пустые пункты не выводятся -->
         <div class="items">
           <button
-            v-for="item in filledItems(cityId, l.id)"
+            v-for="item in filledItems(cityId, l.id, ctx)"
             :key="item.key"
             class="item"
             @click.stop="emit('openItem', { level: l.id, key: item.key })"
           >
-            <span class="item-name">{{ t(item.labelKey) }}</span>
-            <span class="item-sum muted">{{ inclusion(cityId, l.id, item.key).summary }}</span>
+            <span class="item-name">{{ itemLabel(item.key, ctx) }}</span>
+            <span class="item-sum muted">{{ inclusion(cityId, l.id, item.key, ctx).summary }}</span>
             <span class="chev" aria-hidden="true">›</span>
           </button>
         </div>
