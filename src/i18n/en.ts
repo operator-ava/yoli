@@ -40,7 +40,7 @@ export const en: Dict = {
   'city.khiva': 'Khiva',
 
   // Tariff card
-  'tariff.per': 'for {days} / person',
+  'tariff.per': 'for {nights} / person',
   'tariff.selected': 'Selected',
 
   // Total panel
@@ -158,15 +158,20 @@ export const en: Dict = {
   'transfer.note': 'The particular car is selected once the booking is confirmed. We guarantee the class and the conditions listed above.',
   'art.stay': 'Accommodation',
   'art.food': 'Meals',
-  'art.transport': 'City transport',
-  'art.tickets': 'Entrance tickets',
-  'art.guide': 'Local guide',
-  'art.dedBobo': 'Ded Bobo',
-  'art.transfer': 'Transfer',
   'art.discount': 'Group discount {rate}',
 
   'hotel.title': 'Hotel · {city}',
 
+  'guide.title': 'Local guide',
+  'guide.d1': 'A professional guide accompanies you along the route every day of the trip.',
+  'guide.d2': 'They tell the history of the places, answer questions and help with everyday situations and communication on the spot.',
+  'guide.econom': 'A guide for the group, standard city programme',
+  'guide.medium': 'A guide for the group, the programme adapts to your interests',
+  'guide.lux': 'A personal guide, the programme is fully tailored to you, accompaniment all day',
+  'guide.note': 'The particular guide is assigned once the booking is confirmed. We guarantee the level of accompaniment and the conditions listed above.',
+  'art.transportAll': 'Transport and transfers',
+  'art.services': 'Guiding and included services',
+  'total.empty.head': 'Choose a city and dates',
   'hotel.cat.econom': '2–3★ hotel',
   'hotel.cat.medium': '3–4★ hotel',
   'hotel.cat.lux': '4–5★ hotel',
@@ -226,7 +231,6 @@ export const en: Dict = {
   'dish.shashlik': 'Shashlik',
 
   // Gifts
-  'art.insurance': 'Insurance',
   'bonus.insurance': 'Traveller insurance',
   'bonus.included': 'included',
   'insurance.title': 'Traveller insurance',

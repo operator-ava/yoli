@@ -27,12 +27,10 @@ export interface InclusionContext {
 export const INCLUSION_ITEMS: { key: InclusionKey; labelKey: string }[] = [
   { key: 'transfer', labelKey: 'inc.transfer' },
   { key: 'hotel', labelKey: 'inc.hotel' },
+  { key: 'guide', labelKey: 'inc.guide' },
   { key: 'food', labelKey: 'inc.food' },
   { key: 'logistics', labelKey: 'inc.logistics' },
-  { key: 'guide', labelKey: 'inc.guide' },
 ]
-
-const EMPTY: Inclusion = { summary: '', details: [] }
 
 /** Название строки трансфера зависит от позиции города в маршруте. */
 export function transferLabel(ctx: InclusionContext): string {
@@ -84,8 +82,10 @@ export function inclusion(
     case 'logistics':
       return logistics()
     case 'guide':
-      // ТРЕБУЕТ ДАННЫХ: что входит в тариф — не задано ни по одному городу.
-      return EMPTY
+      return {
+        summary: t(`guide.${level}`),
+        details: [t('guide.d1'), t('guide.d2'), t(`guide.${level}`)],
+      }
   }
 }
 

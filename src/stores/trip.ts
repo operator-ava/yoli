@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import {
   CITIES,
   cityName,
@@ -13,6 +13,12 @@ import {
 import { calculate, type TripStop } from '@/composables/calc'
 import { nightsBetween, nightsOf } from '@/composables/dates'
 
+const STORAGE_KEY = 'yoli.trip'
+
+/** Версия схемы сохранённых данных. Меняем при любой правке формата —
+ *  старые данные тогда просто не подхватятся, а не сломают приложение. */
+const SCHEMA_VERSION = 1
+
 /** Диапазон дат пребывания в городе: заезд включительно, выезд — день отъезда. */
 export interface DateRange {
   from: string
@@ -21,13 +27,63 @@ export interface DateRange {
 
 /** Состояние ввода на экране «Расчёт».
  *  Тариф и даты — по каждому городу отдельно, глобального уровня поездки нет. */
+const LEVEL_IDS: Level[] = ['econom', 'medium', 'lux']
+const ISO = /^\d{4}-\d{2}-\d{2}$/
+
+function isCity(id: unknown): id is CityId {
+  return typeof id === 'string' && (DEFAULT_CITY_ORDER as string[]).includes(id)
+}
+
+/** Читаем сохранённое. Всё, что не проходит проверку, молча отбрасывается:
+ *  город, которого больше нет, битая дата, чужой уровень. */
+function load(): {
+  people: number
+  ranges: Partial<Record<CityId, DateRange>>
+  levels: Partial<Record<CityId, Level>>
+} {
+  const empty = { people: MIN_PEOPLE, ranges: {}, levels: {} }
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) return empty
+    const data = JSON.parse(raw)
+    if (!data || data.v !== SCHEMA_VERSION) return empty
+
+    const people = Number.isFinite(data.people)
+      ? Math.min(MAX_PEOPLE, Math.max(MIN_PEOPLE, Math.round(data.people)))
+      : MIN_PEOPLE
+
+    const ranges: Partial<Record<CityId, DateRange>> = {}
+    for (const [id, r] of Object.entries(data.ranges ?? {})) {
+      const range = r as DateRange
+      if (!isCity(id) || !range) continue
+      if (!ISO.test(range.from ?? '') || !ISO.test(range.to ?? '')) continue
+      if (range.to <= range.from) continue
+      ranges[id] = { from: range.from, to: range.to }
+    }
+
+    const levels: Partial<Record<CityId, Level>> = {}
+    for (const [id, l] of Object.entries(data.levels ?? {})) {
+      // Тариф без дат смысла не имеет — такие записи отбрасываем.
+      if (!isCity(id) || !ranges[id]) continue
+      if (!LEVEL_IDS.includes(l as Level)) continue
+      levels[id] = l as Level
+    }
+
+    return { people, ranges, levels }
+  } catch {
+    // Битый JSON или недоступный localStorage — начинаем с чистого
+    return empty
+  }
+}
+
 export const useTripStore = defineStore('trip', () => {
+  const saved = load()
   // Меньше двух человек не бывает: ниже MIN_PEOPLE не опускаемся,
   // а сохранённое где-либо меньшее значение подтягиваем до минимума.
-  const people = ref(Math.max(MIN_PEOPLE, 2))
+  const people = ref(saved.people)
 
-  const ranges = ref<Partial<Record<CityId, DateRange>>>({})
-  const levels = ref<Partial<Record<CityId, Level>>>({})
+  const ranges = ref<Partial<Record<CityId, DateRange>>>(saved.ranges)
+  const levels = ref<Partial<Record<CityId, Level>>>(saved.levels)
 
   /** Города с датами — по хронологии заезда; следом города без дат. */
   const orderedCities = computed<CityId[]>(() => {
@@ -118,7 +174,34 @@ export const useTripStore = defineStore('trip', () => {
     people.value = MIN_PEOPLE
     ranges.value = {}
     levels.value = {}
+    try {
+      localStorage.removeItem(STORAGE_KEY)
+    } catch {
+      // Не смогли очистить — состояние всё равно сброшено на экране
+    }
   }
+
+  // Любое изменение ввода сразу уходит в хранилище, чтобы расчёт
+  // переживал перезапуск приложения.
+  watch(
+    [people, ranges, levels],
+    () => {
+      try {
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({
+            v: SCHEMA_VERSION,
+            people: people.value,
+            ranges: ranges.value,
+            levels: levels.value,
+          }),
+        )
+      } catch {
+        // Хранилище недоступно — работаем без сохранения
+      }
+    },
+    { deep: true },
+  )
 
   return {
     people,

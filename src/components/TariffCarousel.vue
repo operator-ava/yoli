@@ -62,7 +62,7 @@ function price(level: Level) {
         </header>
 
         <div class="price tnum">{{ money(price(l.id)) }}</div>
-        <div class="per muted">{{ t('tariff.per', { days: count(nights, 'u.day') }) }}</div>
+        <div class="per muted">{{ t('tariff.per', { nights: count(nights, 'u.night') }) }}</div>
 
         <!-- Состав тарифа: пустые пункты не выводятся -->
         <div class="items">

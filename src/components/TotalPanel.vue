@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import { useTripStore } from '@/stores/trip'
 import { cityName, levelName, MAX_PEOPLE } from '@/data'
-import { ARTICLES } from '@/composables/calc'
+import type { Article } from '@/composables/calc'
 import { nextDiscountStep } from '@/composables/calc'
 import { allocate, exactUnits, formatUnits, percent, steppedUnits } from '@/composables/format'
 import { rangeLabel, short } from '@/composables/dates'
@@ -23,6 +23,18 @@ const nextStep = computed(() => {
 // Разбивка считается в целых единицах валюты и складывается в итог ТОЧНО.
 // Итог округляется шагом валюты, скидка выводится без шага,
 // а строки раскладываются по долям так, чтобы сумма сошлась копейка в копейку.
+/** Четыре укрупнённые статьи вместо семи. Внутренние статьи себестоимости
+ *  остаются в pricing.ts — наружу они не выходят, иначе по ним считается маржа. */
+const GROUPS: { key: string; items: Article[] }[] = [
+  { key: 'stay', items: ['stay'] },
+  { key: 'food', items: ['food'] },
+  { key: 'transportAll', items: ['transport', 'transfer'] },
+  { key: 'services', items: ['guide', 'dedBobo', 'tickets', 'insurance'] },
+]
+
+/** Пока не выбрано ни одного города, суммы нет — панель не раскрывается. */
+const empty = computed(() => r.value.byCity.length === 0)
+
 const view = computed(() => {
   // Цена на человека — это то, что человек читает первым, поэтому округляем её,
   // а итог за группу выводим как «на человека × люди». Тогда умножение в уме
@@ -34,7 +46,7 @@ const view = computed(() => {
 
   const articleUnits = allocate(
     base,
-    ARTICLES.map((a) => r.value.articles[a]),
+    GROUPS.map((g) => g.items.reduce((sum, a) => sum + r.value.articles[a], 0)),
   )
   const cityUnits = allocate(
     base,
@@ -45,9 +57,9 @@ const view = computed(() => {
     perPersonUnits,
     totalUnits,
     discountUnits,
-    articles: ARTICLES.map((a, i) => ({
-      key: a,
-      label: t(`art.${a}`),
+    articles: GROUPS.map((g, i) => ({
+      key: g.key,
+      label: t(`art.${g.key}`),
       units: articleUnits[i],
     })),
     cities: r.value.byCity.map((c, i) => ({ ...c, units: cityUnits[i] })),
@@ -104,7 +116,12 @@ async function share() {
 <template>
   <div class="panel">
     <!-- Тап по шапке панели раскрывает разбивку -->
-    <button class="head tap" :aria-expanded="open" @click="open = !open">
+    <!-- Ничего не выбрано: показываем задачу, а не ноль -->
+    <div v-if="empty" class="head empty-head">
+      <span class="empty-text">{{ t('total.empty.head') }}</span>
+    </div>
+
+    <button v-else class="head tap" :aria-expanded="open" @click="open = !open">
       <div>
         <div class="per-person tnum">{{ formatUnits(view.perPersonUnits) }}</div>
         <div class="per-person-label">{{ t('total.perPerson') }}</div>
@@ -128,7 +145,7 @@ async function share() {
       {{ t('total.discount') }} <b>{{ percent(r.discountRate) }}</b> · {{ t('total.saving') }}
       <b>{{ formatUnits(view.discountUnits) }}</b>
     </div>
-    <div v-if="nextStep" class="nudge">
+    <div v-if="nextStep && !empty" class="nudge">
       {{
         t('total.nudge', {
           n: nextStep.add,
@@ -138,7 +155,7 @@ async function share() {
       }}
     </div>
 
-    <div v-if="open" class="details">
+    <div v-if="open && !empty" class="details">
       <h3>{{ t('total.byArticles') }}</h3>
       <div v-for="a in view.articles" :key="a.key" class="row">
         <span>{{ a.label }}</span>
@@ -185,6 +202,18 @@ async function share() {
 .panel > * {
   max-width: 720px;
   margin-inline: auto;
+}
+
+.empty-head {
+  min-height: var(--tap-min);
+  display: flex;
+  align-items: center;
+}
+
+.empty-text {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-muted);
 }
 
 .head {

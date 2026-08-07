@@ -40,7 +40,7 @@ export const zh: Dict = {
   'city.khiva': '希瓦',
 
   // 套餐卡片
-  'tariff.per': '{days} / 每人',
+  'tariff.per': '{nights} / 每人',
   'tariff.selected': '已选择',
 
   // 合计面板
@@ -157,15 +157,20 @@ export const zh: Dict = {
   'transfer.note': '具体车辆在预订确认后安排。我们保证车辆等级及以上所列条件。',
   'art.stay': '住宿',
   'art.food': '餐饮',
-  'art.transport': '市内交通',
-  'art.tickets': '门票',
-  'art.guide': '当地导游',
-  'art.dedBobo': '波波爷爷',
-  'art.transfer': '接送用车',
   'art.discount': '团队折扣 {rate}',
 
   'hotel.title': '酒店 · {city}',
 
+  'guide.title': '当地导游',
+  'guide.d1': '专业导游在行程期间每天全程陪同。',
+  'guide.d2': '讲解当地历史，解答疑问，并在日常事务与现场沟通方面提供协助。',
+  'guide.econom': '团队共用导游，城市标准游览行程',
+  'guide.medium': '团队共用导游，行程可按您的兴趣调整',
+  'guide.lux': '专属导游，行程完全按您的需求安排，全天陪同',
+  'guide.note': '具体导游在预订确认后安排。我们保证陪同服务的等级及以上所列条件。',
+  'art.transportAll': '交通与接送',
+  'art.services': '陪同与所含服务',
+  'total.empty.head': '请选择城市和日期',
   'hotel.cat.econom': '2–3星级酒店',
   'hotel.cat.medium': '3–4星级酒店',
   'hotel.cat.lux': '4–5星级酒店',
@@ -225,7 +230,6 @@ export const zh: Dict = {
   'dish.shashlik': '烤肉串',
 
   // 赠送
-  'art.insurance': '保险',
   'bonus.insurance': '旅行者保险',
   'bonus.included': '已包含',
   'insurance.title': '旅行者保险',

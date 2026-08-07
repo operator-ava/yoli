@@ -21,6 +21,7 @@ import HotelSheet from '@/components/HotelSheet.vue'
 import MealSheet from '@/components/MealSheet.vue'
 import TransferSheet from '@/components/TransferSheet.vue'
 import InsuranceSheet from '@/components/InsuranceSheet.vue'
+import GuideSheet from '@/components/GuideSheet.vue'
 
 const trip = useTripStore()
 
@@ -57,6 +58,8 @@ const summaryLine = computed(() => {
 
 <template>
   <section class="app-content">
+    <h1>{{ t('nav.calc') }}</h1>
+
     <h2>{{ t('calc.who') }}</h2>
     <div class="card block">
       <div class="counter">
@@ -150,6 +153,13 @@ const summaryLine = computed(() => {
       @choose="chooseFromSheet"
       @close="itemSheet = null"
     />
+    <GuideSheet
+      v-else-if="itemSheet.key === 'guide'"
+      :level="itemSheet.level"
+      :selected-level="trip.levels[itemSheet.cityId] ?? null"
+      @choose="chooseFromSheet"
+      @close="itemSheet = null"
+    />
     <MealSheet
       v-else-if="itemSheet.key === 'food' && trip.ranges[itemSheet.cityId]"
       :city-id="itemSheet.cityId"
@@ -173,6 +183,9 @@ const summaryLine = computed(() => {
 </template>
 
 <style scoped>
+h1 {
+  margin-top: 16px;
+}
 
 h2 {
   margin-top: 18px;
