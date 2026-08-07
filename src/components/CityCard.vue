@@ -5,6 +5,7 @@ import { nightsBetween, short } from '@/composables/dates'
 import { count, t } from '@/composables/useI18n'
 import type { DateRange } from '@/stores/trip'
 import TariffCarousel from '@/components/TariffCarousel.vue'
+import { useIsWide } from '@/composables/useBreakpoint'
 
 const props = defineProps<{
   cityId: CityId
@@ -18,6 +19,9 @@ const emit = defineEmits<{
   choose: [Level]
   openItem: [{ level: Level; key: InclusionKey }]
 }>()
+
+// На широком экране выбор делается кнопкой в каждой карточке — общая подсказка не нужна.
+const isWide = useIsWide()
 
 const info = computed(() => city(props.cityId))
 const nights = computed(() => (props.range ? nightsBetween(props.range.from, props.range.to) : 0))
@@ -56,7 +60,7 @@ const nights = computed(() => (props.range ? nightsBetween(props.range.from, pro
       @open-item="emit('openItem', $event)"
     />
 
-    <p v-if="!level" class="muted no-level">{{ t('calc.pickTariff') }}</p>
+    <p v-if="!level && !isWide" class="muted no-level">{{ t('calc.pickTariff') }}</p>
   </article>
 </template>
 

@@ -16,6 +16,7 @@ import { cityPrice } from '@/composables/calc'
 import { money } from '@/composables/format'
 import { count, t } from '@/composables/useI18n'
 import { useTripStore } from '@/stores/trip'
+import { useIsWide } from '@/composables/useBreakpoint'
 
 const props = defineProps<{
   cityId: CityId
@@ -31,6 +32,20 @@ const emit = defineEmits<{
 
 // Разворот блока «Сопровождение» общий для всех карточек и городов.
 const trip = useTripStore()
+
+// Широкий экран: все три карточки видны, карусели нет.
+const isWide = useIsWide()
+
+/** Звёздочку рисуем отдельным элементом, чтобы привести её к размеру строки. */
+function labelChunks(label: string) {
+  const i = label.indexOf('★')
+  if (i < 0) return [{ text: label, star: false }]
+  return [
+    { text: label.slice(0, i), star: false },
+    { text: '★', star: true },
+    { text: label.slice(i + 1), star: false },
+  ].filter((c) => c.text !== '')
+}
 
 // Точки-индикаторы: какая карточка сейчас по центру при свайпе.
 const track = ref<HTMLElement | null>(null)
@@ -50,7 +65,7 @@ function price(level: Level) {
 </script>
 
 <template>
-  <div class="carousel">
+  <div class="carousel" :class="{ wide: isWide }">
     <div ref="track" class="track" @scroll.passive="onScroll">
       <article
         v-for="l in LEVELS"
@@ -77,7 +92,12 @@ function price(level: Level) {
             @click.stop="emit('openItem', { level: l.id, key })"
           >
             <span class="tick" aria-hidden="true">✓</span>
-            <span class="item-name">{{ itemLabel(key, l.id, ctx) }}</span>
+            <span class="item-name">
+              <template v-for="(c, i) in labelChunks(itemLabel(key, l.id, ctx))" :key="i">
+                <span v-if="c.star" class="star">{{ c.text }}</span>
+                <template v-else>{{ c.text }}</template>
+              </template>
+            </span>
             <span v-if="itemNote(key, l.id)" class="item-note muted">{{ itemNote(key, l.id) }}</span>
             <span class="chev" aria-hidden="true">›</span>
           </button>
@@ -114,10 +134,15 @@ function price(level: Level) {
             </div>
           </div>
         </div>
+        <!-- На широком экране у каждой карточки своя кнопка выбора -->
+        <button v-if="isWide" class="pick" :class="{ chosen: selected === l.id }">
+          {{ selected === l.id ? t('tariff.selected') : t('calc.pickTariff') }}
+        </button>
       </article>
     </div>
 
-    <div class="dots" aria-hidden="true">
+    <!-- Точки обещают скрытый контент — на широком экране их нет -->
+    <div v-if="!isWide" class="dots" aria-hidden="true">
       <span v-for="(l, i) in LEVELS" :key="l.id" class="dot" :class="{ on: i === active }" />
     </div>
   </div>
@@ -145,25 +170,40 @@ function price(level: Level) {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 12px;
+  padding: 10px;
   cursor: pointer;
 }
 
-/* На широком экране видны все три карточки сразу */
-@media (min-width: 700px) {
-  .tariff {
-    flex: 1 1 0;
-  }
+/* Широкий экран: карточки делят ширину поровну, карусели нет */
+.carousel.wide .track {
+  overflow-x: visible;
+}
 
-  .dots {
-    display: none;
-  }
+.carousel.wide .tariff {
+  flex: 1 1 0;
+}
+
+/* Кнопка выбора внутри карточки */
+.pick {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  font-size: 14px;
+  font-weight: 600;
+  background: var(--card);
+}
+
+.pick.chosen {
+  background: var(--brand-yellow);
+  border-color: var(--brand-yellow);
 }
 
 /* Выбранный тариф */
 .tariff.on {
   border: 2px solid var(--brand-yellow);
-  padding: 11px;
+  padding: 9px;
 }
 
 .top {
@@ -218,13 +258,16 @@ function price(level: Level) {
   border-top: 1px solid var(--border);
 }
 
+/* Галочка и шеврон выравниваются по первой строке текста,
+   поэтому левый край списка читается ровной колонкой. */
 .item {
   width: 100%;
   min-height: 46px;
   display: grid;
   grid-template-columns: auto 1fr auto auto;
-  align-items: center;
-  gap: 8px;
+  align-items: baseline;
+  gap: 6px;
+  padding: 12px 0;
   border-bottom: 1px solid var(--border);
   text-align: left;
 }
@@ -236,9 +279,16 @@ function price(level: Level) {
 /* Галочка слева — одинаковая на всех тарифах */
 .tick {
   color: #1a7f3c;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   flex-shrink: 0;
+}
+
+/* Звёздочка в «Гостиница 2–3★»: размер строки, по базовой линии */
+.star {
+  font-size: 0.9em;
+  line-height: 1;
+  vertical-align: baseline;
 }
 
 .item-name {
@@ -254,7 +304,9 @@ function price(level: Level) {
 
 .chev {
   color: var(--text-muted);
-  font-size: 18px;
+  font-size: 15px;
+  width: 8px;
+  text-align: right;
 }
 
 /* Стрелка разворота: та же плавность, что у панели итога */

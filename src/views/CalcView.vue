@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { useTripStore } from '@/stores/trip'
 import {
   cityName,
+  cityNameGen,
   MAX_PEOPLE,
   MIN_PEOPLE,
   type CityId,
@@ -36,7 +37,7 @@ const busy = computed(() => (dateSheet.value ? trip.busyNights(dateSheet.value) 
 /** Контекст города: вид трансфера и предыдущий город по хронологии. */
 function ctxFor(id: CityId): InclusionContext {
   const prev = trip.previousCity(id)
-  return { transfer: trip.transferKind(id), previousCity: prev ? cityName(prev) : undefined }
+  return { transfer: trip.transferKind(id), previousCity: prev ? cityNameGen(prev) : undefined }
 }
 
 /** Выбор тарифа прямо из открытого листа. */

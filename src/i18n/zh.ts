@@ -40,6 +40,10 @@ export const zh: Dict = {
   'city.khiva': '希瓦',
 
   // 套餐卡片
+  'city.tashkent.gen': '塔什干',
+  'city.samarkand.gen': '撒马尔罕',
+  'city.bukhara.gen': '布哈拉',
+  'city.khiva.gen': '希瓦',
   'tariff.per': '{nights} / 每人',
   'tariff.selected': '已选择',
 
@@ -169,7 +173,7 @@ export const zh: Dict = {
   'u.service': ['项'],
   'row.included': '包含内容',
   'row.hotel': '{stars}酒店',
-  'row.food': '餐饮 — 全部包含',
+  'row.food': '餐饮全包',
   'row.guide': '当地导游',
   'row.aiGuide': 'AI 导游',
   'row.audio': '语音导览',

@@ -40,6 +40,10 @@ export const en: Dict = {
   'city.khiva': 'Khiva',
 
   // Tariff card
+  'city.tashkent.gen': 'Tashkent',
+  'city.samarkand.gen': 'Samarkand',
+  'city.bukhara.gen': 'Bukhara',
+  'city.khiva.gen': 'Khiva',
   'tariff.per': 'for {nights} / person',
   'tariff.selected': 'Selected',
 
@@ -170,7 +174,7 @@ export const en: Dict = {
   'u.service': ['service', 'services'],
   'row.included': 'What is included',
   'row.hotel': '{stars} hotel',
-  'row.food': 'Meals — all included',
+  'row.food': 'Meals included',
   'row.guide': 'Local guide',
   'row.aiGuide': 'AI guide',
   'row.audio': 'Audio guide',

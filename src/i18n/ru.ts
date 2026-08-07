@@ -37,6 +37,10 @@ export const ru: Dict = {
   'city.khiva': 'Хива',
 
   // Карточка тарифа
+  'city.tashkent.gen': 'Ташкента',
+  'city.samarkand.gen': 'Самарканда',
+  'city.bukhara.gen': 'Бухары',
+  'city.khiva.gen': 'Хивы',
   'tariff.per': 'за {nights} / чел',
   'tariff.selected': 'Выбран',
 
@@ -167,7 +171,7 @@ export const ru: Dict = {
   'u.service': ['услуга', 'услуги', 'услуг'],
   'row.included': 'Что включено',
   'row.hotel': 'Гостиница {stars}',
-  'row.food': 'Питание — всё включено',
+  'row.food': 'Питание включено',
   'row.guide': 'Живой гид',
   'row.aiGuide': 'AI-гид',
   'row.audio': 'Аудиогид',
