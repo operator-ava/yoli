@@ -22,7 +22,9 @@ export interface DateRange {
 /** Состояние ввода на экране «Расчёт».
  *  Тариф и даты — по каждому городу отдельно, глобального уровня поездки нет. */
 export const useTripStore = defineStore('trip', () => {
-  const people = ref(2)
+  // Меньше двух человек не бывает: ниже MIN_PEOPLE не опускаемся,
+  // а сохранённое где-либо меньшее значение подтягиваем до минимума.
+  const people = ref(Math.max(MIN_PEOPLE, 2))
 
   const ranges = ref<Partial<Record<CityId, DateRange>>>({})
   const levels = ref<Partial<Record<CityId, Level>>>({})
@@ -106,7 +108,7 @@ export const useTripStore = defineStore('trip', () => {
   }
 
   function reset() {
-    people.value = 2
+    people.value = MIN_PEOPLE
     ranges.value = {}
     levels.value = {}
     hotels.value = {}

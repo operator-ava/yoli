@@ -108,6 +108,11 @@ export const ru: Dict = {
     'Декабрь',
   ],
 
+  // Порядок частей даты
+  'dates.dayMonth': '{day} {month}',
+  'dates.rangeSameMonth': '{from}–{to} {month}',
+  'dates.monthTitle': '{month} {year}',
+
   // Нижние листы
   'sheet.close': 'Закрыть',
   'sheet.tariff': 'Тариф «{name}»',

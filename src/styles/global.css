@@ -53,7 +53,11 @@ body {
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  /* Inter не содержит китайских глифов. Китайский вебшрифт не подключаем —
+     он весит мегабайты и ломает офлайн; берём системный: на iOS это PingFang SC. */
+  font-family:
+    'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', system-ui, -apple-system,
+    sans-serif;
   font-size: 16px;
   line-height: 1.4;
   /* manipulation отключает зум по двойному тапу, оставляя скролл и обычный тап */

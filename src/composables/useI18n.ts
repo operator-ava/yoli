@@ -4,19 +4,20 @@
 import { computed, ref } from 'vue'
 import { ru } from '@/i18n/ru'
 import { en } from '@/i18n/en'
+import { zh } from '@/i18n/zh'
 
-export type Locale = 'ru' | 'en'
+export type Locale = 'ru' | 'en' | 'zh'
 
 export type Dict = Record<string, string | string[]>
 
-const DICTS: Record<Locale, Dict> = { ru, en }
+const DICTS: Record<Locale, Dict> = { ru, en, zh }
 const STORAGE_KEY = 'yoli.locale'
 
 /** Русский по умолчанию. */
 function load(): Locale {
   try {
     const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved === 'ru' || saved === 'en') return saved
+    if (saved === 'ru' || saved === 'en' || saved === 'zh') return saved
   } catch {
     // localStorage недоступен — остаёмся на языке по умолчанию
   }
@@ -24,6 +25,9 @@ function load(): Locale {
 }
 
 const locale = ref<Locale>(load())
+
+/** Значение атрибута lang в <html> для каждого языка. */
+const HTML_LANG: Record<Locale, string> = { ru: 'ru', en: 'en', zh: 'zh-Hans' }
 
 // Уже показанные предупреждения, чтобы не сорить в консоль на каждый кадр.
 const warned = new Set<string>()
@@ -62,10 +66,12 @@ export function t(key: string, vars?: Record<string, string | number>): string {
   return fill(Array.isArray(value) ? value[0] : value, vars)
 }
 
-/** Форма слова по числу. Русский — три формы, английский — две. */
+/** Форма слова по числу. Русский — три формы, английский — две,
+ *  китайский числом не изменяется — форма одна. */
 export function plural(n: number, key: string): string {
   const forms = lookup(key, locale.value)
   if (!Array.isArray(forms) || !forms.length) return t(key)
+  if (locale.value === 'zh') return forms[0]
   if (locale.value === 'en') return forms[n === 1 ? 0 : 1] ?? forms[0]
   const mod10 = n % 10
   const mod100 = n % 100
@@ -93,7 +99,7 @@ export function setLocale(next: Locale) {
     // Не смогли сохранить — язык всё равно переключится на эту сессию
   }
   // Атрибут lang меняется вместе с языком
-  document.documentElement.lang = next
+  document.documentElement.lang = HTML_LANG[next]
 }
 
 export function useI18n() {
@@ -101,4 +107,4 @@ export function useI18n() {
 }
 
 // Стартовое значение атрибута lang
-if (typeof document !== 'undefined') document.documentElement.lang = locale.value
+if (typeof document !== 'undefined') document.documentElement.lang = HTML_LANG[locale.value]

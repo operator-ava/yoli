@@ -6,6 +6,7 @@ const { locale, setLocale } = useI18n()
 const LANGS: { id: Locale; label: string }[] = [
   { id: 'ru', label: 'RU' },
   { id: 'en', label: 'EN' },
+  { id: 'zh', label: '中文' },
 ]
 </script>
 
@@ -39,6 +40,8 @@ const LANGS: { id: Locale; label: string }[] = [
   padding: 8px calc(16px + var(--safe-right)) 8px calc(16px + var(--safe-left));
   padding-top: calc(8px + var(--safe-top));
   flex-shrink: 0;
+  /* Шапка не ниже 56px даже когда safe-area нулевая */
+  min-height: 56px;
 }
 
 .logo {
@@ -56,13 +59,21 @@ const LANGS: { id: Locale; label: string }[] = [
   flex-shrink: 0;
 }
 
+/* Три кнопки: на узком экране ужимаем горизонтальные отступы, высоту не трогаем */
 .lang-btn {
   min-height: 44px;
-  min-width: 48px;
-  padding: 0 14px;
+  min-width: 44px;
+  padding: 0 12px;
   font-size: 13px;
   font-weight: 600;
   color: var(--text-muted);
+  white-space: nowrap;
+}
+
+@media (max-width: 379px) {
+  .lang-btn {
+    padding: 0 8px;
+  }
 }
 
 .lang-btn.on {

@@ -1,7 +1,7 @@
 // Работа с датами. Даты хранятся строкой ISO «ГГГГ-ММ-ДД» — без времени и часовых поясов,
 // чтобы расчёт оставался детерминированным.
 // Названия месяцев и дней недели берутся из словаря — они переводятся вместе с языком.
-import { list } from './useI18n'
+import { list, t } from './useI18n'
 
 export function todayISO(): string {
   return toISO(new Date())
@@ -43,10 +43,13 @@ export function short(iso: string): string {
   return `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}`
 }
 
-/** «12 августа» / «12 August» */
+/** «12 августа» / «12 August» / «8月12日» — порядок частей задаёт словарь. */
 export function dayMonth(iso: string): string {
   const d = parseISO(iso)
-  return `${d.getDate()} ${list('dates.monthsGen')[d.getMonth()] ?? ''}`
+  return t('dates.dayMonth', {
+    day: d.getDate(),
+    month: list('dates.monthsGen')[d.getMonth()] ?? '',
+  })
 }
 
 /** «12–18 августа» / «12–18 August», а при разных месяцах — обе даты полностью. */
@@ -54,13 +57,17 @@ export function rangeLabel(from: string, to: string): string {
   const a = parseISO(from)
   const b = parseISO(to)
   if (a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear()) {
-    return `${a.getDate()}–${b.getDate()} ${list('dates.monthsGen')[b.getMonth()] ?? ''}`
+    return t('dates.rangeSameMonth', {
+      from: a.getDate(),
+      to: b.getDate(),
+      month: list('dates.monthsGen')[b.getMonth()] ?? '',
+    })
   }
   return `${dayMonth(from)} – ${dayMonth(to)}`
 }
 
 export function monthTitle(year: number, month: number): string {
-  return `${list('dates.monthsNom')[month] ?? ''} ${year}`
+  return t('dates.monthTitle', { month: list('dates.monthsNom')[month] ?? '', year })
 }
 
 /** Сетка месяца: недели с понедельника, пустые ячейки — null. */

@@ -66,8 +66,9 @@ export const GROUP_DISCOUNT_STEPS: { from: number; rate: number }[] = [
   { from: 15, rate: 0.22 },
 ]
 
-/** Границы ввода. */
-export const MIN_PEOPLE = 1
+/** Границы ввода. Минимум два человека: цены рассчитаны при двухместном
+ *  размещении, одиночное размещение не предусмотрено. */
+export const MIN_PEOPLE = 2
 export const MAX_PEOPLE = 20
 export const MIN_NIGHTS = 1
 export const MAX_NIGHTS = 10

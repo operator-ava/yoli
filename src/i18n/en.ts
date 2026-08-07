@@ -111,6 +111,11 @@ export const en: Dict = {
     'December',
   ],
 
+  // Date part order
+  'dates.dayMonth': '{day} {month}',
+  'dates.rangeSameMonth': '{from}–{to} {month}',
+  'dates.monthTitle': '{month} {year}',
+
   // Bottom sheets
   'sheet.close': 'Close',
   'sheet.tariff': '{name} tariff',
