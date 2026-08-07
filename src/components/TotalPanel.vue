@@ -4,7 +4,7 @@ import { useTripStore } from '@/stores/trip'
 import { cityName, levelName, MAX_PEOPLE } from '@/data'
 import { ARTICLES } from '@/composables/calc'
 import { nextDiscountStep } from '@/composables/calc'
-import { money, percent } from '@/composables/format'
+import { allocate, exactUnits, formatUnits, money, percent, steppedUnits } from '@/composables/format'
 import { rangeLabel, short } from '@/composables/dates'
 import { count, plural, t } from '@/composables/useI18n'
 
@@ -20,10 +20,34 @@ const nextStep = computed(() => {
   return nextDiscountStep(trip.people)
 })
 
-// Статьи и их порядок задаёт pricing.ts, здесь только подписи.
-const articles = computed(() =>
-  ARTICLES.map((a) => ({ key: a, label: t(`art.${a}`), value: r.value.articles[a] })),
-)
+// Разбивка считается в целых единицах валюты и складывается в итог ТОЧНО.
+// Итог округляется шагом валюты, скидка выводится без шага,
+// а строки раскладываются по долям так, чтобы сумма сошлась копейка в копейку.
+const view = computed(() => {
+  const totalUnits = steppedUnits(r.value.total)
+  const discountUnits = exactUnits(r.value.discount)
+  const base = totalUnits + discountUnits
+
+  const articleUnits = allocate(
+    base,
+    ARTICLES.map((a) => r.value.articles[a]),
+  )
+  const cityUnits = allocate(
+    base,
+    r.value.byCity.map((c) => c.amount),
+  )
+
+  return {
+    totalUnits,
+    discountUnits,
+    articles: ARTICLES.map((a, i) => ({
+      key: a,
+      label: t(`art.${a}`),
+      units: articleUnits[i],
+    })),
+    cities: r.value.byCity.map((c, i) => ({ ...c, units: cityUnits[i] })),
+  }
+})
 
 /** Текстовая сводка для буфера обмена. */
 function summaryText(): string {
@@ -38,7 +62,7 @@ function summaryText(): string {
   lines.push(t('share.people', { n: trip.people }))
   lines.push('')
   lines.push(t('share.route'))
-  for (const c of r.value.byCity) {
+  for (const c of view.value.cities) {
     const range = trip.ranges[c.cityId]
     const dates = range ? `${short(range.from)}–${short(range.to)}, ` : ''
     lines.push(
@@ -46,14 +70,14 @@ function summaryText(): string {
     )
   }
   lines.push('')
-  for (const a of articles.value) lines.push(`${a.label}: ${money(a.value)}`)
+  for (const a of view.value.articles) lines.push(`${a.label}: ${formatUnits(a.units)}`)
   if (r.value.discount > 0) {
     lines.push(
-      `${t('art.discount', { rate: percent(r.value.discountRate) })}: −${money(r.value.discount)}`,
+      `${t('art.discount', { rate: percent(r.value.discountRate) })}: −${formatUnits(view.value.discountUnits)}`,
     )
   }
   lines.push('')
-  lines.push(t('share.total', { sum: money(r.value.total) }))
+  lines.push(t('share.total', { sum: formatUnits(view.value.totalUnits) }))
   lines.push(t('share.perPerson', { sum: money(r.value.perPerson) }))
   lines.push('')
   lines.push(t('share.note'))
@@ -82,7 +106,7 @@ async function share() {
       </div>
       <div class="side">
         <div class="group tnum">
-          {{ t('total.forGroup', { n: trip.people }) }} <b>{{ money(r.total) }}</b>
+          {{ t('total.forGroup', { n: trip.people }) }} <b>{{ formatUnits(view.totalUnits) }}</b>
         </div>
         <div class="chevron" :class="{ open }" aria-hidden="true">⌃</div>
       </div>
@@ -91,7 +115,7 @@ async function share() {
     <!-- Скидка и подсказка-стимул: чем больше группа, тем выгоднее -->
     <div v-if="r.discount > 0" class="discount">
       {{ t('total.discount') }} <b>{{ percent(r.discountRate) }}</b> · {{ t('total.saving') }}
-      <b>{{ money(r.discount) }}</b>
+      <b>{{ formatUnits(view.discountUnits) }}</b>
     </div>
     <div v-if="nextStep" class="nudge">
       {{
@@ -105,22 +129,22 @@ async function share() {
 
     <div v-if="open" class="details">
       <h3>{{ t('total.byArticles') }}</h3>
-      <div v-for="a in articles" :key="a.key" class="row">
+      <div v-for="a in view.articles" :key="a.key" class="row">
         <span>{{ a.label }}</span>
-        <span class="tnum">{{ money(a.value) }}</span>
+        <span class="tnum">{{ formatUnits(a.units) }}</span>
       </div>
       <div v-if="r.discount > 0" class="row minus">
         <span>{{ t('art.discount', { rate: percent(r.discountRate) }) }}</span>
-        <span class="tnum">−{{ money(r.discount) }}</span>
+        <span class="tnum">−{{ formatUnits(view.discountUnits) }}</span>
       </div>
 
       <h3>{{ t('total.byCities') }}</h3>
       <p v-if="!r.byCity.length" class="muted empty">{{ t('total.empty') }}</p>
-      <div v-for="c in r.byCity" :key="c.cityId" class="row">
+      <div v-for="c in view.cities" :key="c.cityId" class="row">
         <span>
           {{ cityName(c.cityId) }} · {{ count(c.nights, 'u.night') }} · {{ levelName(c.level) }}
         </span>
-        <span class="tnum">{{ money(c.amount) }}</span>
+        <span class="tnum">{{ formatUnits(c.units) }}</span>
       </div>
 
       <div class="actions">

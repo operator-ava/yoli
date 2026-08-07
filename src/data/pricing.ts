@@ -18,15 +18,25 @@ export const PRICES_ARE_DRAFT = true
 export const DEFAULT_CITY_ORDER: CityId[] = ['tashkent', 'samarkand', 'bukhara', 'khiva']
 
 /** Статьи себестоимости. Порядок здесь задаёт порядок строк в разбивке. */
-export const COST_ITEMS = ['stay', 'food', 'transport', 'tickets', 'guide', 'dedBobo'] as const
+export const COST_ITEMS = [
+  'stay',
+  'food',
+  'transport',
+  'tickets',
+  'guide',
+  'dedBobo',
+  'insurance',
+] as const
 export type CostItem = (typeof COST_ITEMS)[number]
 
 /** Себестоимость на ЧЕЛОВЕКА в ДЕНЬ при двухместном размещении, в долларах.
- *  Итого в день: эконом 121, средний 174, люкс 292. */
+ *  Итого в день: эконом 123, средний 176, люкс 294.
+ *  Страховка одинакова на всех уровнях: клиенту она подаётся подарком,
+ *  но себестоимость реальная и входит в расчёт. */
 export const DAILY_COST: Record<Level, Record<CostItem, number>> = {
-  econom: { stay: 24, food: 17, transport: 30, tickets: 20, guide: 25, dedBobo: 5 },
-  medium: { stay: 42, food: 32, transport: 40, tickets: 20, guide: 35, dedBobo: 5 },
-  lux: { stay: 92, food: 60, transport: 65, tickets: 20, guide: 50, dedBobo: 5 },
+  econom: { stay: 24, food: 17, transport: 30, tickets: 20, guide: 25, dedBobo: 5, insurance: 2 },
+  medium: { stay: 42, food: 32, transport: 40, tickets: 20, guide: 35, dedBobo: 5, insurance: 2 },
+  lux: { stay: 92, food: 60, transport: 65, tickets: 20, guide: 50, dedBobo: 5, insurance: 2 },
 }
 
 /** Вид трансфера: в первый город маршрута едем из аэропорта,

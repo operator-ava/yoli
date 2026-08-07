@@ -34,17 +34,17 @@ console.table(
   }),
 )
 
-const CONTROL = { econom: 625, medium: 900, lux: 1510 }
+const CONTROL = { econom: 640, medium: 910, lux: 1520 }
 let ok = true
 console.log('Контроль: 3 дня, первый город')
 for (const l of LEVELS) {
   const got = cityPrice(l, 3, 'airport')
   const cost = cityCost(l, 3, 'airport').total
   const before = raw(l, 3, 'airport')
-  const pass = before === CONTROL[l]
+  const pass = got === CONTROL[l]
   if (!pass) ok = false
   console.log(
-    `  ${l.padEnd(7)} себестоимость $${cost} → до округления $${before} | ожидание $${CONTROL[l]} ${pass ? '✓' : '✗'} → на карточке $${got}`,
+    `  ${l.padEnd(7)} себестоимость $${cost} → до округления $${before} | на карточке $${got} | ожидание $${CONTROL[l]} ${pass ? '✓' : '✗'}`,
   )
 }
 console.log(ok ? '\nФормула сходится с контролем.' : '\nФОРМУЛА НЕ СХОДИТСЯ.')

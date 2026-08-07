@@ -20,12 +20,14 @@ import InclusionSheet from '@/components/InclusionSheet.vue'
 import HotelSheet from '@/components/HotelSheet.vue'
 import MealSheet from '@/components/MealSheet.vue'
 import TransferSheet from '@/components/TransferSheet.vue'
+import InsuranceSheet from '@/components/InsuranceSheet.vue'
 
 const trip = useTripStore()
 
 // Какой лист открыт: календарь города или подробности пункта состава.
 const dateSheet = ref<CityId | null>(null)
 const itemSheet = ref<{ cityId: CityId; level: Level; key: InclusionKey } | null>(null)
+const bonusSheet = ref<string | null>(null)
 
 const busy = computed(() => (dateSheet.value ? trip.busyNights(dateSheet.value) : new Map()))
 
@@ -96,6 +98,7 @@ const summaryLine = computed(() => {
         @pick-dates="dateSheet = id"
         @choose="trip.setLevel(id, $event)"
         @open-item="itemSheet = { cityId: id, level: $event.level, key: $event.key }"
+        @open-bonus="bonusSheet = $event"
       />
     </div>
   </section>
@@ -125,6 +128,10 @@ const summaryLine = computed(() => {
   </BottomSheet>
 
   <!-- У гостиницы и питания свои листы, остальное — общий -->
+  <BottomSheet v-if="bonusSheet === 'insurance'" @close="bonusSheet = null">
+    <InsuranceSheet @close="bonusSheet = null" />
+  </BottomSheet>
+
   <BottomSheet v-if="itemSheet" @close="itemSheet = null">
     <HotelSheet
       v-if="itemSheet.key === 'hotel'"

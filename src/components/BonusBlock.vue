@@ -5,6 +5,7 @@ import { t } from '@/composables/useI18n'
 
 // Блок «В подарок». Без иконок и эмодзи — только название и объём.
 const props = defineProps<{ level: Level }>()
+const emit = defineEmits<{ openSheet: [string] }>()
 
 const box = ref<HTMLElement | null>(null)
 const inner = ref<HTMLElement | null>(null)
@@ -32,10 +33,18 @@ watch(
     <div class="cap">{{ t('bonus.title') }}</div>
     <div ref="box" class="box" :style="{ height }">
       <div ref="inner">
-        <div v-for="b in BONUSES[level]" :key="b.nameKey" class="row">
-          <span>{{ t(b.nameKey) }}</span>
+        <component
+          :is="b.sheet ? 'button' : 'div'"
+          v-for="b in BONUSES[level]"
+          :key="b.nameKey"
+          class="row"
+          :class="{ tappable: !!b.sheet }"
+          @click.stop="b.sheet && emit('openSheet', b.sheet)"
+        >
+          <span class="name">{{ t(b.nameKey) }}</span>
           <span class="amount">{{ t(b.amountKey) }}</span>
-        </div>
+          <span v-if="b.sheet" class="chev" aria-hidden="true">›</span>
+        </component>
       </div>
     </div>
   </div>
@@ -65,14 +74,35 @@ watch(
 
 .row {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
   font-size: 13px;
   padding: 3px 0;
+  width: 100%;
+  text-align: left;
+  color: inherit;
+}
+
+/* Строка с пояснением — тач-зона не меньше 44 px */
+.row.tappable {
+  min-height: 44px;
+  padding: 6px 0;
+}
+
+.name {
+  min-width: 0;
+}
+
+.chev {
+  color: var(--text-muted);
+  font-size: 16px;
+  flex-shrink: 0;
 }
 
 .amount {
   font-weight: 600;
   white-space: nowrap;
+  margin-left: auto;
 }
 </style>

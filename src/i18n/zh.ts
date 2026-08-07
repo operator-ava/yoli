@@ -225,6 +225,15 @@ export const zh: Dict = {
   'dish.shashlik': '烤肉串',
 
   // 赠送
+  'art.insurance': '保险',
+  'bonus.insurance': '旅行者保险',
+  'bonus.included': '已包含',
+  'insurance.title': '旅行者保险',
+  'insurance.d1': '涵盖整个行程的医疗保险，已包含在套餐内。',
+  'insurance.d2': '在乌兹别克斯坦旅行期间，保障就医、呼叫救护车、住院治疗以及紧急牙科诊疗。',
+  'insurance.d3': '预订确认后自动办理，您无需做任何事情。',
+  'insurance.d4': '保单将与行程确认函一并发送至您的邮箱。',
+  'insurance.note': '保障条款与范围由保险公司确定。保单在预订所载的行程日期内有效。',
   'bonus.title': '赠送内容',
   'bonus.dedBobo': '波波爷爷',
   'bonus.translator': '翻译服务',

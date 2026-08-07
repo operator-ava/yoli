@@ -226,6 +226,15 @@ export const en: Dict = {
   'dish.shashlik': 'Shashlik',
 
   // Gifts
+  'art.insurance': 'Insurance',
+  'bonus.insurance': 'Traveller insurance',
+  'bonus.included': 'included',
+  'insurance.title': 'Traveller insurance',
+  'insurance.d1': 'Medical insurance for the whole trip, included in the package.',
+  'insurance.d2': 'It covers a doctor visit, an ambulance call, hospitalisation and emergency dental care while travelling in Uzbekistan.',
+  'insurance.d3': 'It is arranged automatically once the booking is confirmed — nothing is required from you.',
+  'insurance.d4': 'The policy arrives by email together with the trip confirmation.',
+  'insurance.note': 'The terms and the scope of cover are set by the insurance company. The policy is valid for the trip dates stated in the booking.',
   'bonus.title': 'Included as a gift',
   'bonus.dedBobo': 'Ded Bobo',
   'bonus.translator': 'Interpreter',

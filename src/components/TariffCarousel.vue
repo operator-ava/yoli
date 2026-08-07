@@ -23,7 +23,11 @@ const props = defineProps<{
   ctx: InclusionContext
 }>()
 
-const emit = defineEmits<{ choose: [Level]; openItem: [{ level: Level; key: InclusionKey }] }>()
+const emit = defineEmits<{
+  choose: [Level]
+  openItem: [{ level: Level; key: InclusionKey }]
+  openBonus: [string]
+}>()
 
 // Точки-индикаторы: какая карточка сейчас по центру при свайпе.
 const track = ref<HTMLElement | null>(null)
@@ -74,7 +78,7 @@ function price(level: Level) {
           </button>
         </div>
 
-        <BonusBlock :level="l.id" />
+        <BonusBlock :level="l.id" @open-sheet="emit('openBonus', $event)" />
       </article>
     </div>
 
