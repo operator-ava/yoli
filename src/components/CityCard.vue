@@ -17,7 +17,6 @@ const emit = defineEmits<{
   pickDates: []
   choose: [Level]
   openItem: [{ level: Level; key: InclusionKey }]
-  openBonus: [string]
 }>()
 
 const info = computed(() => city(props.cityId))
@@ -55,7 +54,6 @@ const nights = computed(() => (props.range ? nightsBetween(props.range.from, pro
       :ctx="ctx"
       @choose="emit('choose', $event)"
       @open-item="emit('openItem', $event)"
-      @open-bonus="emit('openBonus', $event)"
     />
 
     <p v-if="!level" class="muted no-level">{{ t('calc.pickTariff') }}</p>

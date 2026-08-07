@@ -1,20 +1,38 @@
-// Состав тарифов: город → тариф → пункт.
-// Названия гостиниц, блюда и марки транспорта НЕ ВЫДУМЫВАЮТСЯ.
-// Пустой пункт (summary === '') в интерфейсе не показывается вовсе.
+// Состав тарифа — читаемый чек-лист «Что включено».
+// Десять строк, порядок задан заказчиком. Названия гостиниц, марки транспорта
+// и конкретные исполнители НЕ называются: обещаем категорию и условия.
 import { t } from '@/composables/useI18n'
 import { hotelCategory } from './hotels'
-import { MEAL_FORMAT, MEAL_LABEL_KEY } from './meals'
 import type { CityId, Level, TransferKind } from './pricing'
 
-/** Пункт состава тарифа. */
-export type InclusionKey = 'hotel' | 'food' | 'transfer' | 'logistics' | 'guide'
+/** Строки чек-листа. */
+export type InclusionKey =
+  | 'transfer'
+  | 'hotel'
+  | 'food'
+  | 'guide'
+  | 'aiGuide'
+  | 'audio'
+  | 'translator'
+  | 'routes'
+  | 'taxi'
+  | 'insurance'
 
-export interface Inclusion {
-  /** Короткая сводка одной строкой — справа в строке состава. */
-  summary: string
-  /** Подробности для нижнего листа. Пустой массив — подробностей нет. */
-  details: string[]
-}
+/** Строки, которые видны всегда. Порядок строгий. */
+export const PRIMARY_ITEMS: InclusionKey[] = ['transfer', 'hotel', 'food', 'taxi']
+
+/** Строки, свёрнутые в одну «Сопровождение YOLI». Порядок строгий. */
+export const SECONDARY_ITEMS: InclusionKey[] = [
+  'guide',
+  'aiGuide',
+  'audio',
+  'translator',
+  'routes',
+  'insurance',
+]
+
+/** Полный список — для мест, где нужны все строки разом. */
+export const INCLUSION_ITEMS: InclusionKey[] = [...PRIMARY_ITEMS, ...SECONDARY_ITEMS]
 
 /** Контекст города: от позиции в маршруте зависит вид трансфера. */
 export interface InclusionContext {
@@ -23,80 +41,63 @@ export interface InclusionContext {
   previousCity?: string
 }
 
-/** Порядок и ключи названий пунктов. Порядок задан заказчиком. */
-export const INCLUSION_ITEMS: { key: InclusionKey; labelKey: string }[] = [
-  { key: 'transfer', labelKey: 'inc.transfer' },
-  { key: 'hotel', labelKey: 'inc.hotel' },
-  { key: 'guide', labelKey: 'inc.guide' },
-  { key: 'food', labelKey: 'inc.food' },
-  { key: 'logistics', labelKey: 'inc.logistics' },
-]
-
-/** Название строки трансфера зависит от позиции города в маршруте. */
-export function transferLabel(ctx: InclusionContext): string {
-  return ctx.transfer === 'airport'
-    ? t('transfer.airport.row')
-    : t('transfer.intercity.row', { city: ctx.previousCity ?? '' })
+/** Ограничение по тарифу — мелким текстом справа. Пусто — подписи нет. */
+const LIMITS: Partial<Record<InclusionKey, Record<Level, string>>> = {
+  aiGuide: { econom: 'limit.h3', medium: 'limit.h7', lux: 'limit.unlimited' },
+  translator: { econom: 'limit.h3', medium: 'limit.h7', lux: 'limit.unlimited' },
+  audio: { econom: 'limit.unlimited', medium: 'limit.unlimited', lux: 'limit.unlimited' },
+  routes: { econom: 'limit.unlimited', medium: 'limit.unlimited', lux: 'limit.unlimited' },
 }
 
-function transfer(level: Level, ctx: InclusionContext): Inclusion {
-  const kind = ctx.transfer
-  return {
-    summary: t(`transfer.${kind}.${level}`),
-    details: [t(`transfer.${kind}.d1`), t(`transfer.${kind}.d2`), t(`transfer.${kind}.${level}`)],
+export function itemNote(key: InclusionKey, level: Level): string {
+  const k = LIMITS[key]?.[level]
+  return k ? t(k) : ''
+}
+
+/** Название строки. У трансфера зависит от позиции города, у гостиницы — от категории. */
+export function itemLabel(key: InclusionKey, level: Level, ctx: InclusionContext): string {
+  switch (key) {
+    case 'transfer':
+      return ctx.transfer === 'airport'
+        ? t('transfer.airport.row')
+        : t('transfer.intercity.row', { city: ctx.previousCity ?? '' })
+    case 'hotel':
+      return t('row.hotel', { stars: hotelCategory(level).starsLabel })
+    default:
+      return t(`row.${key}`)
   }
 }
 
-// Логистика и маршруты: многодневная аренда плюс общий состав поездки.
+/** Какой лист открывает строка. */
+export type SheetKind = 'transfer' | 'hotel' | 'food' | 'guide' | 'taxi' | 'insurance' | 'service'
+
+export function sheetFor(key: InclusionKey): SheetKind {
+  if (key === 'aiGuide' || key === 'audio' || key === 'translator' || key === 'routes')
+    return 'service'
+  return key
+}
+
+/** Абзацы пояснения для простых листов (AI-гид, аудиогид, переводчик, маршруты). */
+export function serviceParagraphs(key: InclusionKey): string[] {
+  return [t(`service.${key}.d1`), t(`service.${key}.d2`)]
+}
+
+/** Есть ли у услуги разница по тарифам — тогда в листе показываем уровень. */
+export function hasLimits(key: InclusionKey): boolean {
+  const l = LIMITS[key]
+  if (!l) return false
+  return new Set(Object.values(l)).size > 1
+}
+
+// ── Логистика: строка «Такси и перевозки» ───────────────────────────────────
 // Источник: YOLi_DedBobo_KB/5_yoli_logistics.md.
 const LOGISTICS_KEYS = Array.from({ length: 14 }, (_, i) => `logistics.d${i + 1}`)
 
-function logistics(): Inclusion {
-  return { summary: t('logistics.summary'), details: LOGISTICS_KEYS.map((k) => t(k)) }
+export function logisticsDetails(): string[] {
+  return LOGISTICS_KEYS.map((k) => t(k))
 }
 
-/** Сводка по гостинице: категория, а не конкретный объект. */
-export function hotelSummary(level: Level): string {
-  return t(hotelCategory(level).labelKey)
-}
-
-/** Сводка по питанию: перечисление приёмов пищи. */
-export function mealSummary(level: Level): string {
-  return MEAL_FORMAT[level].meals.map((m) => t(MEAL_LABEL_KEY[m])).join(' · ')
-}
-
-/** Состав пункта для города и тарифа. */
-export function inclusion(
-  _cityId: CityId,
-  level: Level,
-  key: InclusionKey,
-  ctx: InclusionContext,
-): Inclusion {
-  switch (key) {
-    case 'hotel':
-      return { summary: hotelSummary(level), details: [] }
-    case 'food':
-      return { summary: mealSummary(level), details: [] }
-    case 'transfer':
-      return transfer(level, ctx)
-    case 'logistics':
-      return logistics()
-    case 'guide':
-      return {
-        summary: t(`guide.${level}`),
-        details: [t('guide.d1'), t('guide.d2'), t(`guide.${level}`)],
-      }
-  }
-}
-
-/** Название строки состава: у трансфера оно зависит от позиции города. */
-export function itemLabel(key: InclusionKey, ctx: InclusionContext): string {
-  if (key === 'transfer') return transferLabel(ctx)
-  const labelKey = INCLUSION_ITEMS.find((i) => i.key === key)?.labelKey
-  return labelKey ? t(labelKey) : ''
-}
-
-/** Пункты, у которых есть что показать. Пустые не выводятся. */
-export function filledItems(cityId: CityId, level: Level, ctx: InclusionContext) {
-  return INCLUSION_ITEMS.filter((item) => inclusion(cityId, level, item.key, ctx).summary !== '')
+/** Пункты чек-листа: показываем все, галочка стоит у каждого. */
+export function filledItems(_cityId: CityId, _level: Level, _ctx: InclusionContext) {
+  return INCLUSION_ITEMS
 }

@@ -82,6 +82,10 @@ export const useTripStore = defineStore('trip', () => {
   // а сохранённое где-либо меньшее значение подтягиваем до минимума.
   const people = ref(saved.people)
 
+  /** Раскрыт ли блок «Сопровождение YOLI». Состояние общее для всех карточек
+   *  и всех городов. В localStorage не сохраняется — живёт только на сессию. */
+  const servicesOpen = ref(false)
+
   const ranges = ref<Partial<Record<CityId, DateRange>>>(saved.ranges)
   const levels = ref<Partial<Record<CityId, Level>>>(saved.levels)
 
@@ -152,6 +156,10 @@ export const useTripStore = defineStore('trip', () => {
     people.value = Math.min(MAX_PEOPLE, Math.max(MIN_PEOPLE, people.value + delta))
   }
 
+  function toggleServices() {
+    servicesOpen.value = !servicesOpen.value
+  }
+
   function setRange(id: CityId, range: DateRange) {
     ranges.value = { ...ranges.value, [id]: range }
   }
@@ -205,6 +213,8 @@ export const useTripStore = defineStore('trip', () => {
 
   return {
     people,
+    servicesOpen,
+    toggleServices,
     ranges,
     levels,
     orderedCities,

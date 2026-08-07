@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import {
-  filledItems,
-  inclusion,
+  PRIMARY_ITEMS,
+  SECONDARY_ITEMS,
   itemLabel,
+  itemNote,
   LEVELS,
   levelName,
   type CityId,
@@ -14,7 +15,7 @@ import {
 import { cityPrice } from '@/composables/calc'
 import { money } from '@/composables/format'
 import { count, t } from '@/composables/useI18n'
-import BonusBlock from '@/components/BonusBlock.vue'
+import { useTripStore } from '@/stores/trip'
 
 const props = defineProps<{
   cityId: CityId
@@ -26,8 +27,10 @@ const props = defineProps<{
 const emit = defineEmits<{
   choose: [Level]
   openItem: [{ level: Level; key: InclusionKey }]
-  openBonus: [string]
 }>()
+
+// Разворот блока «Сопровождение» общий для всех карточек и городов.
+const trip = useTripStore()
 
 // Точки-индикаторы: какая карточка сейчас по центру при свайпе.
 const track = ref<HTMLElement | null>(null)
@@ -64,21 +67,53 @@ function price(level: Level) {
         <div class="price tnum">{{ money(price(l.id)) }}</div>
         <div class="per muted">{{ t('tariff.per', { nights: count(nights, 'u.night') }) }}</div>
 
-        <!-- Состав тарифа: пустые пункты не выводятся -->
+        <!-- Чек-лист: галочка у каждой строки, разница видна в подписи справа -->
+        <div class="included">{{ t('row.included') }}</div>
         <div class="items">
           <button
-            v-for="item in filledItems(cityId, l.id, ctx)"
-            :key="item.key"
+            v-for="key in PRIMARY_ITEMS"
+            :key="key"
             class="item"
-            @click.stop="emit('openItem', { level: l.id, key: item.key })"
+            @click.stop="emit('openItem', { level: l.id, key })"
           >
-            <span class="item-name">{{ itemLabel(item.key, ctx) }}</span>
-            <span class="item-sum muted">{{ inclusion(cityId, l.id, item.key, ctx).summary }}</span>
+            <span class="tick" aria-hidden="true">✓</span>
+            <span class="item-name">{{ itemLabel(key, l.id, ctx) }}</span>
+            <span v-if="itemNote(key, l.id)" class="item-note muted">{{ itemNote(key, l.id) }}</span>
             <span class="chev" aria-hidden="true">›</span>
           </button>
-        </div>
 
-        <BonusBlock :level="l.id" @open-sheet="emit('openBonus', $event)" />
+          <!-- Шесть услуг свёрнуты в одну строку, состояние общее для всех карточек -->
+          <button class="item" :aria-expanded="trip.servicesOpen" @click.stop="trip.toggleServices()">
+            <span class="tick" aria-hidden="true">✓</span>
+            <span class="item-name">
+              {{ t('row.group', { count: count(SECONDARY_ITEMS.length, 'u.service') }) }}
+            </span>
+            <span
+              class="chev turn"
+              :style="{ transform: trip.servicesOpen ? 'rotate(180deg)' : 'rotate(0deg)' }"
+              aria-hidden="true"
+              >⌄</span
+            >
+          </button>
+
+          <div class="services" :class="{ open: trip.servicesOpen }">
+            <div class="services-inner">
+              <button
+                v-for="key in SECONDARY_ITEMS"
+                :key="key"
+                class="item service-item"
+                @click.stop="emit('openItem', { level: l.id, key })"
+              >
+                <span class="tick" aria-hidden="true">✓</span>
+                <span class="item-name">{{ itemLabel(key, l.id, ctx) }}</span>
+                <span v-if="itemNote(key, l.id)" class="item-note muted">{{
+                  itemNote(key, l.id)
+                }}</span>
+                <span class="chev" aria-hidden="true">›</span>
+              </button>
+            </div>
+          </div>
+        </div>
       </article>
     </div>
 
@@ -168,16 +203,26 @@ function price(level: Level) {
   font-size: 12px;
 }
 
+/* Заголовок чек-листа */
+.included {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-top: 12px;
+}
+
 .items {
-  margin-top: 10px;
+  margin-top: 4px;
   border-top: 1px solid var(--border);
 }
 
 .item {
   width: 100%;
-  min-height: var(--tap-min);
+  min-height: 46px;
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto 1fr auto auto;
   align-items: center;
   gap: 8px;
   border-bottom: 1px solid var(--border);
@@ -188,22 +233,59 @@ function price(level: Level) {
   border-bottom: none;
 }
 
+/* Галочка слева — одинаковая на всех тарифах */
+.tick {
+  color: #1a7f3c;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
 .item-name {
   font-size: 14px;
   font-weight: 500;
+  min-width: 0;
 }
 
-.item-sum {
+.item-note {
   font-size: 12px;
-  text-align: right;
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .chev {
   color: var(--text-muted);
   font-size: 18px;
+}
+
+/* Стрелка разворота: та же плавность, что у панели итога */
+.chev.turn {
+  transition: transform 0.15s;
+  display: inline-block;
+}
+
+/* Плавный разворот вложенного списка */
+.services {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.2s ease;
+}
+
+.services.open {
+  grid-template-rows: 1fr;
+}
+
+.services-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* Вложенные строки с отступом слева */
+.service-item {
+  padding-left: 14px;
+}
+
+.service-item:last-child {
+  border-bottom: none;
 }
 
 .dots {

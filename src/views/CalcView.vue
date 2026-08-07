@@ -16,19 +16,20 @@ import CityCard from '@/components/CityCard.vue'
 import TotalPanel from '@/components/TotalPanel.vue'
 import BottomSheet from '@/components/BottomSheet.vue'
 import DateRangeSheet from '@/components/DateRangeSheet.vue'
-import InclusionSheet from '@/components/InclusionSheet.vue'
 import HotelSheet from '@/components/HotelSheet.vue'
 import MealSheet from '@/components/MealSheet.vue'
 import TransferSheet from '@/components/TransferSheet.vue'
 import InsuranceSheet from '@/components/InsuranceSheet.vue'
 import GuideSheet from '@/components/GuideSheet.vue'
+import ServiceSheet from '@/components/ServiceSheet.vue'
+import TaxiSheet from '@/components/TaxiSheet.vue'
 
 const trip = useTripStore()
 
 // Какой лист открыт: календарь города или подробности пункта состава.
 const dateSheet = ref<CityId | null>(null)
 const itemSheet = ref<{ cityId: CityId; level: Level; key: InclusionKey } | null>(null)
-const bonusSheet = ref<string | null>(null)
+
 
 const busy = computed(() => (dateSheet.value ? trip.busyNights(dateSheet.value) : new Map()))
 
@@ -101,7 +102,6 @@ const summaryLine = computed(() => {
         @pick-dates="dateSheet = id"
         @choose="trip.setLevel(id, $event)"
         @open-item="itemSheet = { cityId: id, level: $event.level, key: $event.key }"
-        @open-bonus="bonusSheet = $event"
       />
     </div>
   </section>
@@ -131,10 +131,6 @@ const summaryLine = computed(() => {
   </BottomSheet>
 
   <!-- У гостиницы и питания свои листы, остальное — общий -->
-  <BottomSheet v-if="bonusSheet === 'insurance'" @close="bonusSheet = null">
-    <InsuranceSheet @close="bonusSheet = null" />
-  </BottomSheet>
-
   <BottomSheet v-if="itemSheet" @close="itemSheet = null">
     <HotelSheet
       v-if="itemSheet.key === 'hotel'"
@@ -169,12 +165,12 @@ const summaryLine = computed(() => {
       @choose="chooseFromSheet"
       @close="itemSheet = null"
     />
-    <InclusionSheet
+    <TaxiSheet v-else-if="itemSheet.key === 'taxi'" @close="itemSheet = null" />
+    <InsuranceSheet v-else-if="itemSheet.key === 'insurance'" @close="itemSheet = null" />
+    <ServiceSheet
       v-else
-      :city-id="itemSheet.cityId"
-      :level="itemSheet.level"
       :item-key="itemSheet.key"
-      :ctx="ctxFor(itemSheet.cityId)"
+      :level="itemSheet.level"
       :selected-level="trip.levels[itemSheet.cityId] ?? null"
       @choose="chooseFromSheet"
       @close="itemSheet = null"
