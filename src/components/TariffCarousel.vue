@@ -106,14 +106,13 @@ function price(level: Level) {
 
         <!-- Отдельный блок-кнопка: не пункт списка, поэтому видно, что раскрывается -->
         <button class="group-btn" :aria-expanded="trip.servicesOpen" @click.stop="trip.toggleServices()">
-          <span class="group-title">
-            {{ t('row.group', { count: count(SECONDARY_ITEMS.length, 'u.service') }) }}
-          </span>
+          <span class="group-title">{{ t('row.group') }}</span>
+          <!-- Список раскрывается ВНИЗ, поэтому вниз раскрыть, вверх свернуть.
+               Глифы разные, поворота одного нет. -->
           <span class="group-hint">
             {{ trip.servicesOpen ? t('total.collapse') : t('total.more') }}
+            <span class="group-chev" aria-hidden="true">{{ trip.servicesOpen ? '⌃' : '⌄' }}</span>
           </span>
-          <!-- Разные глифы, а не поворот: повёрнутый ⌄ похож на исходный -->
-          <span class="group-chev" aria-hidden="true">{{ trip.servicesOpen ? '⌃' : '⌄' }}</span>
         </button>
 
         <div class="items">
@@ -279,23 +278,19 @@ function price(level: Level) {
   border-bottom: none;
 }
 
-/* Блок-кнопка «Сопровождение»: белый фон, оранжевый контур, три строки по центру.
-   Оранжевый вместо фирменного жёлтого: жёлтый на белом даёт контраст 1.27:1
-   и пропадает на ярком экране, а приложение рассчитано на улицу и солнце.
-   Рамка, подпись и стрелка одного цвета — блок читается цельным. */
+/* Блок «Сопровождение»: без рамки и фона, две строки по центру.
+   Отступ сверху отделяет его от четырёх строк списка. */
 .group-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1px;
+  gap: 2px;
   width: 100%;
   min-height: 56px;
   margin-top: 10px;
   padding: 8px 12px;
-  border: 2px solid var(--accent-strong);
   border-radius: var(--radius-sm);
-  background: var(--card);
   color: var(--brand-graphite);
   text-align: center;
   transition: background 0.12s;
@@ -321,17 +316,18 @@ function price(level: Level) {
 }
 
 .group-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   font-size: 12px;
   font-weight: 600;
   color: var(--accent-strong);
 }
 
-/* Стрелка отдельной строкой под подписью */
+/* Стрелка рядом с подписью, в той же строке */
 .group-chev {
-  display: block;
   font-size: 13px;
   line-height: 1;
-  color: var(--accent-strong);
 }
 
 /* Галочка слева — одинаковая на всех тарифах */

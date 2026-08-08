@@ -135,8 +135,9 @@ async function share() {
         <!-- Явная кнопка вместо одной стрелки: понятно, что можно нажать -->
         <button class="more" :aria-expanded="open" @click="open = !open">
           <span>{{ open ? t('total.collapse') : t('total.more') }}</span>
-          <!-- Разные глифы, а не поворот одного -->
-          <span class="chevron" aria-hidden="true">{{ open ? '⌃' : '⌄' }}</span>
+          <!-- Панель раскрывается ВВЕРХ: вверх раскрыть, вниз свернуть.
+               Глифы разные, поворота одного нет. -->
+          <span class="chevron" aria-hidden="true">{{ open ? '⌄' : '⌃' }}</span>
         </button>
       </div>
     </div>
