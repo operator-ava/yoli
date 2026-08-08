@@ -25,26 +25,46 @@ export const CUISINES: Cuisine[] = [
   { id: 'japanese', nameKey: 'cuisine.japanese' },
 ]
 
-/** Порядок раскладки кухонь по дням: узбекской больше всего, дальше по убыванию.
- *  Цикл повторяется, пока не кончатся дни. Рандома нет — одна и та же поездка
- *  всегда даёт одну и ту же раскладку. */
+/** Завтрак всегда узбекский: в отелях Узбекистана подают местный завтрак,
+ *  и «русская кухня» на завтрак у прилетевшего туриста вызывает вопрос. */
+const BREAKFAST_CUISINE: CuisineId = 'uzbek'
+
+/** Цикл для ОБЕДОВ и УЖИНОВ. Завтраки в него не входят.
+ *  Десять позиций: китайская 4, узбекская 3, русская 2, японская 1.
+ *  Доля подобрана так, чтобы вместе с узбекскими завтраками общая пропорция
+ *  за поездку осталась прежней: узбекская около половины, дальше китайская,
+ *  русская, японская реже всех.
+ *  Рандома нет: позиция считается от номера дня и номера приёма, поэтому
+ *  одни и те же даты и город всегда дают одну и ту же раскладку. */
 export const CUISINE_CYCLE: CuisineId[] = [
-  'uzbek',
-  'uzbek',
   'chinese',
   'uzbek',
+  'russian',
+  'chinese',
+  'uzbek',
+  'chinese',
   'russian',
   'uzbek',
   'chinese',
   'japanese',
 ]
 
-/** Короткое пребывание — только узбекская кухня. */
-const SHORT_STAY_DAYS = 2
-
-/** Кухня дня. index — номер дня с нуля, total — всего дней в городе. */
-export function cuisineForDay(index: number, total: number): Cuisine {
-  const id = total <= SHORT_STAY_DAYS ? 'uzbek' : CUISINE_CYCLE[index % CUISINE_CYCLE.length]
+/** Кухня конкретного приёма пищи.
+ *  meal — какой это приём, dayIndex — номер дня с нуля,
+ *  mealIndex — номер приёма внутри дня, mealsPerDay — сколько приёмов даёт тариф. */
+export function cuisineForMeal(
+  meal: MealKey,
+  dayIndex: number,
+  mealIndex: number,
+  mealsPerDay: number,
+): Cuisine {
+  if (meal === 'breakfast') {
+    return CUISINES.find((c) => c.id === BREAKFAST_CUISINE) ?? CUISINES[0]
+  }
+  // Завтрак идёт первым и в цикле не участвует — считаем позицию без него.
+  const perDay = Math.max(1, mealsPerDay - 1)
+  const position = (dayIndex * perDay + (mealIndex - 1)) % CUISINE_CYCLE.length
+  const id = CUISINE_CYCLE[position]
   return CUISINES.find((c) => c.id === id) ?? CUISINES[0]
 }
 
@@ -77,7 +97,9 @@ export interface Course {
 }
 
 /** Блюда для кухни и приёма пищи. Заполнен только узбекский обед —
- *  единственный набор, подтверждённый заказчиком. */
+ *  единственный набор, подтверждённый заказчиком.
+ *  В интерфейсе НЕ показывается: обещаем кухню, а не конкретное блюдо.
+ *  Данные оставлены, чтобы не потерять подтверждённое заказчиком. */
 const DISHES: Record<string, Course[]> = {
   'uzbek|lunch': [
     { labelKey: 'course.first', itemKeys: ['dish.mastava'] },

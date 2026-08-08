@@ -111,9 +111,11 @@ export const ru: Dict = {
   'dates.monthTitle': '{month} {year}',
 
   // Нижние листы
+  'meal.note': 'Кухня по дням — ориентировочный план. Конкретные заведения подбираются после подтверждения бронирования. Мы гарантируем количество приёмов пищи и разнообразие кухни.',
+  'total.more': 'Подробнее',
+  'total.collapse': 'Свернуть',
   'sheet.close': 'Закрыть',
   'sheet.tariff': 'Тариф «{name}»',
-  'sheet.others': 'В других тарифах',
   'sheet.choose': 'Выбрать этот тариф',
 
   // Пункты состава
@@ -167,7 +169,8 @@ export const ru: Dict = {
   'art.transportAll': 'Транспорт и трансферы',
   'art.services': 'Сопровождение и включённые услуги',
   'total.empty.head': 'Выберите город и даты',
-  'row.group': 'Сопровождение YOLI · {count}',
+  'group.show': 'Показать подробнее',
+  'row.group': 'Сопровождение · {count}',
   'u.service': ['услуга', 'услуги', 'услуг'],
   'row.included': 'Что включено',
   'row.hotel': 'Гостиница {stars}',

@@ -102,20 +102,25 @@ function price(level: Level) {
             <span class="chev" aria-hidden="true">›</span>
           </button>
 
-          <!-- Шесть услуг свёрнуты в одну строку, состояние общее для всех карточек -->
-          <button class="item" :aria-expanded="trip.servicesOpen" @click.stop="trip.toggleServices()">
-            <span class="tick" aria-hidden="true">✓</span>
-            <span class="item-name">
-              {{ t('row.group', { count: count(SECONDARY_ITEMS.length, 'u.service') }) }}
-            </span>
+        </div>
+
+        <!-- Отдельный блок-кнопка: не пункт списка, поэтому видно, что раскрывается -->
+        <button class="group-btn" :aria-expanded="trip.servicesOpen" @click.stop="trip.toggleServices()">
+          <span class="group-title">
+            {{ t('row.group', { count: count(SECONDARY_ITEMS.length, 'u.service') }) }}
+          </span>
+          <span class="group-hint">
+            {{ trip.servicesOpen ? t('total.collapse') : t('group.show') }}
             <span
-              class="chev turn"
+              class="group-chev"
               :style="{ transform: trip.servicesOpen ? 'rotate(180deg)' : 'rotate(0deg)' }"
               aria-hidden="true"
               >⌄</span
             >
-          </button>
+          </span>
+        </button>
 
+        <div class="items">
           <div class="services" :class="{ open: trip.servicesOpen }">
             <div class="services-inner">
               <button
@@ -181,6 +186,8 @@ function price(level: Level) {
 
 .carousel.wide .tariff {
   flex: 1 1 0;
+  /* Длинный заголовок блока не должен растягивать колонку */
+  min-width: 0;
 }
 
 /* Кнопка выбора внутри карточки */
@@ -276,6 +283,56 @@ function price(level: Level) {
   border-bottom: none;
 }
 
+/* Блок-кнопка «Сопровождение»: заливка, две строки, без галочки и разделителя */
+.group-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  width: 100%;
+  min-height: 56px;
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--brand-yellow);
+  color: var(--brand-graphite);
+  text-align: left;
+  transition: filter 0.12s;
+}
+
+.group-btn:active {
+  filter: brightness(0.94);
+}
+
+/* Своя рамка вместо системной синей */
+.group-btn:focus-visible {
+  outline: 2px solid var(--brand-graphite);
+  outline-offset: 2px;
+}
+
+.group-title {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.group-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+.group-chev {
+  display: inline-block;
+  transition: transform 0.15s;
+}
+
 /* Галочка слева — одинаковая на всех тарифах */
 .tick {
   color: #1a7f3c;
@@ -331,7 +388,7 @@ function price(level: Level) {
   min-height: 0;
 }
 
-/* Вложенные строки с отступом слева */
+/* Список услуг под блоком, на белом фоне, с отступом */
 .service-item {
   padding-left: 14px;
 }

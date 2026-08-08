@@ -4,7 +4,7 @@ import { useTripStore } from '@/stores/trip'
 import { cityName, levelName, MAX_PEOPLE } from '@/data'
 import type { Article } from '@/composables/calc'
 import { nextDiscountStep } from '@/composables/calc'
-import { allocate, exactUnits, formatUnits, percent, steppedUnits } from '@/composables/format'
+import { allocate, formatUnits, percent, steppedUnits } from '@/composables/format'
 import { rangeLabel, short } from '@/composables/dates'
 import { count, plural, t } from '@/composables/useI18n'
 
@@ -41,7 +41,9 @@ const view = computed(() => {
   // всегда сходится с тем, что написано в панели.
   const perPersonUnits = steppedUnits(r.value.perPerson)
   const totalUnits = perPersonUnits * trip.people
-  const discountUnits = exactUnits(r.value.discount)
+  // Скидку тоже округляем шагом валюты: точное число выбивалось из ряда круглых.
+  // Сходимость не страдает — строки раскладываются от базы «итог + скидка».
+  const discountUnits = steppedUnits(r.value.discount)
   const base = totalUnits + discountUnits
 
   const articleUnits = allocate(
@@ -121,8 +123,8 @@ async function share() {
       <span class="empty-text">{{ t('total.empty.head') }}</span>
     </div>
 
-    <button v-else class="head tap" :aria-expanded="open" @click="open = !open">
-      <div>
+    <div v-else class="head">
+      <div class="main">
         <div class="per-person tnum">{{ formatUnits(view.perPersonUnits) }}</div>
         <div class="per-person-label">{{ t('total.perPerson') }}</div>
       </div>
@@ -130,15 +132,18 @@ async function share() {
         <div class="group tnum">
           {{ t('total.forGroup', { n: trip.people }) }} <b>{{ formatUnits(view.totalUnits) }}</b>
         </div>
-        <div
-          class="chevron"
-          :style="{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }"
-          aria-hidden="true"
-        >
-          ⌃
-        </div>
+        <!-- Явная кнопка вместо одной стрелки: понятно, что можно нажать -->
+        <button class="more" :aria-expanded="open" @click="open = !open">
+          <span>{{ open ? t('total.collapse') : t('total.more') }}</span>
+          <span
+            class="chevron"
+            :style="{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }"
+            aria-hidden="true"
+            >⌃</span
+          >
+        </button>
       </div>
-    </button>
+    </div>
 
     <!-- Скидка и подсказка-стимул: чем больше группа, тем выгоднее -->
     <div v-if="r.discount > 0" class="discount">
@@ -216,6 +221,10 @@ async function share() {
   color: var(--text-muted);
 }
 
+.main {
+  flex-shrink: 0;
+}
+
 .head {
   width: 100%;
   display: flex;
@@ -226,7 +235,25 @@ async function share() {
   text-align: left;
 }
 
+/* Кнопка раскрытия: фирменный жёлтый, тач-зона не меньше 44 px */
+.more {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: var(--radius-sm);
+  background: var(--brand-yellow);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 .per-person {
+  /* Крупная цена не переносится: ломать её кнопкой нельзя */
+  white-space: nowrap;
   font-size: 30px;
   font-weight: 700;
   line-height: 1.1;
@@ -242,12 +269,14 @@ async function share() {
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
 }
 
 .group {
   font-size: 13px;
   color: var(--text-muted);
   text-align: right;
+  min-width: 0;
 }
 
 .group b {
@@ -259,8 +288,8 @@ async function share() {
    свёрнута — вверх, раскрыта — вниз. Поворот задаётся из шаблона,
    здесь только плавность. */
 .chevron {
-  font-size: 16px;
-  color: var(--text-muted);
+  font-size: 15px;
+  display: inline-block;
   transition: transform 0.15s;
 }
 

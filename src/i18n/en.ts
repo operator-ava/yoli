@@ -114,9 +114,11 @@ export const en: Dict = {
   'dates.monthTitle': '{month} {year}',
 
   // Bottom sheets
+  'meal.note': 'The cuisine by day is an indicative plan. The particular venues are selected once the booking is confirmed. We guarantee the number of meals and the variety of cuisine.',
+  'total.more': 'Details',
+  'total.collapse': 'Collapse',
   'sheet.close': 'Close',
   'sheet.tariff': '{name} tariff',
-  'sheet.others': 'Other tariffs',
   'sheet.choose': 'Choose this tariff',
 
   // Inclusion items
@@ -170,6 +172,7 @@ export const en: Dict = {
   'art.transportAll': 'Transport and transfers',
   'art.services': 'Guiding and included services',
   'total.empty.head': 'Choose a city and dates',
+  'group.show': 'Show details',
   'row.group': 'YOLI support · {count}',
   'u.service': ['service', 'services'],
   'row.included': 'What is included',

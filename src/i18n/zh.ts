@@ -113,9 +113,11 @@ export const zh: Dict = {
   'dates.monthTitle': '{year}年{month}',
 
   // 底部弹层
+  'meal.note': '每日菜系为参考安排。具体餐厅在预订确认后安排。我们保证用餐次数与菜系的多样性。',
+  'total.more': '查看明细',
+  'total.collapse': '收起',
   'sheet.close': '关闭',
   'sheet.tariff': '{name}套餐',
-  'sheet.others': '其他套餐',
   'sheet.choose': '选择此套餐',
 
   // 套餐内容
@@ -169,6 +171,7 @@ export const zh: Dict = {
   'art.transportAll': '交通与接送',
   'art.services': '陪同与所含服务',
   'total.empty.head': '请选择城市和日期',
+  'group.show': '查看详情',
   'row.group': 'YOLI 陪同服务 · {count}',
   'u.service': ['项'],
   'row.included': '包含内容',
