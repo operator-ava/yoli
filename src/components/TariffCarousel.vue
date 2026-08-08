@@ -110,14 +110,10 @@ function price(level: Level) {
             {{ t('row.group', { count: count(SECONDARY_ITEMS.length, 'u.service') }) }}
           </span>
           <span class="group-hint">
-            {{ trip.servicesOpen ? t('total.collapse') : t('group.show') }}
-            <span
-              class="group-chev"
-              :style="{ transform: trip.servicesOpen ? 'rotate(180deg)' : 'rotate(0deg)' }"
-              aria-hidden="true"
-              >⌄</span
-            >
+            {{ trip.servicesOpen ? t('total.collapse') : t('total.more') }}
           </span>
+          <!-- Разные глифы, а не поворот: повёрнутый ⌄ похож на исходный -->
+          <span class="group-chev" aria-hidden="true">{{ trip.servicesOpen ? '⌃' : '⌄' }}</span>
         </button>
 
         <div class="items">
@@ -283,26 +279,30 @@ function price(level: Level) {
   border-bottom: none;
 }
 
-/* Блок-кнопка «Сопровождение»: заливка, две строки, без галочки и разделителя */
+/* Блок-кнопка «Сопровождение»: белый фон, оранжевый контур, три строки по центру.
+   Оранжевый вместо фирменного жёлтого: жёлтый на белом даёт контраст 1.27:1
+   и пропадает на ярком экране, а приложение рассчитано на улицу и солнце.
+   Рамка, подпись и стрелка одного цвета — блок читается цельным. */
 .group-btn {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 1px;
   width: 100%;
   min-height: 56px;
   margin-top: 10px;
   padding: 8px 12px;
+  border: 2px solid var(--accent-strong);
   border-radius: var(--radius-sm);
-  background: var(--brand-yellow);
+  background: var(--card);
   color: var(--brand-graphite);
-  text-align: left;
-  transition: filter 0.12s;
+  text-align: center;
+  transition: background 0.12s;
 }
 
 .group-btn:active {
-  filter: brightness(0.94);
+  background: var(--brand-yellow-soft);
 }
 
 /* Своя рамка вместо системной синей */
@@ -321,16 +321,17 @@ function price(level: Level) {
 }
 
 .group-hint {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
   font-size: 12px;
-  opacity: 0.75;
+  font-weight: 600;
+  color: var(--accent-strong);
 }
 
+/* Стрелка отдельной строкой под подписью */
 .group-chev {
-  display: inline-block;
-  transition: transform 0.15s;
+  display: block;
+  font-size: 13px;
+  line-height: 1;
+  color: var(--accent-strong);
 }
 
 /* Галочка слева — одинаковая на всех тарифах */

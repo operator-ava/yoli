@@ -172,7 +172,6 @@ export const en: Dict = {
   'art.transportAll': 'Transport and transfers',
   'art.services': 'Guiding and included services',
   'total.empty.head': 'Choose a city and dates',
-  'group.show': 'Show details',
   'row.group': 'YOLI support · {count}',
   'u.service': ['service', 'services'],
   'row.included': 'What is included',

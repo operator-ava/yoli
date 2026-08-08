@@ -171,7 +171,6 @@ export const zh: Dict = {
   'art.transportAll': '交通与接送',
   'art.services': '陪同与所含服务',
   'total.empty.head': '请选择城市和日期',
-  'group.show': '查看详情',
   'row.group': 'YOLI 陪同服务 · {count}',
   'u.service': ['项'],
   'row.included': '包含内容',

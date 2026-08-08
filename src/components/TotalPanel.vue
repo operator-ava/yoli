@@ -135,12 +135,8 @@ async function share() {
         <!-- Явная кнопка вместо одной стрелки: понятно, что можно нажать -->
         <button class="more" :aria-expanded="open" @click="open = !open">
           <span>{{ open ? t('total.collapse') : t('total.more') }}</span>
-          <span
-            class="chevron"
-            :style="{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }"
-            aria-hidden="true"
-            >⌃</span
-          >
+          <!-- Разные глифы, а не поворот одного -->
+          <span class="chevron" aria-hidden="true">{{ open ? '⌃' : '⌄' }}</span>
         </button>
       </div>
     </div>
@@ -235,16 +231,15 @@ async function share() {
   text-align: left;
 }
 
-/* Кнопка раскрытия: фирменный жёлтый, тач-зона не меньше 44 px */
+/* Кнопка раскрытия: без заливки, текст и стрелка тем же оранжевым,
+   что процент и сумма экономии. Тач-зона не меньше 44 px. */
 .more {
   display: flex;
   align-items: center;
   gap: 6px;
   min-height: 44px;
-  padding: 0 12px;
-  border-radius: var(--radius-sm);
-  background: var(--brand-yellow);
-  color: var(--text);
+  padding: 0 8px;
+  color: var(--accent-strong);
   font-size: 14px;
   font-weight: 600;
   white-space: nowrap;
@@ -282,6 +277,8 @@ async function share() {
 .group b {
   color: var(--text);
   font-weight: 600;
+  /* Сумма и символ валюты не расходятся по разным строкам */
+  white-space: nowrap;
 }
 
 /* Стрелка показывает, куда поедет панель:
@@ -290,7 +287,6 @@ async function share() {
 .chevron {
   font-size: 15px;
   display: inline-block;
-  transition: transform 0.15s;
 }
 
 /* Без подложки: заливка спорила с ценой. Выделены только числа. */

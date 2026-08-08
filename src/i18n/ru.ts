@@ -169,7 +169,6 @@ export const ru: Dict = {
   'art.transportAll': 'Транспорт и трансферы',
   'art.services': 'Сопровождение и включённые услуги',
   'total.empty.head': 'Выберите город и даты',
-  'group.show': 'Показать подробнее',
   'row.group': 'Сопровождение · {count}',
   'u.service': ['услуга', 'услуги', 'услуг'],
   'row.included': 'Что включено',
