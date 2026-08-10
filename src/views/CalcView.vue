@@ -25,6 +25,8 @@ import GuideSheet from '@/components/GuideSheet.vue'
 import ServiceSheet from '@/components/ServiceSheet.vue'
 import TaxiSheet from '@/components/TaxiSheet.vue'
 import PaidScreen from '@/components/PaidScreen.vue'
+import FlightRow from '@/components/FlightRow.vue'
+import FlightScreen from '@/components/FlightScreen.vue'
 
 const trip = useTripStore()
 
@@ -34,6 +36,9 @@ const itemSheet = ref<{ cityId: CityId; level: Level; key: InclusionKey } | null
 
 // Экран благодарности после «Оплатить». Расчёт под ним остаётся нетронутым.
 const paid = ref(false)
+
+// Экран «Перелёт — скоро». Заглушка, в расчёт не входит.
+const flight = ref(false)
 
 
 const busy = computed(() => (dateSheet.value ? trip.busyNights(dateSheet.value) : new Map()))
@@ -94,6 +99,10 @@ const summaryLine = computed(() => {
       </div>
     </div>
 
+    <!-- Заглушка: на цену и расчёт не влияет, в стор ничего не пишет -->
+    <h2>{{ t('calc.flight') }}</h2>
+    <FlightRow @open="flight = true" />
+
     <h2>{{ t('calc.cities') }}</h2>
     <!-- Порядок вычисляется из дат заезда, стрелок нет -->
     <p v-if="summaryLine" class="summary">{{ summaryLine }}</p>
@@ -120,6 +129,9 @@ const summaryLine = computed(() => {
 
   <!-- Оплата не производится: макет экрана после заказа -->
   <PaidScreen v-if="paid" @close="paid = false" />
+
+  <!-- Перелётов пока нет: экран-заглушка -->
+  <FlightScreen v-if="flight" @close="flight = false" />
 
   <BottomSheet v-if="dateSheet" @close="dateSheet = null">
     <DateRangeSheet

@@ -17,6 +17,7 @@ export const en: Dict = {
 
   // Estimate screen
   'calc.who': 'Who is travelling',
+  'calc.flight': 'Flight',
   'calc.cities': 'Cities',
   'calc.pickDates': 'Choose dates',
   'calc.change': 'Change',
@@ -68,6 +69,16 @@ export const en: Dict = {
   'paid.p3': 'As soon as the booking is confirmed you will get access to the YOLI app with the AI guide “Ded Bobo” connected. He will already know your route: you can discuss the programme, ask questions about the places and change something before the departure.',
   'paid.footer': 'Have a good journey. We are with you all the way.',
   'paid.back': 'Back to the estimate',
+
+  // The «Flight» block and screen. A stub: no flights yet, no dates promised.
+  'flight.row': 'Flight to Uzbekistan',
+  'flight.soon': 'Soon',
+  'flight.title': 'Flight to Uzbekistan — coming soon',
+  'flight.p1': 'We are working on making the trip start right here. Very soon you will be able to find and buy a flight to Uzbekistan without leaving YOLI.',
+  'flight.p2': 'We will gather good flights for your dates and show them next to the trip estimate — so you can see at once what the whole journey costs, from departure to return.',
+  'flight.p3': 'The ticket will link itself to your route: the airport transfer will adjust to your arrival time, and the first day of the trip will start when you are actually there.',
+  'flight.footer': 'Your flight will appear here soon.',
+  'flight.back': 'Back to the cost estimate',
 
   // Calendar
   'dates.title': 'Dates · {city}',

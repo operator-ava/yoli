@@ -52,6 +52,9 @@ const nextStep = computed(() => {
 
       <div class="side">
         <button class="btn primary pay" @click="emit('pay')">{{ t('total.pay') }}</button>
+        <!-- «Сбросить» появляется только в раскрытом виде: действие редкое
+             и разрушительное, на виду ему не место -->
+        <button v-if="open" class="btn reset" @click="trip.reset()">{{ t('total.reset') }}</button>
         <!-- Стрелка идёт внутри строки подписи, а не отдельным флекс-элементом:
              так она садится на базовую линию текста, рядом с которым стоит.
              Панель раскрывается ВВЕРХ: вверх раскрыть, вниз свернуть.
@@ -64,9 +67,6 @@ const nextStep = computed(() => {
             }}</span></span
           >
         </button>
-        <!-- «Сбросить» появляется только в раскрытом виде: действие редкое
-             и разрушительное, на виду ему не место -->
-        <button v-if="open" class="btn reset" @click="trip.reset()">{{ t('total.reset') }}</button>
       </div>
     </div>
 
