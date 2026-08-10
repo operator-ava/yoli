@@ -89,11 +89,17 @@ const view = computed(() => {
           {{ t('total.forGroup', { n: trip.people }) }} <b>{{ formatUnits(view.totalUnits) }}</b>
         </div>
         <!-- Явная кнопка вместо одной стрелки: понятно, что можно нажать -->
+        <!-- Стрелка идёт внутри строки подписи, а не отдельным флекс-элементом:
+             так она садится на базовую линию текста, рядом с которым стоит.
+             Панель раскрывается ВВЕРХ: вверх раскрыть, вниз свернуть.
+             Глифы разные, поворота одного нет. -->
         <button class="more" :aria-expanded="open" @click="open = !open">
-          <span>{{ open ? t('total.collapse') : t('total.more') }}</span>
-          <!-- Панель раскрывается ВВЕРХ: вверх раскрыть, вниз свернуть.
-               Глифы разные, поворота одного нет. -->
-          <span class="chevron" aria-hidden="true">{{ open ? '⌄' : '⌃' }}</span>
+          <span class="more-label"
+            >{{ open ? t('total.collapse') : t('total.more')
+            }}<span class="chev" :class="open ? 'chev-down' : 'chev-up'" aria-hidden="true">{{
+              open ? '⌄' : '⌃'
+            }}</span></span
+          >
         </button>
       </div>
     </div>
@@ -141,9 +147,10 @@ const view = computed(() => {
     </div>
 
     <!-- «Оплатить» видна всегда, в том числе когда панель свёрнута.
-         Пока ни в одном городе не выбран тариф — платить не за что. -->
-    <div class="pay-wrap">
-      <button class="btn primary pay" :disabled="empty" @click="emit('pay')">
+         Пустой расчёт — кнопки нет вовсе: платить не за что, а погашенная
+         кнопка только шумит рядом с единственной строкой-подсказкой. -->
+    <div v-if="!empty" class="pay-wrap">
+      <button class="btn primary pay" @click="emit('pay')">
         {{ t('total.pay') }}
       </button>
     </div>
@@ -202,7 +209,6 @@ const view = computed(() => {
 .more {
   display: flex;
   align-items: center;
-  gap: 6px;
   min-height: 44px;
   padding: 0 8px;
   color: var(--accent-strong);
@@ -247,12 +253,10 @@ const view = computed(() => {
   white-space: nowrap;
 }
 
-/* Стрелка показывает, куда поедет панель:
-   свёрнута — вверх, раскрыта — вниз. Поворот задаётся из шаблона,
-   здесь только плавность. */
-.chevron {
-  font-size: 15px;
-  display: inline-block;
+/* Стрелка показывает, куда поедет панель: свёрнута — вверх, раскрыта — вниз.
+   Кегль наследуется от подписи, выравнивание — в общем классе .chev. */
+.more .chev {
+  margin-left: 6px;
 }
 
 /* Без подложки: заливка спорила с ценой. Выделены только числа. */
@@ -337,13 +341,5 @@ h3:first-child {
 .pay {
   width: 100%;
   font-size: 16px;
-}
-
-/* Нечего оплачивать — кнопка видна, но гасится */
-.pay:disabled {
-  background: var(--bg);
-  border-color: var(--border);
-  color: var(--text-muted);
-  cursor: default;
 }
 </style>

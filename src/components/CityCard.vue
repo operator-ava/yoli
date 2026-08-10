@@ -64,7 +64,7 @@ const dates = computed(() =>
     <span class="tariff-tag" :class="{ on: level }">
       {{ level ? levelName(level) : t('calc.noTariff') }}
     </span>
-    <span class="chev" aria-hidden="true">⌄</span>
+    <span class="chev chev-down chev-mid muted" aria-hidden="true">⌄</span>
   </button>
 
   <!-- Состояние В: даты выбраны, карточка раскрыта. -->
@@ -82,7 +82,7 @@ const dates = computed(() =>
         :aria-label="t('calc.collapseCity')"
         @click="emit('toggle')"
       >
-        <span class="chev" aria-hidden="true">⌃</span>
+        <span class="chev chev-up chev-mid muted" aria-hidden="true">⌃</span>
       </button>
     </header>
 
@@ -217,10 +217,11 @@ const dates = computed(() =>
   flex-shrink: 0;
 }
 
-.chev {
-  color: var(--text-muted);
+/* Размер и выравнивание стрелки — в общем классе .chev (global.css).
+   Здесь только кегль строки, от которого она считается. */
+.folded .chev,
+.fold .chev {
   font-size: 15px;
-  flex-shrink: 0;
 }
 
 .no-level {

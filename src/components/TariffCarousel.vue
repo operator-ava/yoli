@@ -99,7 +99,7 @@ function price(level: Level) {
               </template>
             </span>
             <span v-if="itemNote(key, l.id)" class="item-note muted">{{ itemNote(key, l.id) }}</span>
-            <span class="chev" aria-hidden="true">›</span>
+            <span class="chev chev-next" aria-hidden="true">›</span>
           </button>
 
         </div>
@@ -110,10 +110,15 @@ function price(level: Level) {
           <span class="group-title">{{ t('row.group', { n: secondaryItems(l.id).length }) }}</span>
           <!-- Список раскрывается ВНИЗ, поэтому вниз раскрыть, вверх свернуть.
                Глифы разные, поворота одного нет. -->
-          <span class="group-hint">
-            {{ trip.servicesOpen ? t('total.collapse') : t('total.more') }}
-            <span class="group-chev" aria-hidden="true">{{ trip.servicesOpen ? '⌃' : '⌄' }}</span>
-          </span>
+          <span class="group-hint"
+            >{{ trip.servicesOpen ? t('total.collapse') : t('total.more')
+            }}<span
+              class="chev group-chev"
+              :class="trip.servicesOpen ? 'chev-up' : 'chev-down'"
+              aria-hidden="true"
+              >{{ trip.servicesOpen ? '⌃' : '⌄' }}</span
+            ></span
+          >
         </button>
 
         <div class="items">
@@ -130,7 +135,7 @@ function price(level: Level) {
                 <span v-if="itemNote(key, l.id)" class="item-note muted">{{
                   itemNote(key, l.id)
                 }}</span>
-                <span class="chev" aria-hidden="true">›</span>
+                <span class="chev chev-next" aria-hidden="true">›</span>
               </button>
             </div>
           </div>
@@ -316,19 +321,16 @@ function price(level: Level) {
   text-overflow: ellipsis;
 }
 
+/* Подпись со стрелкой — обычная строка текста, не флекс-контейнер:
+   стрелка садится на базовую линию подписи. */
 .group-hint {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
   font-size: 12px;
   font-weight: 600;
   color: var(--accent-strong);
 }
 
-/* Стрелка рядом с подписью, в той же строке */
 .group-chev {
-  font-size: 13px;
-  line-height: 1;
+  margin-left: 5px;
 }
 
 /* Галочка слева — одинаковая на всех тарифах */
@@ -357,17 +359,12 @@ function price(level: Level) {
   white-space: nowrap;
 }
 
-.chev {
+/* Шеврон строки чек-листа: кегль строки, выравнивание — в общем классе .chev */
+.item .chev {
   color: var(--text-muted);
-  font-size: 15px;
+  font-size: 14px;
   width: 8px;
   text-align: right;
-}
-
-/* Стрелка разворота: та же плавность, что у панели итога */
-.chev.turn {
-  transition: transform 0.15s;
-  display: inline-block;
 }
 
 /* Плавный разворот вложенного списка */

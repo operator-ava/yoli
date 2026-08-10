@@ -63,10 +63,9 @@ const summaryLine = computed(() => {
 </script>
 
 <template>
+  <!-- Название экрана переехало в шапку — в теле его больше нет -->
   <section class="app-content">
-    <h1>{{ t('nav.calc') }}</h1>
-
-    <h2>{{ t('calc.who') }}</h2>
+    <h2 class="first">{{ t('calc.who') }}</h2>
     <div class="card block">
       <div class="counter">
         <button
@@ -189,12 +188,13 @@ const summaryLine = computed(() => {
 </template>
 
 <style scoped>
-h1 {
-  margin-top: 16px;
-}
-
 h2 {
   margin-top: 18px;
+}
+
+/* Первый заголовок отбивается от шапки так же, как остальные друг от друга */
+h2.first {
+  margin-top: 16px;
 }
 
 .block {

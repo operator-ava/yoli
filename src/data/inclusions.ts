@@ -21,23 +21,22 @@ export type InclusionKey =
   | 'bankCard'
 
 /** Строки, которые видны всегда. Порядок строгий. */
-export const PRIMARY_ITEMS: InclusionKey[] = ['transfer', 'hotel', 'food', 'excursions', 'taxi']
+export const PRIMARY_ITEMS: InclusionKey[] = [
+  'transfer',
+  'hotel',
+  'food',
+  'excursions',
+  'guide',
+  'taxi',
+]
 
 /** Дополнительные услуги, свёрнутые в блок-кнопку. Порядок строгий. */
-const SECONDARY_ALL: InclusionKey[] = [
-  'guide',
-  'aiGuide',
-  'audio',
-  'translator',
-  'insurance',
-  'sim',
-  'bankCard',
-]
+const SECONDARY_ALL: InclusionKey[] = ['aiGuide', 'audio', 'translator', 'insurance', 'sim', 'bankCard']
 
 /** Услуги, которые есть не на всех тарифах. Местная банковская карта — только люкс. */
 const LUX_ONLY: InclusionKey[] = ['bankCard']
 
-/** Состав дополнительных услуг тарифа: эконом и средний — шесть, люкс — семь.
+/** Состав дополнительных услуг тарифа: эконом и средний — пять, люкс — шесть.
  *  Заголовок блока считает длину этого списка, а не хранит число отдельно. */
 export function secondaryItems(level: Level): InclusionKey[] {
   return SECONDARY_ALL.filter((key) => level === 'lux' || !LUX_ONLY.includes(key))
