@@ -58,6 +58,12 @@ const LIMITS: Partial<Record<InclusionKey, Record<Level, string>>> = {
   translator: { econom: 'limit.h3', medium: 'limit.h7', lux: 'limit.unlimited' },
   audio: { econom: 'limit.unlimited', medium: 'limit.unlimited', lux: 'limit.unlimited' },
   sim: { econom: 'limit.gb180', medium: 'limit.gb200', lux: 'limit.gb350' },
+  // Маршрут меняется только в люксе — разница должна читаться, не открывая лист.
+  excursions: {
+    econom: 'limit.fixedPlan',
+    medium: 'limit.fixedPlan',
+    lux: 'limit.freeRoute',
+  },
 }
 
 export function itemNote(key: InclusionKey, level: Level): string {
@@ -89,15 +95,30 @@ export function sheetFor(key: InclusionKey): SheetKind {
   return OWN_SHEET.includes(key) ? (key as SheetKind) : 'service'
 }
 
-/** Сколько абзацев пояснения у листа. По умолчанию два.
- *  У SIM-карты абзацев нет — только перечень условий, у банковской карты их четыре. */
-const PARAGRAPH_COUNT: Partial<Record<InclusionKey, number>> = { sim: 0, bankCard: 4 }
+/** Сколько общих абзацев у листа. По умолчанию два. У SIM-карты их нет —
+ *  только перечень условий, у банковской карты четыре, у экскурсий один:
+ *  второй зависит от тарифа. */
+const PARAGRAPH_COUNT: Partial<Record<InclusionKey, number>> = {
+  sim: 0,
+  bankCard: 4,
+  excursions: 1,
+}
 
-/** Абзацы пояснения для общего листа услуги. Пустые строки отсеиваются:
- *  у части услуг второго абзаца нет. */
-export function serviceParagraphs(key: InclusionKey): string[] {
+/** Услуги, у которых последний абзац свой на каждом тарифе. Ключ строки —
+ *  `service.<key>.<level>`, как уровни в остальных листах. */
+const LEVEL_PARAGRAPH: InclusionKey[] = ['excursions']
+
+export function hasLevelParagraph(key: InclusionKey): boolean {
+  return LEVEL_PARAGRAPH.includes(key)
+}
+
+/** Абзацы пояснения для общего листа услуги: сперва общие, затем — если у
+ *  услуги есть разница по тарифам — абзац этого тарифа. Пустые отсеиваются. */
+export function serviceParagraphs(key: InclusionKey, level: Level): string[] {
   const n = PARAGRAPH_COUNT[key] ?? 2
-  return Array.from({ length: n }, (_, i) => t(`service.${key}.d${i + 1}`)).filter(Boolean)
+  const paragraphs = Array.from({ length: n }, (_, i) => t(`service.${key}.d${i + 1}`))
+  if (hasLevelParagraph(key)) paragraphs.push(t(`service.${key}.${level}`))
+  return paragraphs.filter(Boolean)
 }
 
 /** Перечень условий услуги по тарифу. Пусто — лист обходится абзацами.

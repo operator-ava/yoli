@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import {
+  hasLevelParagraph,
   itemNote,
   levelName,
   serviceBullets,
@@ -20,10 +21,15 @@ const props = defineProps<{
 
 const emit = defineEmits<{ choose: [Level]; close: [] }>()
 
-const paragraphs = computed(() => serviceParagraphs(props.itemKey))
+const paragraphs = computed(() => serviceParagraphs(props.itemKey, props.level))
 const bullets = computed(() => serviceBullets(props.itemKey, props.level))
-// Перечень условий уже содержит объём — дублировать его плашкой не нужно.
-const limit = computed(() => (bullets.value.length ? '' : itemNote(props.itemKey, props.level)))
+// Плашка уровня не нужна там, где про тариф уже сказано: перечень условий
+// содержит объём, а абзац по тарифу — своё условие. Дважды об одном не пишем.
+const limit = computed(() =>
+  bullets.value.length || hasLevelParagraph(props.itemKey)
+    ? ''
+    : itemNote(props.itemKey, props.level),
+)
 
 </script>
 

@@ -6,7 +6,7 @@ import type { Dict } from '@/composables/useI18n'
 
 export const zh: Dict = {
   // 导航
-  'nav.calc': '估算',
+  'nav.calc': '旅行费用估算',
 
   // 量词: 中文不区分单复数, форма одна
   'u.person': ['人'],
@@ -187,6 +187,8 @@ export const zh: Dict = {
   'limit.h3': '3 小时',
   'limit.h7': '7 小时',
   'limit.unlimited': '不限',
+  'limit.fixedPlan': '固定行程',
+  'limit.freeRoute': '可调整路线',
   'limit.gb180': '180 GB',
   'limit.gb200': '200 GB',
   'limit.gb350': '350 GB',
@@ -203,8 +205,11 @@ export const zh: Dict = {
   'service.translator.d2': '',
   'service.translator.note': '具体条件在预订确认前告知。',
   'service.excursions.title': '观光行程',
-  'service.excursions.d1': '为行程各城市准备的现成观光安排：景点顺序与各处所需时间。',
-  'service.excursions.d2': '所有套餐均不限观光次数，行程中可随时调整。',
+  'service.excursions.d1': '行程各城市的观光安排：主要参观地点、景点顺序与各处所需时间。行程经过编排，让您既看到精华，又不至于疲惫。',
+  // 第二段按套餐不同：仅豪华套餐可调整路线
+  'service.excursions.econom': '主要参观地点提前规划——行程在出发前已确定并经过审定。',
+  'service.excursions.medium': '主要参观地点提前规划——行程在出发前已确定并经过审定。',
+  'service.excursions.lux': '路线可以调整：如果您想增加地点或取消某个景点，行程可与经理和导游商定后重新安排。',
   'service.excursions.note': '观光内容在预订确认前告知。',
 
   // 当地 SIM 卡。不标示价格，只承诺所含内容。
@@ -271,6 +276,7 @@ export const zh: Dict = {
 
   // 餐饮
   'meal.title': '餐饮 · {city}',
+  'meal.where': '早餐在您入住的酒店。午餐与晚餐在途中：位于观光路线沿途、靠近行程景点的餐厅。',
   'meal.byDays': '每日安排',
   'meal.day': '第 {n} 天 · {date}',
   'meal.breakfast': '早餐',

@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { useI18n, t, type Locale } from '@/composables/useI18n'
+import { useI18n, type Locale } from '@/composables/useI18n'
 
-// Слева фирменный знак, по центру название экрана, справа переключатель языка.
+// Слева фирменный знак, справа переключатель языка. Название экрана живёт
+// в теле страницы: в шапке заказчику оно не понравилось.
 const { locale, setLocale } = useI18n()
 const LANGS: { id: Locale; label: string }[] = [
   { id: 'ru', label: 'RU' },
@@ -13,9 +14,6 @@ const LANGS: { id: Locale; label: string }[] = [
 <template>
   <header class="app-header">
     <img class="logo" src="/brand/logo-full.webp" alt="YOLI" width="108" height="42" />
-    <!-- Название экрана по центру свободной середины: колонка 1fr между
-         знаком и переключателем, заголовок центрируется внутри неё -->
-    <h1 class="title">{{ t('nav.calc') }}</h1>
     <div class="lang" role="group" aria-label="Язык / Language">
       <button
         v-for="l in LANGS"
@@ -33,16 +31,10 @@ const LANGS: { id: Locale; label: string }[] = [
 
 <style scoped>
 .app-header {
-  /* Три колонки: знак — свободная середина — переключатель. Заголовок стоит
-     по центру середины, поэтому просветы до знака и до переключателя равны
-     на любой ширине. Ось экрана тут не годится: знак слева уже переключателя
-     справа, и заголовок по оси прижимался бы к переключателю.
-     Боковые колонки не ужимаются меньше содержимого — переключатель языка
-     не сжимается; при нехватке места ужимается и обрезается средняя. */
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 12px;
   background: var(--card);
   border-bottom: 1px solid var(--border);
   /* Вырез iPhone не должен наезжать на логотип */
@@ -57,22 +49,6 @@ const LANGS: { id: Locale; label: string }[] = [
   height: 32px;
   width: auto;
   display: block;
-  justify-self: start;
-}
-
-/* Заголовок экрана. Кегль меньше прежнего h1 в теле страницы: в шапке
-   он соседствует со знаком и не должен спорить с ним по весу.
-   Длинное название не ломает шапку — обрезается многоточием. */
-.title {
-  margin: 0;
-  font-size: 17px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-width: 0;
 }
 
 /* Две половинки одной пилюли */
@@ -82,7 +58,6 @@ const LANGS: { id: Locale; label: string }[] = [
   border-radius: 999px;
   overflow: hidden;
   flex-shrink: 0;
-  justify-self: end;
 }
 
 /* Три кнопки: на узком экране ужимаем горизонтальные отступы, высоту не трогаем */

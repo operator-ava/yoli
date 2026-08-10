@@ -6,7 +6,7 @@ import type { Dict } from '@/composables/useI18n'
 
 export const en: Dict = {
   // Navigation
-  'nav.calc': 'Estimate',
+  'nav.calc': 'Trip cost estimate',
 
   // Plurals: English has two forms
   'u.person': ['person', 'people'],
@@ -189,6 +189,8 @@ export const en: Dict = {
   'limit.h3': '3 hours',
   'limit.h7': '7 hours',
   'limit.unlimited': 'unlimited',
+  'limit.fixedPlan': 'fixed plan',
+  'limit.freeRoute': 'flexible route',
   'limit.gb180': '180 GB',
   'limit.gb200': '200 GB',
   'limit.gb350': '350 GB',
@@ -205,8 +207,11 @@ export const en: Dict = {
   'service.translator.d2': '',
   'service.translator.note': 'The terms are confirmed before the booking is finalised.',
   'service.excursions.title': 'Excursions',
-  'service.excursions.d1': 'A ready-made excursion programme for the cities of the trip: the order of the points and the time for each.',
-  'service.excursions.d2': 'The number of excursions is unlimited on every tariff, and the plan can be changed on the go.',
+  'service.excursions.d1': 'An excursion programme for the cities of the trip: the main places to visit, the order of the points and the time for each. The programme is arranged so that you see the main things without wearing yourself out.',
+  // The second paragraph differs by tariff: the route can only be changed on Luxury
+  'service.excursions.econom': 'The main places to visit are planned in advance — the programme is worked out and approved before the trip starts.',
+  'service.excursions.medium': 'The main places to visit are planned in advance — the programme is worked out and approved before the trip starts.',
+  'service.excursions.lux': 'The routes can be changed: if you want to add a place or drop a point, the programme is rebuilt in agreement with your manager and guide.',
   'service.excursions.note': 'The set of excursions is confirmed before the booking is finalised.',
 
   // Local SIM card. The price is not stated — we promise the contents.
@@ -273,6 +278,7 @@ export const en: Dict = {
 
   // Meals
   'meal.title': 'Meals · {city}',
+  'meal.where': 'Breakfast is at the hotel where you are staying. Lunch and dinner are on the way: at venues along the excursion route, near the points of the programme.',
   'meal.byDays': 'Day by day',
   'meal.day': 'Day {n} · {date}',
   'meal.breakfast': 'Breakfast',

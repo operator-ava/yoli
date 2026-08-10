@@ -61,6 +61,9 @@ const days = computed(() => {
         <div class="muted format-venues">{{ t(format.venuesKey) }}</div>
       </div>
 
+      <!-- Заодно объясняет, почему завтрак всегда узбекский: так подают в отелях -->
+      <p class="where">{{ t('meal.where') }}</p>
+
       <section v-for="d in days" :key="d.n" class="day">
         <div class="day-head">{{ t('meal.day', { n: d.n, date: dayMonth(d.date) }) }}</div>
         <div v-for="m in d.meals" :key="m.key" class="meal">
@@ -94,6 +97,13 @@ const days = computed(() => {
 
 .format-meals { font-size: 15px; font-weight: 600 }
 .format-venues { font-size: 13px; margin-top: 2px }
+
+/* Где проходят приёмы пищи — перед разбивкой по дням */
+.where {
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 12px 0 0;
+}
 
 .day {
   border-top: 1px solid var(--border);

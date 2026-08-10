@@ -63,9 +63,12 @@ const summaryLine = computed(() => {
 </script>
 
 <template>
-  <!-- Название экрана переехало в шапку — в теле его больше нет -->
   <section class="app-content">
-    <h2 class="first">{{ t('calc.who') }}</h2>
+    <!-- Название экрана стоит в теле, а не в шапке: в шапке места хватало
+         только на короткое слово, да и заказчику там оно не понравилось -->
+    <h1>{{ t('nav.calc') }}</h1>
+
+    <h2>{{ t('calc.who') }}</h2>
     <div class="card block">
       <div class="counter">
         <button
@@ -188,13 +191,13 @@ const summaryLine = computed(() => {
 </template>
 
 <style scoped>
-h2 {
-  margin-top: 18px;
+/* Длинное название переносится на две строки — места в теле достаточно */
+h1 {
+  margin-top: 16px;
 }
 
-/* Первый заголовок отбивается от шапки так же, как остальные друг от друга */
-h2.first {
-  margin-top: 16px;
+h2 {
+  margin-top: 18px;
 }
 
 .block {
