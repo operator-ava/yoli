@@ -212,16 +212,20 @@ h2 {
   margin-top: 18px;
 }
 
+/* Одна высота со строкой «Перелёт» и строками городов — общий токен */
 .block {
-  padding: 4px 12px;
+  min-height: var(--row-height);
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
 }
 
 .counter {
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 8px 0;
 }
 
 .round {
@@ -260,10 +264,13 @@ h2 {
 
 
 
+/* margin-inline: auto ОБЯЗАТЕЛЕН: правило `.app-content > *` центрирует
+   колонку в 720 px, а сокращённая запись margin его перебивала — строка
+   уезжала к левому краю экрана и не совпадала с карточками городов. */
 .summary {
   font-size: 13px;
   font-weight: 600;
-  margin: 0 0 10px;
+  margin: 0 auto 10px;
 }
 
 .cities {

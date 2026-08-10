@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useTripStore } from '@/stores/trip'
-import { cityName, levelName, MAX_PEOPLE } from '@/data'
-import { nextDiscountStep } from '@/composables/calc'
+import { cityName, levelName } from '@/data'
 import { formatUnits, percent } from '@/composables/format'
 import { useTotals } from '@/composables/totals'
-import { count, plural, t } from '@/composables/useI18n'
+import { count, t } from '@/composables/useI18n'
 
 const trip = useTripStore()
 const open = ref(false)
@@ -24,12 +23,6 @@ const empty = computed(() => view.value.empty)
 
 /** Едет один человек: «группы» нет, и цена на человека равна итогу. */
 const alone = computed(() => trip.people === 1)
-
-// Подсказка-стимул: сколько человек добрать до следующей ступени скидки.
-const nextStep = computed(() => {
-  if (trip.people >= MAX_PEOPLE) return null
-  return nextDiscountStep(trip.people)
-})
 </script>
 
 <template>
@@ -56,6 +49,10 @@ const nextStep = computed(() => {
           <span class="tnum">{{ formatUnits(view.perPersonUnits) }}</span>
           <span class="per-person-label">{{ t('total.perPerson') }}</span>
         </div>
+        <!-- Выгода СУММОЙ, без процента: процент зовёт считать, а не платить -->
+        <div v-if="view.discountUnits > 0" class="benefit">
+          {{ t('total.benefit', { sum: formatUnits(view.discountUnits) }) }}
+        </div>
       </div>
 
       <div class="side">
@@ -78,20 +75,6 @@ const nextStep = computed(() => {
       </div>
     </div>
 
-    <!-- Скидка и подсказка-стимул: чем больше группа, тем выгоднее -->
-    <div v-if="r.discount > 0" class="discount">
-      {{ t('total.discount') }} <b>{{ percent(r.discountRate) }}</b> · {{ t('total.saving') }}
-      <b>{{ formatUnits(view.discountUnits) }}</b>
-    </div>
-    <div v-if="nextStep && !empty" class="nudge">
-      {{
-        t('total.nudge', {
-          n: nextStep.add,
-          people: plural(nextStep.add, 'u.person'),
-          rate: percent(nextStep.rate),
-        })
-      }}
-    </div>
 
     <div v-if="open && !empty" class="details">
       <h3>{{ t('total.byArticles') }}</h3>
@@ -235,22 +218,14 @@ const nextStep = computed(() => {
   margin-left: 6px;
 }
 
-/* Без подложки: заливка спорила с ценой. Выделены только числа. */
-.discount {
-  font-size: 13px;
-  color: var(--text-muted);
-  padding-bottom: 2px;
-}
-
-.discount b {
+/* Выгода — единственная оранжевая строка в колонке чисел */
+.benefit {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
   color: var(--accent-strong);
-  font-weight: 700;
-}
-
-.nudge {
-  font-size: 13px;
-  color: var(--text-muted);
-  padding-bottom: 10px;
+  white-space: nowrap;
+  margin-top: 2px;
 }
 
 .details {

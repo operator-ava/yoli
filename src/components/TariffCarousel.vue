@@ -268,11 +268,15 @@ function price(level: Level) {
 
 /* Галочка и шеврон выравниваются по первой строке текста,
    поэтому левый край списка читается ровной колонкой. */
+/* Название никогда не уже своего самого длинного слова — `min-content`.
+   Не хватило места — переносится подпись справа, она короткая и на двух
+   строках читается. Раньше колонка названия могла схлопнуться до нуля,
+   и текст вылезал поверх подписи. */
 .item {
   width: 100%;
   min-height: 46px;
   display: grid;
-  grid-template-columns: auto 1fr auto auto;
+  grid-template-columns: auto minmax(min-content, 1fr) minmax(0, auto) auto;
   align-items: baseline;
   gap: 6px;
   padding: 12px 0;
@@ -351,12 +355,12 @@ function price(level: Level) {
 .item-name {
   font-size: 14px;
   font-weight: 500;
-  min-width: 0;
 }
 
+/* Кегль подписи не уменьшается — при нехватке места она переносится */
 .item-note {
   font-size: 12px;
-  white-space: nowrap;
+  text-align: right;
 }
 
 /* Шеврон строки чек-листа: кегль строки, выравнивание — в общем классе .chev */

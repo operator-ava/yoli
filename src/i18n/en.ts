@@ -53,9 +53,8 @@ export const en: Dict = {
   'total.forGroup': 'For a group of {n} people',
   // One person is not «a group of 1»
   'total.forOne': 'For one traveller',
-  'total.discount': 'Group discount',
-  'total.saving': 'you save',
-  'total.nudge': '+{n} {people} — {rate} discount',
+  // The benefit is shown as an AMOUNT, with no percentage.
+  'total.benefit': 'You save {sum}',
   'total.byArticles': 'Breakdown',
   'total.byCities': 'By city',
   'total.empty': 'Choose dates and a tariff in at least one city.',
@@ -74,7 +73,6 @@ export const en: Dict = {
 
   // The «Flight» block and screen. A stub: no flights yet, no dates promised.
   'flight.row': 'Flight to Uzbekistan',
-  'flight.soon': 'Soon',
   'flight.title': 'Flight to Uzbekistan — coming soon',
   'flight.p1': 'We are working on making the trip start right here. Very soon you will be able to find and buy a flight to Uzbekistan without leaving YOLI.',
   'flight.p2': 'We will gather good flights for your dates and show them next to the trip estimate — so you can see at once what the whole journey costs, from departure to return.',
@@ -190,7 +188,8 @@ export const en: Dict = {
   'row.included': 'What is included',
   'row.hotel': '{stars} hotel',
   'row.food': 'Meals included',
-  'row.excursions': 'Excursions included',
+  // Short: the tick on the left already says «included», and the row is tight
+  'row.excursions': 'Excursions',
   'row.guide': 'Local guide included',
   'row.aiGuide': 'AI guide',
   'row.audio': 'Audio guide',

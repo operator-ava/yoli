@@ -52,9 +52,8 @@ export const zh: Dict = {
   'total.forGroup': '{n} 人的团队',
   // 一个人不叫「1 人的团队」
   'total.forOne': '一位旅客',
-  'total.discount': '团队折扣',
-  'total.saving': '为您节省',
-  'total.nudge': '再加 {n} {people} — 折扣 {rate}',
+  // 只显示金额，不显示百分比
+  'total.benefit': '为您节省 {sum}',
   'total.byArticles': '费用明细',
   'total.byCities': '按城市',
   'total.empty': '请至少为一座城市选择日期和套餐。',
@@ -73,7 +72,6 @@ export const zh: Dict = {
 
   // 「航班」板块与页面。占位内容：暂无航班，不承诺时间。
   'flight.row': '飞往乌兹别克斯坦',
-  'flight.soon': '即将推出',
   'flight.title': '飞往乌兹别克斯坦——即将推出',
   'flight.p1': '我们正在努力，让旅程从这里就开始。很快，您就可以在 YOLI 内直接查找并购买飞往乌兹别克斯坦的机票。',
   'flight.p2': '我们会按您的日期挑选划算的航班，并把它们放在行程估算旁边——从出发到返程，整趟旅行的花费一目了然。',
@@ -188,7 +186,8 @@ export const zh: Dict = {
   'row.included': '包含内容',
   'row.hotel': '{stars}酒店',
   'row.food': '餐饮全包',
-  'row.excursions': '含观光行程',
+  // 从简：左侧的对勾已表示「包含」，而且行内空间有限
+  'row.excursions': '观光行程',
   'row.guide': '含当地导游',
   'row.aiGuide': 'AI 导游',
   'row.audio': '语音导览',

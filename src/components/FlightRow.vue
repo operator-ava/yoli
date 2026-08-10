@@ -25,9 +25,8 @@ const emit = defineEmits<{ open: [] }>()
       <span class="name">{{ t('flight.row') }}</span>
     </span>
 
-    <!-- Подпись и шеврон в одной строке: стрелка садится на её базовую линию -->
     <span class="meta muted">
-      {{ t('flight.soon') }}<span class="chev chev-next" aria-hidden="true">›</span>
+      <span class="chev chev-next chev-mid" aria-hidden="true">›</span>
     </span>
   </button>
 </template>
@@ -38,6 +37,7 @@ const emit = defineEmits<{ open: [] }>()
   align-items: center;
   gap: 12px;
   width: 100%;
+  min-height: var(--row-height);
   padding: 8px 12px 8px 8px;
   text-align: left;
   background: var(--card);
@@ -48,8 +48,8 @@ const emit = defineEmits<{ open: [] }>()
 
 /* Тот же размер, что фото города в строке без дат */
 .icon {
-  width: 56px;
-  height: 56px;
+  width: var(--row-thumb);
+  height: var(--row-thumb);
   border-radius: var(--radius-sm);
   background: var(--bg);
   display: flex;
@@ -74,14 +74,12 @@ const emit = defineEmits<{ open: [] }>()
   font-weight: 600;
 }
 
-/* Приглушено намеренно: это не призыв к действию, а обещание на будущее */
+/* Остался только шеврон: подпись «Скоро» убрана решением заказчика.
+   Стрелка стоит одна против строки-блока — отсюда модификатор chev-mid. */
 .meta {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
   font-size: 14px;
-  white-space: nowrap;
-}
-
-.meta .chev {
-  margin-left: 6px;
 }
 </style>

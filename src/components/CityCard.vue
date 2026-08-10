@@ -62,7 +62,7 @@ const citySum = computed(() => totals.value.cityUnits(props.cityId))
   <!-- Состояние Б: даты выбраны, карточка свёрнута в одну строку.
        Из строки видно и даты, и выбран ли тариф. -->
   <button v-else-if="collapsed" class="card folded tap" :aria-expanded="false" @click="emit('toggle')">
-    <img class="thumb small" :src="info?.photo" :alt="cityName(cityId)" loading="lazy" />
+    <img class="thumb" :src="info?.photo" :alt="cityName(cityId)" loading="lazy" />
     <span class="col">
       <span class="name">{{ cityName(cityId) }}</span>
       <span class="muted sub">{{ dates }}</span>
@@ -122,22 +122,25 @@ const citySum = computed(() => totals.value.cityUnits(props.cityId))
   box-shadow: var(--shadow-card);
 }
 
-/* Состояние А: приглушено, в расчёт не входит */
-.empty {
+/* Состояния А и Б — строки-блоки: одна высота со счётчиком людей
+   и строкой «Перелёт», общий токен --row-height. */
+.empty,
+.folded {
   display: flex;
   align-items: center;
-  gap: 12px;
+  min-height: var(--row-height);
   padding: 8px 12px 8px 8px;
   text-align: left;
 }
 
+/* Состояние А: приглушено, в расчёт не входит */
+.empty {
+  gap: 12px;
+}
+
 /* Состояние Б: одна строка, всё главное видно без разворота */
 .folded {
-  display: flex;
-  align-items: center;
   gap: 10px;
-  padding: 8px 10px 8px 8px;
-  text-align: left;
 }
 
 .open {
@@ -152,18 +155,12 @@ const citySum = computed(() => totals.value.cityUnits(props.cityId))
 }
 
 .thumb {
-  width: 56px;
-  height: 56px;
+  width: var(--row-thumb);
+  height: var(--row-thumb);
   border-radius: var(--radius-sm);
   object-fit: cover;
   flex-shrink: 0;
   background: var(--border);
-}
-
-/* В свёрнутой строке фото меньше: строка должна быть заметно ниже раскрытой */
-.thumb.small {
-  width: 44px;
-  height: 44px;
 }
 
 .col {
