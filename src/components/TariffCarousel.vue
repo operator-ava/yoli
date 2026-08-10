@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import {
   PRIMARY_ITEMS,
-  SECONDARY_ITEMS,
+  secondaryItems,
   itemLabel,
   itemNote,
   LEVELS,
@@ -106,7 +106,8 @@ function price(level: Level) {
 
         <!-- Отдельный блок-кнопка: не пункт списка, поэтому видно, что раскрывается -->
         <button class="group-btn" :aria-expanded="trip.servicesOpen" @click.stop="trip.toggleServices()">
-          <span class="group-title">{{ t('row.group') }}</span>
+          <!-- Число цифрой и по факту: у люкса услуг на одну больше -->
+          <span class="group-title">{{ t('row.group', { n: secondaryItems(l.id).length }) }}</span>
           <!-- Список раскрывается ВНИЗ, поэтому вниз раскрыть, вверх свернуть.
                Глифы разные, поворота одного нет. -->
           <span class="group-hint">
@@ -119,7 +120,7 @@ function price(level: Level) {
           <div class="services" :class="{ open: trip.servicesOpen }">
             <div class="services-inner">
               <button
-                v-for="key in SECONDARY_ITEMS"
+                v-for="key in secondaryItems(l.id)"
                 :key="key"
                 class="item service-item"
                 @click.stop="emit('openItem', { level: l.id, key })"

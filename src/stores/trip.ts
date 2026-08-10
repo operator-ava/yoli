@@ -16,8 +16,9 @@ import { nightsBetween, nightsOf } from '@/composables/dates'
 const STORAGE_KEY = 'yoli.trip'
 
 /** Версия схемы сохранённых данных. Меняем при любой правке формата —
- *  старые данные тогда просто не подхватятся, а не сломают приложение. */
-const SCHEMA_VERSION = 1
+ *  старые данные тогда просто не подхватятся, а не сломают приложение.
+ *  v2 — добавлено сворачивание карточек городов. */
+const SCHEMA_VERSION = 2
 
 /** Диапазон дат пребывания в городе: заезд включительно, выезд — день отъезда. */
 export interface DateRange {
@@ -40,8 +41,9 @@ function load(): {
   people: number
   ranges: Partial<Record<CityId, DateRange>>
   levels: Partial<Record<CityId, Level>>
+  collapsed: Partial<Record<CityId, boolean>>
 } {
-  const empty = { people: MIN_PEOPLE, ranges: {}, levels: {} }
+  const empty = { people: MIN_PEOPLE, ranges: {}, levels: {}, collapsed: {} }
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return empty
@@ -69,7 +71,15 @@ function load(): {
       levels[id] = l as Level
     }
 
-    return { people, ranges, levels }
+    // Сворачивание — свойство карточки с датами. Без дат карточка и так
+    // одна строка, сворачивать нечего.
+    const collapsed: Partial<Record<CityId, boolean>> = {}
+    for (const [id, c] of Object.entries(data.collapsed ?? {})) {
+      if (!isCity(id) || !ranges[id] || typeof c !== 'boolean') continue
+      collapsed[id] = c
+    }
+
+    return { people, ranges, levels, collapsed }
   } catch {
     // Битый JSON или недоступный localStorage — начинаем с чистого
     return empty
@@ -88,6 +98,19 @@ export const useTripStore = defineStore('trip', () => {
 
   const ranges = ref<Partial<Record<CityId, DateRange>>>(saved.ranges)
   const levels = ref<Partial<Record<CityId, Level>>>(saved.levels)
+
+  /** Свёрнута ли карточка города. Состояние у каждого города СВОЁ и живёт
+   *  в localStorage вместе с расчётом. Записи нет — карточка развёрнута:
+   *  город без выбранного тарифа человек должен видеть целиком. */
+  const collapsed = ref<Partial<Record<CityId, boolean>>>(saved.collapsed)
+
+  function isCollapsed(id: CityId): boolean {
+    return collapsed.value[id] === true
+  }
+
+  function toggleCollapsed(id: CityId) {
+    collapsed.value = { ...collapsed.value, [id]: !isCollapsed(id) }
+  }
 
   /** Города с датами — по хронологии заезда; следом города без дат. */
   const orderedCities = computed<CityId[]>(() => {
@@ -172,16 +195,24 @@ export const useTripStore = defineStore('trip', () => {
     const nextLevels = { ...levels.value }
     delete nextLevels[id]
     levels.value = nextLevels
+    // И сворачивание вместе с ними: город снова строка «Выберите даты».
+    const nextCollapsed = { ...collapsed.value }
+    delete nextCollapsed[id]
+    collapsed.value = nextCollapsed
   }
 
   function setLevel(id: CityId, level: Level) {
     levels.value = { ...levels.value, [id]: level }
+    // Тариф выбран — карточка сворачивается сама, чтобы человек
+    // шёл к следующему городу. Развернуть обратно можно всегда.
+    collapsed.value = { ...collapsed.value, [id]: true }
   }
 
   function reset() {
     people.value = MIN_PEOPLE
     ranges.value = {}
     levels.value = {}
+    collapsed.value = {}
     try {
       localStorage.removeItem(STORAGE_KEY)
     } catch {
@@ -192,7 +223,7 @@ export const useTripStore = defineStore('trip', () => {
   // Любое изменение ввода сразу уходит в хранилище, чтобы расчёт
   // переживал перезапуск приложения.
   watch(
-    [people, ranges, levels],
+    [people, ranges, levels, collapsed],
     () => {
       try {
         localStorage.setItem(
@@ -202,6 +233,7 @@ export const useTripStore = defineStore('trip', () => {
             people: people.value,
             ranges: ranges.value,
             levels: levels.value,
+            collapsed: collapsed.value,
           }),
         )
       } catch {
@@ -217,6 +249,9 @@ export const useTripStore = defineStore('trip', () => {
     toggleServices,
     ranges,
     levels,
+    collapsed,
+    isCollapsed,
+    toggleCollapsed,
     orderedCities,
     datedCities,
     transferKind,

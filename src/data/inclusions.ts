@@ -10,29 +10,41 @@ export type InclusionKey =
   | 'transfer'
   | 'hotel'
   | 'food'
+  | 'excursions'
+  | 'taxi'
   | 'guide'
   | 'aiGuide'
   | 'audio'
   | 'translator'
-  | 'routes'
-  | 'taxi'
   | 'insurance'
+  | 'sim'
+  | 'bankCard'
 
 /** Строки, которые видны всегда. Порядок строгий. */
-export const PRIMARY_ITEMS: InclusionKey[] = ['transfer', 'hotel', 'food', 'taxi']
+export const PRIMARY_ITEMS: InclusionKey[] = ['transfer', 'hotel', 'food', 'excursions', 'taxi']
 
-/** Строки, свёрнутые в одну «Сопровождение YOLI». Порядок строгий. */
-export const SECONDARY_ITEMS: InclusionKey[] = [
+/** Дополнительные услуги, свёрнутые в блок-кнопку. Порядок строгий. */
+const SECONDARY_ALL: InclusionKey[] = [
   'guide',
   'aiGuide',
   'audio',
   'translator',
-  'routes',
   'insurance',
+  'sim',
+  'bankCard',
 ]
 
+/** Услуги, которые есть не на всех тарифах. Местная банковская карта — только люкс. */
+const LUX_ONLY: InclusionKey[] = ['bankCard']
+
+/** Состав дополнительных услуг тарифа: эконом и средний — шесть, люкс — семь.
+ *  Заголовок блока считает длину этого списка, а не хранит число отдельно. */
+export function secondaryItems(level: Level): InclusionKey[] {
+  return SECONDARY_ALL.filter((key) => level === 'lux' || !LUX_ONLY.includes(key))
+}
+
 /** Полный список — для мест, где нужны все строки разом. */
-export const INCLUSION_ITEMS: InclusionKey[] = [...PRIMARY_ITEMS, ...SECONDARY_ITEMS]
+export const INCLUSION_ITEMS: InclusionKey[] = [...PRIMARY_ITEMS, ...SECONDARY_ALL]
 
 /** Контекст города: от позиции в маршруте зависит вид трансфера. */
 export interface InclusionContext {
@@ -46,7 +58,7 @@ const LIMITS: Partial<Record<InclusionKey, Record<Level, string>>> = {
   aiGuide: { econom: 'limit.h3', medium: 'limit.h7', lux: 'limit.unlimited' },
   translator: { econom: 'limit.h3', medium: 'limit.h7', lux: 'limit.unlimited' },
   audio: { econom: 'limit.unlimited', medium: 'limit.unlimited', lux: 'limit.unlimited' },
-  routes: { econom: 'limit.unlimited', medium: 'limit.unlimited', lux: 'limit.unlimited' },
+  sim: { econom: 'limit.gb180', medium: 'limit.gb200', lux: 'limit.gb350' },
 }
 
 export function itemNote(key: InclusionKey, level: Level): string {
@@ -71,15 +83,33 @@ export function itemLabel(key: InclusionKey, level: Level, ctx: InclusionContext
 /** Какой лист открывает строка. */
 export type SheetKind = 'transfer' | 'hotel' | 'food' | 'guide' | 'taxi' | 'insurance' | 'service'
 
+/** Ключи, у которых свой лист. Остальное показывает общий лист услуги. */
+const OWN_SHEET: InclusionKey[] = ['transfer', 'hotel', 'food', 'guide', 'taxi', 'insurance']
+
 export function sheetFor(key: InclusionKey): SheetKind {
-  if (key === 'aiGuide' || key === 'audio' || key === 'translator' || key === 'routes')
-    return 'service'
-  return key
+  return OWN_SHEET.includes(key) ? (key as SheetKind) : 'service'
 }
 
-/** Абзацы пояснения для простых листов (AI-гид, аудиогид, переводчик, маршруты). */
+/** Сколько абзацев пояснения у листа. По умолчанию два.
+ *  У SIM-карты абзацев нет — только перечень условий, у банковской карты их четыре. */
+const PARAGRAPH_COUNT: Partial<Record<InclusionKey, number>> = { sim: 0, bankCard: 4 }
+
+/** Абзацы пояснения для общего листа услуги. Пустые строки отсеиваются:
+ *  у части услуг второго абзаца нет. */
 export function serviceParagraphs(key: InclusionKey): string[] {
-  return [t(`service.${key}.d1`), t(`service.${key}.d2`)]
+  const n = PARAGRAPH_COUNT[key] ?? 2
+  return Array.from({ length: n }, (_, i) => t(`service.${key}.d${i + 1}`)).filter(Boolean)
+}
+
+/** Перечень условий услуги по тарифу. Пусто — лист обходится абзацами.
+ *  Стоимость услуги здесь не указывается: обещаем состав, а не цену. */
+const BULLETS: Partial<Record<InclusionKey, Record<Level, number>>> = {
+  sim: { econom: 4, medium: 5, lux: 5 },
+}
+
+export function serviceBullets(key: InclusionKey, level: Level): string[] {
+  const n = BULLETS[key]?.[level] ?? 0
+  return Array.from({ length: n }, (_, i) => t(`${key}.${level}.${i + 1}`))
 }
 
 /** Есть ли у услуги разница по тарифам — тогда в листе показываем уровень. */

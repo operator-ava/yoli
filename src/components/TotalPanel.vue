@@ -5,12 +5,13 @@ import { cityName, levelName, MAX_PEOPLE } from '@/data'
 import type { Article } from '@/composables/calc'
 import { nextDiscountStep } from '@/composables/calc'
 import { allocate, formatUnits, percent, steppedUnits } from '@/composables/format'
-import { rangeLabel, short } from '@/composables/dates'
 import { count, plural, t } from '@/composables/useI18n'
 
 const trip = useTripStore()
 const open = ref(false)
-const copied = ref(false)
+
+// Оплата — макет: экран благодарности открывает экран расчёта.
+const emit = defineEmits<{ pay: [] }>()
 
 const r = computed(() => trip.result)
 
@@ -68,51 +69,6 @@ const view = computed(() => {
   }
 })
 
-/** Текстовая сводка для буфера обмена. */
-function summaryText(): string {
-  const lines: string[] = []
-  lines.push(t('share.title'))
-  lines.push('')
-  if (trip.summary) {
-    lines.push(
-      `${rangeLabel(trip.summary.from, trip.summary.to)} · ${count(trip.summary.days, 'u.day')}`,
-    )
-  }
-  lines.push(t('share.people', { n: trip.people }))
-  lines.push('')
-  lines.push(t('share.route'))
-  for (const c of view.value.cities) {
-    const range = trip.ranges[c.cityId]
-    const dates = range ? `${short(range.from)}–${short(range.to)}, ` : ''
-    lines.push(
-      `  ${cityName(c.cityId)} — ${dates}${count(c.nights, 'u.night')}, ${levelName(c.level)}`,
-    )
-  }
-  lines.push('')
-  for (const a of view.value.articles) lines.push(`${a.label}: ${formatUnits(a.units)}`)
-  if (r.value.discount > 0) {
-    lines.push(
-      `${t('art.discount', { rate: percent(r.value.discountRate) })}: −${formatUnits(view.value.discountUnits)}`,
-    )
-  }
-  lines.push('')
-  lines.push(t('share.total', { sum: formatUnits(view.value.totalUnits) }))
-  lines.push(t('share.perPerson', { sum: formatUnits(view.value.perPersonUnits) }))
-  lines.push('')
-  lines.push(t('share.note'))
-  return lines.join('\n')
-}
-
-async function share() {
-  try {
-    await navigator.clipboard.writeText(summaryText())
-    copied.value = true
-    setTimeout(() => (copied.value = false), 2000)
-  } catch {
-    // Буфер недоступен (нет разрешения или небезопасный контекст) — молча выходим.
-    copied.value = false
-  }
-}
 </script>
 
 <template>
@@ -177,12 +133,19 @@ async function share() {
         <span class="tnum">{{ formatUnits(c.units) }}</span>
       </div>
 
+      <!-- «Сбросить» остаётся внутри раскрытой части: действие редкое
+           и разрушительное, на виду ему не место -->
       <div class="actions">
         <button class="btn" @click="trip.reset()">{{ t('total.reset') }}</button>
-        <button class="btn primary" @click="share()">
-          {{ copied ? t('total.copied') : t('total.share') }}
-        </button>
       </div>
+    </div>
+
+    <!-- «Оплатить» видна всегда, в том числе когда панель свёрнута.
+         Пока ни в одном городе не выбран тариф — платить не за что. -->
+    <div class="pay-wrap">
+      <button class="btn primary pay" :disabled="empty" @click="emit('pay')">
+        {{ t('total.pay') }}
+      </button>
     </div>
   </div>
 </template>
@@ -195,6 +158,8 @@ async function share() {
   flex-shrink: 0;
   padding-left: calc(16px + var(--safe-left));
   padding-right: calc(16px + var(--safe-right));
+  /* Нижнего бара больше нет — полосу жеста «домой» держит панель */
+  padding-bottom: var(--safe-bottom);
   max-height: 70dvh;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -362,5 +327,23 @@ h3:first-child {
 .btn.primary {
   background: var(--brand-yellow);
   border-color: var(--brand-yellow);
+}
+
+/* Главное действие панели: всегда на экране, во всю ширину */
+.pay-wrap {
+  padding-bottom: 12px;
+}
+
+.pay {
+  width: 100%;
+  font-size: 16px;
+}
+
+/* Нечего оплачивать — кнопка видна, но гасится */
+.pay:disabled {
+  background: var(--bg);
+  border-color: var(--border);
+  color: var(--text-muted);
+  cursor: default;
 }
 </style>

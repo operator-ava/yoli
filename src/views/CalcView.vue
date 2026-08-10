@@ -24,12 +24,16 @@ import InsuranceSheet from '@/components/InsuranceSheet.vue'
 import GuideSheet from '@/components/GuideSheet.vue'
 import ServiceSheet from '@/components/ServiceSheet.vue'
 import TaxiSheet from '@/components/TaxiSheet.vue'
+import PaidScreen from '@/components/PaidScreen.vue'
 
 const trip = useTripStore()
 
 // Какой лист открыт: календарь города или подробности пункта состава.
 const dateSheet = ref<CityId | null>(null)
 const itemSheet = ref<{ cityId: CityId; level: Level; key: InclusionKey } | null>(null)
+
+// Экран благодарности после «Оплатить». Расчёт под ним остаётся нетронутым.
+const paid = ref(false)
 
 
 const busy = computed(() => (dateSheet.value ? trip.busyNights(dateSheet.value) : new Map()))
@@ -100,7 +104,9 @@ const summaryLine = computed(() => {
         :range="trip.ranges[id]"
         :level="trip.levels[id] ?? null"
         :ctx="ctxFor(id)"
+        :collapsed="trip.isCollapsed(id)"
         @pick-dates="dateSheet = id"
+        @toggle="trip.toggleCollapsed(id)"
         @choose="trip.setLevel(id, $event)"
         @open-item="itemSheet = { cityId: id, level: $event.level, key: $event.key }"
       />
@@ -108,7 +114,10 @@ const summaryLine = computed(() => {
   </section>
 
   <!-- Итог виден всегда, на любом шаге ввода -->
-  <TotalPanel />
+  <TotalPanel @pay="paid = true" />
+
+  <!-- Оплата не производится: макет экрана после заказа -->
+  <PaidScreen v-if="paid" @close="paid = false" />
 
   <BottomSheet v-if="dateSheet" @close="dateSheet = null">
     <DateRangeSheet

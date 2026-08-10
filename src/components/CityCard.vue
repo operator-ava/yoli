@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { city, cityName, type CityId, type InclusionContext, type InclusionKey, type Level } from '@/data'
+import {
+  city,
+  cityName,
+  levelName,
+  type CityId,
+  type InclusionContext,
+  type InclusionKey,
+  type Level,
+} from '@/data'
 import { nightsBetween, short } from '@/composables/dates'
 import { count, t } from '@/composables/useI18n'
 import type { DateRange } from '@/stores/trip'
@@ -12,11 +20,13 @@ const props = defineProps<{
   range?: DateRange
   level: Level | null
   ctx: InclusionContext
+  collapsed: boolean
 }>()
 
 const emit = defineEmits<{
   pickDates: []
   choose: [Level]
+  toggle: []
   openItem: [{ level: Level; key: InclusionKey }]
 }>()
 
@@ -25,10 +35,14 @@ const isWide = useIsWide()
 
 const info = computed(() => city(props.cityId))
 const nights = computed(() => (props.range ? nightsBetween(props.range.from, props.range.to) : 0))
+const dates = computed(() =>
+  props.range ? `${short(props.range.from)} – ${short(props.range.to)}` : '',
+)
 </script>
 
 <template>
-  <!-- Состояние А: даты не выбраны. Компактная строка, город в расчёт не входит. -->
+  <!-- Состояние А: даты не выбраны. Компактная строка, город в расчёт не входит.
+       Сворачивать нечего — карточка и так одна строка. -->
   <button v-if="!range" class="card empty tap" @click="emit('pickDates')">
     <img class="thumb" :src="info?.photo" :alt="cityName(cityId)" loading="lazy" />
     <span class="col">
@@ -38,17 +52,38 @@ const nights = computed(() => (props.range ? nightsBetween(props.range.from, pro
     <span class="cta">{{ t('calc.pickDates') }}</span>
   </button>
 
-  <!-- Состояние Б: даты выбраны, карточка раскрыта. -->
+  <!-- Состояние Б: даты выбраны, карточка свёрнута в одну строку.
+       Из строки видно и даты, и выбран ли тариф. -->
+  <button v-else-if="collapsed" class="card folded tap" :aria-expanded="false" @click="emit('toggle')">
+    <img class="thumb small" :src="info?.photo" :alt="cityName(cityId)" loading="lazy" />
+    <span class="col">
+      <span class="name">{{ cityName(cityId) }}</span>
+      <span class="muted sub">{{ dates }}</span>
+    </span>
+    <!-- Тариф выбран — жёлтая плашка, не выбран — серая подпись. Разница видна сразу -->
+    <span class="tariff-tag" :class="{ on: level }">
+      {{ level ? levelName(level) : t('calc.noTariff') }}
+    </span>
+    <span class="chev" aria-hidden="true">⌄</span>
+  </button>
+
+  <!-- Состояние В: даты выбраны, карточка раскрыта. -->
   <article v-else class="card open">
     <header class="head">
       <img class="thumb" :src="info?.photo" :alt="cityName(cityId)" loading="lazy" />
       <div class="col">
         <div class="name">{{ cityName(cityId) }}</div>
-        <div class="muted sub">
-          {{ short(range.from) }} – {{ short(range.to) }} · {{ count(nights, 'u.night') }}
-        </div>
+        <div class="muted sub">{{ dates }} · {{ count(nights, 'u.night') }}</div>
       </div>
       <button class="edit" @click="emit('pickDates')">{{ t('calc.change') }}</button>
+      <button
+        class="fold"
+        :aria-expanded="true"
+        :aria-label="t('calc.collapseCity')"
+        @click="emit('toggle')"
+      >
+        <span class="chev" aria-hidden="true">⌃</span>
+      </button>
     </header>
 
     <TariffCarousel
@@ -83,6 +118,15 @@ const nights = computed(() => (props.range ? nightsBetween(props.range.from, pro
   text-align: left;
 }
 
+/* Состояние Б: одна строка, всё главное видно без разворота */
+.folded {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px 8px 8px;
+  text-align: left;
+}
+
 .open {
   padding: 10px;
 }
@@ -101,6 +145,12 @@ const nights = computed(() => (props.range ? nightsBetween(props.range.from, pro
   object-fit: cover;
   flex-shrink: 0;
   background: var(--border);
+}
+
+/* В свёрнутой строке фото меньше: строка должна быть заметно ниже раскрытой */
+.thumb.small {
+  width: 44px;
+  height: 44px;
 }
 
 .col {
@@ -131,6 +181,22 @@ const nights = computed(() => (props.range ? nightsBetween(props.range.from, pro
   white-space: nowrap;
 }
 
+/* Состояние тарифа в свёрнутой строке */
+.tariff-tag {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.tariff-tag.on {
+  background: var(--brand-yellow);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 5px 10px;
+}
+
 .edit {
   min-height: 44px;
   padding: 0 10px;
@@ -140,9 +206,34 @@ const nights = computed(() => (props.range ? nightsBetween(props.range.from, pro
   flex-shrink: 0;
 }
 
+/* Кнопка сворачивания в раскрытой карточке */
+.fold {
+  min-height: 44px;
+  width: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.chev {
+  color: var(--text-muted);
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
 .no-level {
   font-size: 13px;
   margin: 8px 0 2px;
   text-align: center;
+}
+
+/* Очень узкий экран: длинное «Тариф не выбран» рядом с длинным названием
+   города не должно ломать строку */
+@media (max-width: 359px) {
+  .tariff-tag {
+    font-size: 11px;
+  }
 }
 </style>
