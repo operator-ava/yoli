@@ -20,7 +20,7 @@ export const en: Dict = {
   'calc.cities': 'Cities',
   'calc.pickDates': 'Choose dates',
   'calc.change': 'Change',
-  'calc.noTariff': 'No tariff selected',
+  'calc.chooseTariff': 'Choose a tariff',
   'calc.collapseCity': 'Collapse the city',
   'calc.pickTariff': 'Choose a tariff',
   'calc.trip': 'Trip {range} · {days} · {cities}',
@@ -48,7 +48,8 @@ export const en: Dict = {
 
   // Total panel
   'total.perPerson': 'per person',
-  'total.forGroup': 'group of {n}:',
+  // The range is 2–20, so the plural never changes.
+  'total.forGroup': 'For a group of {n} people',
   'total.discount': 'Group discount',
   'total.saving': 'you save',
   'total.nudge': '+{n} {people} — {rate} discount',
@@ -113,7 +114,8 @@ export const en: Dict = {
 
   // Bottom sheets
   'meal.note': 'The cuisine by day is an indicative plan. The particular venues are selected once the booking is confirmed. We guarantee the number of meals and the variety of cuisine.',
-  'total.more': 'Details',
+  'total.more': 'Show details',
+  'total.details': 'Details',
   'total.collapse': 'Collapse',
   'sheet.close': 'Close',
   'sheet.tariff': '{name} tariff',

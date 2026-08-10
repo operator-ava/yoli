@@ -20,7 +20,7 @@ export const zh: Dict = {
   'calc.cities': '城市',
   'calc.pickDates': '请选择日期',
   'calc.change': '修改',
-  'calc.noTariff': '未选择套餐',
+  'calc.chooseTariff': '选择套餐',
   'calc.collapseCity': '收起该城市',
   'calc.pickTariff': '请选择套餐',
   'calc.trip': '行程 {range} · {days} · {cities}',
@@ -48,7 +48,7 @@ export const zh: Dict = {
 
   // 合计面板
   'total.perPerson': '每人',
-  'total.forGroup': '{n} 人团队：',
+  'total.forGroup': '{n} 人的团队',
   'total.discount': '团队折扣',
   'total.saving': '为您节省',
   'total.nudge': '再加 {n} {people} — 折扣 {rate}',
@@ -113,6 +113,7 @@ export const zh: Dict = {
   // 底部弹层
   'meal.note': '每日菜系为参考安排。具体餐厅在预订确认后安排。我们保证用餐次数与菜系的多样性。',
   'total.more': '查看明细',
+  'total.details': '明细',
   'total.collapse': '收起',
   'sheet.close': '关闭',
   'sheet.tariff': '{name}套餐',

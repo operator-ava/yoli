@@ -10,6 +10,8 @@ import {
   type Level,
 } from '@/data'
 import { nightsBetween, short } from '@/composables/dates'
+import { formatUnits } from '@/composables/format'
+import { useTotals } from '@/composables/totals'
 import { count, t } from '@/composables/useI18n'
 import type { DateRange } from '@/stores/trip'
 import TariffCarousel from '@/components/TariffCarousel.vue'
@@ -38,6 +40,11 @@ const nights = computed(() => (props.range ? nightsBetween(props.range.from, pro
 const dates = computed(() =>
   props.range ? `${short(props.range.from)} – ${short(props.range.to)}` : '',
 )
+
+// Сумма города берётся из общего расчёта — того же, что питает панель итога.
+// Здесь ничего не пересчитывается, поэтому сумма всех городов сходится с итогом.
+const totals = useTotals()
+const citySum = computed(() => totals.value.cityUnits(props.cityId))
 </script>
 
 <template>
@@ -60,11 +67,17 @@ const dates = computed(() =>
       <span class="name">{{ cityName(cityId) }}</span>
       <span class="muted sub">{{ dates }}</span>
     </span>
-    <!-- Тариф выбран — жёлтая плашка, не выбран — серая подпись. Разница видна сразу -->
-    <span class="tariff-tag" :class="{ on: level }">
-      {{ level ? levelName(level) : t('calc.noTariff') }}
+    <!-- Тариф выбран — сумма за всю группу по городу, над ней название тарифа.
+         Не выбран — призыв к действию. Стрелка идёт внутри нижней строки,
+         поэтому садится на её базовую линию (общее правило .chev). -->
+    <span class="meta">
+      <span v-if="level && citySum !== null" class="level muted">{{ levelName(level) }}</span>
+      <span class="bottom-line">
+        <span v-if="level && citySum !== null" class="sum tnum">{{ formatUnits(citySum) }}</span>
+        <span v-else class="cta-text">{{ t('calc.chooseTariff') }}</span>
+        <span class="chev chev-down muted" aria-hidden="true">⌄</span>
+      </span>
     </span>
-    <span class="chev chev-down chev-mid muted" aria-hidden="true">⌄</span>
   </button>
 
   <!-- Состояние В: даты выбраны, карточка раскрыта. -->
@@ -181,20 +194,42 @@ const dates = computed(() =>
   white-space: nowrap;
 }
 
-/* Состояние тарифа в свёрнутой строке */
-.tariff-tag {
+/* Правая колонка свёрнутой строки: тариф над суммой, стрелка в строке суммы.
+   Прижата вправо, поэтому стрелка стоит на одном месте при любой сумме. */
+.meta {
   flex-shrink: 0;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-muted);
-  white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+  line-height: 1.25;
 }
 
-.tariff-tag.on {
-  background: var(--brand-yellow);
-  color: var(--text);
-  border-radius: 999px;
-  padding: 5px 10px;
+.level {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Кегль строки задан здесь, а не на каждом варианте: стрелка берёт его
+   же и потому садится ровно на базовую линию — правило класса .chev. */
+.bottom-line {
+  white-space: nowrap;
+  font-size: 15px;
+}
+
+/* Сумма за всю группу по этому городу, со скидкой */
+.sum {
+  font-weight: 700;
+}
+
+/* Тариф не выбран — призыв к действию, а не констатация */
+.cta-text {
+  font-weight: 600;
+  color: var(--accent-strong);
+}
+
+.bottom-line .chev {
+  margin-left: 6px;
 }
 
 .edit {
@@ -219,7 +254,6 @@ const dates = computed(() =>
 
 /* Размер и выравнивание стрелки — в общем классе .chev (global.css).
    Здесь только кегль строки, от которого она считается. */
-.folded .chev,
 .fold .chev {
   font-size: 15px;
 }
@@ -230,11 +264,11 @@ const dates = computed(() =>
   text-align: center;
 }
 
-/* Очень узкий экран: длинное «Тариф не выбран» рядом с длинным названием
-   города не должно ломать строку */
+/* Очень узкий экран: длинная сумма рядом с длинным названием города
+   не должна ломать строку */
 @media (max-width: 359px) {
-  .tariff-tag {
-    font-size: 11px;
+  .bottom-line {
+    font-size: 14px;
   }
 }
 </style>

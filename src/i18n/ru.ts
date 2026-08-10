@@ -17,7 +17,7 @@ export const ru: Dict = {
   'calc.cities': 'Города',
   'calc.pickDates': 'Выберите даты',
   'calc.change': 'Изменить',
-  'calc.noTariff': 'Тариф не выбран',
+  'calc.chooseTariff': 'Выбрать тариф',
   'calc.collapseCity': 'Свернуть город',
   'calc.pickTariff': 'Выберите тариф',
   'calc.trip': 'Поездка {range} · {days} · {cities}',
@@ -45,7 +45,9 @@ export const ru: Dict = {
 
   // Панель итога
   'total.perPerson': 'на человека',
-  'total.forGroup': 'за группу из {n}:',
+  // Родительный после «из»: во всём диапазоне 2–20 форма одна — «человек».
+  // Склонение по числу здесь дало бы «из 2 человека», это ошибка.
+  'total.forGroup': 'За группу из {n} человек',
   'total.discount': 'Скидка группы',
   'total.saving': 'вы экономите',
   'total.nudge': '+{n} {people} — скидка {rate}',
@@ -111,6 +113,7 @@ export const ru: Dict = {
   // Нижние листы
   'meal.note': 'Кухня по дням — ориентировочный план. Конкретные заведения подбираются после подтверждения бронирования. Мы гарантируем количество приёмов пищи и разнообразие кухни.',
   'total.more': 'Подробнее',
+  'total.details': 'Детали',
   'total.collapse': 'Свернуть',
   'sheet.close': 'Закрыть',
   'sheet.tariff': 'Тариф «{name}»',

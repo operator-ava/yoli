@@ -2,9 +2,9 @@
 import { computed, ref } from 'vue'
 import { useTripStore } from '@/stores/trip'
 import { cityName, levelName, MAX_PEOPLE } from '@/data'
-import type { Article } from '@/composables/calc'
 import { nextDiscountStep } from '@/composables/calc'
-import { allocate, formatUnits, percent, steppedUnits } from '@/composables/format'
+import { formatUnits, percent } from '@/composables/format'
+import { useTotals } from '@/composables/totals'
 import { count, plural, t } from '@/composables/useI18n'
 
 const trip = useTripStore()
@@ -15,92 +15,58 @@ const emit = defineEmits<{ pay: [] }>()
 
 const r = computed(() => trip.result)
 
+// Числа для экрана считаются один раз на всё приложение: панель и свёрнутые
+// строки городов берут их отсюда, а не считают каждая своё.
+const view = useTotals()
+
+/** Пока не выбрано ни одного города, суммы нет — панель не раскрывается. */
+const empty = computed(() => view.value.empty)
+
 // Подсказка-стимул: сколько человек добрать до следующей ступени скидки.
 const nextStep = computed(() => {
   if (trip.people >= MAX_PEOPLE) return null
   return nextDiscountStep(trip.people)
 })
-
-// Разбивка считается в целых единицах валюты и складывается в итог ТОЧНО.
-// Итог округляется шагом валюты, скидка выводится без шага,
-// а строки раскладываются по долям так, чтобы сумма сошлась копейка в копейку.
-/** Четыре укрупнённые статьи вместо семи. Внутренние статьи себестоимости
- *  остаются в pricing.ts — наружу они не выходят, иначе по ним считается маржа. */
-const GROUPS: { key: string; items: Article[] }[] = [
-  { key: 'stay', items: ['stay'] },
-  { key: 'food', items: ['food'] },
-  { key: 'transportAll', items: ['transport', 'transfer'] },
-  { key: 'services', items: ['guide', 'dedBobo', 'tickets', 'insurance'] },
-]
-
-/** Пока не выбрано ни одного города, суммы нет — панель не раскрывается. */
-const empty = computed(() => r.value.byCity.length === 0)
-
-const view = computed(() => {
-  // Цена на человека — это то, что человек читает первым, поэтому округляем её,
-  // а итог за группу выводим как «на человека × люди». Тогда умножение в уме
-  // всегда сходится с тем, что написано в панели.
-  const perPersonUnits = steppedUnits(r.value.perPerson)
-  const totalUnits = perPersonUnits * trip.people
-  // Скидку тоже округляем шагом валюты: точное число выбивалось из ряда круглых.
-  // Сходимость не страдает — строки раскладываются от базы «итог + скидка».
-  const discountUnits = steppedUnits(r.value.discount)
-  const base = totalUnits + discountUnits
-
-  const articleUnits = allocate(
-    base,
-    GROUPS.map((g) => g.items.reduce((sum, a) => sum + r.value.articles[a], 0)),
-  )
-  const cityUnits = allocate(
-    base,
-    r.value.byCity.map((c) => c.amount),
-  )
-
-  return {
-    perPersonUnits,
-    totalUnits,
-    discountUnits,
-    articles: GROUPS.map((g, i) => ({
-      key: g.key,
-      label: t(`art.${g.key}`),
-      units: articleUnits[i],
-    })),
-    cities: r.value.byCity.map((c, i) => ({ ...c, units: cityUnits[i] })),
-  }
-})
-
 </script>
 
 <template>
   <div class="panel">
     <!-- Тап по шапке панели раскрывает разбивку -->
     <!-- Ничего не выбрано: показываем задачу, а не ноль -->
-    <div v-if="empty" class="head empty-head">
+    <div v-if="empty" class="empty-head">
       <span class="empty-text">{{ t('total.empty.head') }}</span>
     </div>
 
+    <!-- Слева числа, справа действия. Главное число панели — сумма за группу:
+         платит группа, а цена на человека нужна для сверки. -->
     <div v-else class="head">
       <div class="main">
-        <div class="per-person tnum">{{ formatUnits(view.perPersonUnits) }}</div>
-        <div class="per-person-label">{{ t('total.perPerson') }}</div>
-      </div>
-      <div class="side">
-        <div class="group tnum">
-          {{ t('total.forGroup', { n: trip.people }) }} <b>{{ formatUnits(view.totalUnits) }}</b>
+        <div class="group-label">{{ t('total.forGroup', { n: trip.people }) }}</div>
+        <!-- Не переносится ни при какой сумме: ломать главное число нельзя -->
+        <div class="group-sum tnum">{{ formatUnits(view.totalUnits) }}</div>
+        <div class="per-person">
+          <span class="tnum">{{ formatUnits(view.perPersonUnits) }}</span>
+          <span class="per-person-label">{{ t('total.perPerson') }}</span>
         </div>
-        <!-- Явная кнопка вместо одной стрелки: понятно, что можно нажать -->
+      </div>
+
+      <div class="side">
+        <button class="btn primary pay" @click="emit('pay')">{{ t('total.pay') }}</button>
         <!-- Стрелка идёт внутри строки подписи, а не отдельным флекс-элементом:
              так она садится на базовую линию текста, рядом с которым стоит.
              Панель раскрывается ВВЕРХ: вверх раскрыть, вниз свернуть.
              Глифы разные, поворота одного нет. -->
         <button class="more" :aria-expanded="open" @click="open = !open">
           <span class="more-label"
-            >{{ open ? t('total.collapse') : t('total.more')
+            >{{ open ? t('total.collapse') : t('total.details')
             }}<span class="chev" :class="open ? 'chev-down' : 'chev-up'" aria-hidden="true">{{
               open ? '⌄' : '⌃'
             }}</span></span
           >
         </button>
+        <!-- «Сбросить» появляется только в раскрытом виде: действие редкое
+             и разрушительное, на виду ему не место -->
+        <button v-if="open" class="btn reset" @click="trip.reset()">{{ t('total.reset') }}</button>
       </div>
     </div>
 
@@ -122,7 +88,7 @@ const view = computed(() => {
     <div v-if="open && !empty" class="details">
       <h3>{{ t('total.byArticles') }}</h3>
       <div v-for="a in view.articles" :key="a.key" class="row">
-        <span>{{ a.label }}</span>
+        <span>{{ t(`art.${a.key}`) }}</span>
         <span class="tnum">{{ formatUnits(a.units) }}</span>
       </div>
       <div v-if="r.discount > 0" class="row minus">
@@ -138,21 +104,6 @@ const view = computed(() => {
         </span>
         <span class="tnum">{{ formatUnits(c.units) }}</span>
       </div>
-
-      <!-- «Сбросить» остаётся внутри раскрытой части: действие редкое
-           и разрушительное, на виду ему не место -->
-      <div class="actions">
-        <button class="btn" @click="trip.reset()">{{ t('total.reset') }}</button>
-      </div>
-    </div>
-
-    <!-- «Оплатить» видна всегда, в том числе когда панель свёрнута.
-         Пустой расчёт — кнопки нет вовсе: платить не за что, а погашенная
-         кнопка только шумит рядом с единственной строкой-подсказкой. -->
-    <div v-if="!empty" class="pay-wrap">
-      <button class="btn primary pay" @click="emit('pay')">
-        {{ t('total.pay') }}
-      </button>
     </div>
   </div>
 </template>
@@ -178,10 +129,16 @@ const view = computed(() => {
   margin-inline: auto;
 }
 
+/* Пустое состояние: единственная строка панели стоит по центру.
+   Класса .head здесь нет намеренно — его space-between прижимал бы
+   единственного ребёнка влево. */
 .empty-head {
   min-height: var(--tap-min);
   display: flex;
   align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 10px 0;
 }
 
 .empty-text {
@@ -190,18 +147,59 @@ const view = computed(() => {
   color: var(--text-muted);
 }
 
-.main {
-  flex-shrink: 0;
-}
-
 .head {
   width: 100%;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
   padding: 10px 0;
   text-align: left;
+}
+
+/* Колонка чисел. Ужимается первой, но крупное число всё равно не переносится */
+.main {
+  min-width: 0;
+}
+
+.group-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+
+/* Главное число панели: платит группа */
+.group-sum {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  /* Не переносится ни при какой сумме, включая 20 человек в рублях */
+  white-space: nowrap;
+}
+
+/* Цена на человека — для сверки, поэтому мельче итога */
+.per-person {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.per-person-label {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-muted);
+  margin-left: 4px;
+}
+
+/* Колонка действий: не сжимается, кнопки во всю её ширину */
+.side {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
 /* Кнопка раскрытия: без заливки, текст и стрелка тем же оранжевым,
@@ -209,48 +207,18 @@ const view = computed(() => {
 .more {
   display: flex;
   align-items: center;
+  justify-content: center;
   min-height: 44px;
   padding: 0 8px;
   color: var(--accent-strong);
   font-size: 14px;
   font-weight: 600;
   white-space: nowrap;
-  flex-shrink: 0;
 }
 
-.per-person {
-  /* Крупная цена не переносится: ломать её кнопкой нельзя */
-  white-space: nowrap;
-  font-size: 30px;
-  font-weight: 700;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-}
-
-.per-person-label {
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-.side {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-
-.group {
-  font-size: 13px;
-  color: var(--text-muted);
-  text-align: right;
-  min-width: 0;
-}
-
-.group b {
-  color: var(--text);
-  font-weight: 600;
-  /* Сумма и символ валюты не расходятся по разным строкам */
-  white-space: nowrap;
+.reset {
+  min-height: 44px;
+  font-size: 14px;
 }
 
 /* Стрелка показывает, куда поедет панель: свёрнута — вверх, раскрыта — вниз.
@@ -312,15 +280,7 @@ h3:first-child {
   margin: 0;
 }
 
-.actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 16px;
-}
-
 .btn {
-  flex: 1;
-  min-height: var(--tap-min);
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   font-size: 15px;
@@ -333,13 +293,12 @@ h3:first-child {
   border-color: var(--brand-yellow);
 }
 
-/* Главное действие панели: всегда на экране, во всю ширину */
-.pay-wrap {
-  padding-bottom: 12px;
-}
-
+/* Главное действие панели. Не сжимается: ширину задаёт её собственный текст,
+   тач-зона 48 px по высоте. */
 .pay {
-  width: 100%;
+  min-height: 48px;
+  padding: 0 20px;
   font-size: 16px;
+  white-space: nowrap;
 }
 </style>
