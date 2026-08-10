@@ -1,7 +1,7 @@
 // Формула расчёта. Детерминированная: одни и те же входные данные всегда дают
 // один и тот же результат. Все числа берутся из /src/data/pricing.ts.
 //
-// Считаем ОТ СЕБЕСТОИМОСТИ: цена = себестоимость / (1 − маржа),
+// Считаем ОТ СЕБЕСТОИМОСТИ: цена = себестоимость × (1 + наценка),
 // округление вверх до шага. Все внутренние расчёты — в долларах,
 // конвертация в валюту языка происходит только при выводе на экран.
 //
@@ -10,7 +10,7 @@ import {
   COST_ITEMS,
   DAILY_COST,
   GROUP_DISCOUNT_STEPS,
-  MARGIN_RATE,
+  MARKUP_RATE,
   PRICE_ROUND_STEP,
   TRANSFER_COST,
   type CityId,
@@ -43,7 +43,7 @@ export interface CityBreakdown {
   cityId: CityId
   nights: number
   level: Level
-  /** Цена города за всю группу, уже с маржой и округлением. */
+  /** Цена города за всю группу, уже с наценкой и округлением. */
   amount: number
 }
 
@@ -96,16 +96,16 @@ export function cityCost(
   return { byArticle, total }
 }
 
-/** Наценка и округление вверх до шага. */
-function withMargin(cost: number): number {
-  const price = cost / (1 - MARGIN_RATE)
+/** Наценка на базу и округление вверх до шага. */
+function withMarkup(cost: number): number {
+  const price = cost * (1 + MARKUP_RATE)
   return Math.ceil(price / PRICE_ROUND_STEP) * PRICE_ROUND_STEP
 }
 
-/** Цена города на ОДНОГО человека: с маржой, округлённая вверх до шага.
+/** Цена города на ОДНОГО человека: с наценкой, округлённая вверх до шага.
  *  Это то самое число, что стоит на карточке тарифа. */
 export function cityPrice(level: Level, days: number, transfer: TransferKind): number {
-  return withMargin(cityCost(level, days, transfer).total)
+  return withMarkup(cityCost(level, days, transfer).total)
 }
 
 export function calculate(input: CalcInput): CalcResult {
@@ -119,7 +119,7 @@ export function calculate(input: CalcInput): CalcResult {
 
   for (const stop of stops) {
     const cost = cityCost(stop.level, stop.nights, stop.transfer)
-    const price = withMargin(cost.total)
+    const price = withMarkup(cost.total)
     const amount = price * people
 
     // Статьи раскладываем пропорционально долям себестоимости,

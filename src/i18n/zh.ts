@@ -50,6 +50,8 @@ export const zh: Dict = {
   // 合计面板
   'total.perPerson': '每人',
   'total.forGroup': '{n} 人的团队',
+  // 一个人不叫「1 人的团队」
+  'total.forOne': '一位旅客',
   'total.discount': '团队折扣',
   'total.saving': '为您节省',
   'total.nudge': '再加 {n} {people} — 折扣 {rate}',

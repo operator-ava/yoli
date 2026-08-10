@@ -51,6 +51,8 @@ export const en: Dict = {
   'total.perPerson': 'per person',
   // The range is 2–20, so the plural never changes.
   'total.forGroup': 'For a group of {n} people',
+  // One person is not «a group of 1»
+  'total.forOne': 'For one traveller',
   'total.discount': 'Group discount',
   'total.saving': 'you save',
   'total.nudge': '+{n} {people} — {rate} discount',

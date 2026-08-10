@@ -19,8 +19,9 @@ import type { CityId, Level } from '@/data'
 const GROUPS: { key: string; items: Article[] }[] = [
   { key: 'stay', items: ['stay'] },
   { key: 'food', items: ['food'] },
-  { key: 'transportAll', items: ['transport', 'transfer'] },
-  { key: 'services', items: ['guide', 'dedBobo', 'tickets', 'insurance'] },
+  // Отдельной статьи «транспорт по городу» в новой модели нет: остался трансфер
+  { key: 'transportAll', items: ['transfer'] },
+  { key: 'services', items: ['guide', 'dedBobo', 'tickets', 'insurance', 'sim', 'audio'] },
 ]
 
 export interface CityUnits {

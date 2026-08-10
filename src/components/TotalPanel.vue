@@ -22,6 +22,9 @@ const view = useTotals()
 /** Пока не выбрано ни одного города, суммы нет — панель не раскрывается. */
 const empty = computed(() => view.value.empty)
 
+/** Едет один человек: «группы» нет, и цена на человека равна итогу. */
+const alone = computed(() => trip.people === 1)
+
 // Подсказка-стимул: сколько человек добрать до следующей ступени скидки.
 const nextStep = computed(() => {
   if (trip.people >= MAX_PEOPLE) return null
@@ -41,10 +44,15 @@ const nextStep = computed(() => {
          платит группа, а цена на человека нужна для сверки. -->
     <div v-else class="head">
       <div class="main">
-        <div class="group-label">{{ t('total.forGroup', { n: trip.people }) }}</div>
+        <!-- Один человек — не «группа из 1» -->
+        <div class="group-label">
+          {{ alone ? t('total.forOne') : t('total.forGroup', { n: trip.people }) }}
+        </div>
         <!-- Не переносится ни при какой сумме: ломать главное число нельзя -->
         <div class="group-sum tnum">{{ formatUnits(view.totalUnits) }}</div>
-        <div class="per-person">
+        <!-- У одного человека итог и цена на человека — одно и то же число,
+             повторять его строкой ниже незачем -->
+        <div v-if="!alone" class="per-person">
           <span class="tnum">{{ formatUnits(view.perPersonUnits) }}</span>
           <span class="per-person-label">{{ t('total.perPerson') }}</span>
         </div>
