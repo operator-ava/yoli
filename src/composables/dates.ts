@@ -1,7 +1,7 @@
 // Работа с датами. Даты хранятся строкой ISO «ГГГГ-ММ-ДД» — без времени и часовых поясов,
 // чтобы расчёт оставался детерминированным.
 // Названия месяцев и дней недели берутся из словаря — они переводятся вместе с языком.
-import { list, t } from './useI18n'
+import { count, list, t } from './useI18n'
 
 export function todayISO(): string {
   return toISO(new Date())
@@ -31,6 +31,14 @@ export function nightsBetween(from: string, to: string): number {
 }
 
 /** Ночи диапазона: [from, to). День выезда свободен — в него можно заехать в другой город. */
+/** «2 ночи · 3 дня». Дни считает вызывающий, и это не одно и то же:
+ *  в карточке города дни = ночи + 1, а в сводке и в панели итога — по календарю,
+ *  от самой ранней даты заезда до самой поздней даты выезда. Дни городов
+ *  накладываются, поэтому суммой по городам их считать нельзя. */
+export function nightsDays(nights: number, days: number): string {
+  return `${count(nights, 'u.night')} · ${count(days, 'u.day')}`
+}
+
 export function nightsOf(from: string, to: string): string[] {
   const out: string[] = []
   for (let d = from; d < to; d = addDays(d, 1)) out.push(d)

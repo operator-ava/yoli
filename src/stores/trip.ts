@@ -159,7 +159,11 @@ export const useTripStore = defineStore('trip', () => {
     if (!dated.length) return null
     const from = ranges.value[dated[0]]!.from
     const to = dated.reduce((max, id) => (ranges.value[id]!.to > max ? ranges.value[id]!.to : max), '')
-    return { from, to, days: nightsBetween(from, to) + 1, cities: dated.length }
+    // Дни СЧИТАЮТСЯ ПО КАЛЕНДАРЮ, а не суммой по городам: даты городов
+    // накладываются (Бухара 09–10 и Ташкент 10–12 дают по городам 3+2=5,
+    // а по календарю их 4).
+    const nights = nightsBetween(from, to)
+    return { from, to, nights, days: nights + 1, cities: dated.length }
   })
 
   /** Занятые ночи других городов: дата → название города.

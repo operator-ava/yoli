@@ -80,7 +80,7 @@ function price(level: Level) {
         </header>
 
         <div class="price tnum">{{ money(price(l.id)) }}</div>
-        <div class="per muted">{{ t('tariff.per', { nights: count(nights, 'u.night') }) }}</div>
+        <div class="per muted">{{ t('tariff.per', { nights: count(nights, 'u.night'), days: count(nights + 1, 'u.day') }) }}</div>
 
         <!-- Чек-лист: галочка у каждой строки, разница видна в подписи справа -->
         <div class="included">{{ t('row.included') }}</div>

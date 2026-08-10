@@ -53,17 +53,15 @@ export interface InclusionContext {
 }
 
 /** Ограничение по тарифу — мелким текстом справа. Пусто — подписи нет. */
-const LIMITS: Partial<Record<InclusionKey, Record<Level, string>>> = {
+const LIMITS: Partial<Record<InclusionKey, Partial<Record<Level, string>>>> = {
   aiGuide: { econom: 'limit.h3', medium: 'limit.h7', lux: 'limit.unlimited' },
   translator: { econom: 'limit.h3', medium: 'limit.h7', lux: 'limit.unlimited' },
   audio: { econom: 'limit.unlimited', medium: 'limit.unlimited', lux: 'limit.unlimited' },
   sim: { econom: 'limit.gb180', medium: 'limit.gb200', lux: 'limit.gb350' },
-  // Маршрут меняется только в люксе — разница должна читаться, не открывая лист.
-  excursions: {
-    econom: 'limit.fixedPlan',
-    medium: 'limit.fixedPlan',
-    lux: 'limit.freeRoute',
-  },
+  // Подпись только у люкса: там маршрут можно менять. У эконома и среднего
+  // подписи нет вовсе — «фиксированный план» звучал как ограничение,
+  // а разница по тарифам объяснена словами внутри листа.
+  excursions: { lux: 'limit.freeRoute' },
 }
 
 export function itemNote(key: InclusionKey, level: Level): string {

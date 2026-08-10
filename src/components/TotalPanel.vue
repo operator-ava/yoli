@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { useTripStore } from '@/stores/trip'
 import { cityName, levelName } from '@/data'
+import { nightsDays, short } from '@/composables/dates'
 import { formatUnits, percent } from '@/composables/format'
 import { useTotals } from '@/composables/totals'
 import { count, t } from '@/composables/useI18n'
@@ -23,6 +24,15 @@ const empty = computed(() => view.value.empty)
 
 /** Едет один человек: «группы» нет, и цена на человека равна итогу. */
 const alone = computed(() => trip.people === 1)
+
+/** Даты всей поездки и её длительность. Дни — ПО КАЛЕНДАРЮ, от самой ранней
+ *  даты заезда до самой поздней даты выезда: даты городов накладываются,
+ *  и суммой по городам дни считать нельзя. */
+const tripDates = computed(() => {
+  const s = trip.summary
+  if (!s) return ''
+  return `${short(s.from)} – ${short(s.to)} · ${nightsDays(s.nights, s.days)}`
+})
 </script>
 
 <template>
@@ -37,6 +47,8 @@ const alone = computed(() => trip.people === 1)
          платит группа, а цена на человека нужна для сверки. -->
     <div v-else class="head">
       <div class="main">
+        <!-- Даты и длительность поездки: видны и в свёрнутом виде -->
+        <div v-if="tripDates" class="trip-dates">{{ tripDates }}</div>
         <!-- Один человек — не «группа из 1» -->
         <div class="group-label">
           {{ alone ? t('total.forOne') : t('total.forGroup', { n: trip.people }) }}
@@ -153,6 +165,8 @@ const alone = computed(() => trip.people === 1)
   min-width: 0;
 }
 
+/* Даты поездки — та же мелкая приглушённая строка, что и подпись группы */
+.trip-dates,
 .group-label {
   font-size: 12px;
   color: var(--text-muted);

@@ -59,8 +59,10 @@ function chooseFromSheet(level: Level) {
 const summaryLine = computed(() => {
   const s = trip.summary
   if (!s) return ''
+  // Ночи и дни ПО КАЛЕНДАРЮ: даты городов накладываются, суммой не считаем
   return t('calc.trip', {
     range: rangeLabel(s.from, s.to),
+    nights: count(s.nights, 'u.night'),
     days: count(s.days, 'u.day'),
     cities: count(s.cities, 'u.city'),
   })

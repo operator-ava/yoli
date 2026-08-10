@@ -80,9 +80,11 @@ export function plural(n: number, key: string): string {
   return forms[2] ?? forms[1] ?? forms[0]
 }
 
-/** «5 ночей» — число вместе с формой слова. */
+/** «5 ночей» — число вместе с формой слова.
+ *  Пробел НЕРАЗРЫВНЫЙ: при переносе строки «10» не должно оставаться на одной
+ *  строке, а «ночей» уходить на следующую — это читается как поломка. */
 export function count(n: number, key: string): string {
-  return `${n} ${plural(n, key)}`
+  return `${n}\u00A0${plural(n, key)}`
 }
 
 /** Список строк по ключу — месяцы, дни недели. */

@@ -65,7 +65,8 @@ const citySum = computed(() => totals.value.cityUnits(props.cityId))
     <img class="thumb" :src="info?.photo" :alt="cityName(cityId)" loading="lazy" />
     <span class="col">
       <span class="name">{{ cityName(cityId) }}</span>
-      <span class="muted sub">{{ dates }}</span>
+      <!-- Только ночи: дни сюда не влезают, а строка держит высоту 74 px -->
+        <span class="muted sub">{{ dates }} · {{ count(nights, 'u.night') }}</span>
     </span>
     <!-- Тариф выбран — сумма за всю группу по городу, над ней название тарифа.
          Не выбран — призыв к действию. Стрелка идёт внутри нижней строки,
@@ -86,7 +87,14 @@ const citySum = computed(() => totals.value.cityUnits(props.cityId))
       <img class="thumb" :src="info?.photo" :alt="cityName(cityId)" loading="lazy" />
       <div class="col">
         <div class="name">{{ cityName(cityId) }}</div>
-        <div class="muted sub">{{ dates }} · {{ count(nights, 'u.night') }}</div>
+        <!-- Три отдельные группы, а не одна строка с точками: колонка в шапке
+             узкая (107 px на 375), и перенос идёт МЕЖДУ группами. Точек-
+             разделителей нет — иначе на конце строки повисал бы «·» -->
+        <div class="muted sub">
+          <span>{{ dates }}</span>
+          <span>{{ count(nights, 'u.night') }}</span>
+          <span>{{ count(nights + 1, 'u.day') }}</span>
+        </div>
       </div>
       <button class="edit" @click="emit('pickDates')">{{ t('calc.change') }}</button>
       <button
@@ -177,6 +185,13 @@ const citySum = computed(() => totals.value.cityUnits(props.cityId))
 
 .sub {
   font-size: 13px;
+}
+
+/* Шапка раскрытой карточки: даты и длительность переносятся целиком */
+.head .sub {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 8px;
 }
 
 /* Видно, что от человека требуется действие */
