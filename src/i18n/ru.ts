@@ -339,7 +339,7 @@ export const ru: Dict = {
   'calc.package': 'Пакет',
   'calc.route': 'Маршрут',
   'route.day': 'День {n}',
-  'route.departure': 'вылет',
+  'route.departure': 'День выезда',
   'start.title': 'Дата вылета',
   'start.hint': 'С {date} по {end}',
   'start.done': 'Начать {date}',
@@ -388,7 +388,7 @@ export const ru: Dict = {
   'route.hop.car': 'Такси {from} → {to}',
   'route.hop.flight': 'Перелёт {from} → {to}',
   // День вылета из Хивы: точек нет, но день не пустой
-  'route.dep.free': 'Свободное время: сувениры, керамика, сюзане и магниты на память — в лавках Ичан-Калы',
+  'route.dep.free': 'Свободное утро: последняя прогулка по городу, кофе и сувениры на память — керамика, сюзане, специи, магниты.',
   'route.dep.transfer': 'Трансфер в аэропорт Ургенча',
   'route.dep.flight': 'Перелёт Ургенч → Ташкент · {time}',
 }

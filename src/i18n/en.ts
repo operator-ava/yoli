@@ -340,7 +340,7 @@ export const en: Dict = {
   'calc.package': 'Package',
   'calc.route': 'Route',
   'route.day': 'Day {n}',
-  'route.departure': 'departure',
+  'route.departure': 'Departure day',
   'start.title': 'Departure date',
   'start.hint': 'From {date} to {end}',
   'start.done': 'Start on {date}',
@@ -389,7 +389,7 @@ export const en: Dict = {
   'route.hop.car': 'Taxi {from} → {to}',
   'route.hop.flight': 'Flight {from} → {to}',
   // Departure day in Khiva: no sights, but the day is not empty
-  'route.dep.free': 'Free time: souvenirs, ceramics, suzani and fridge magnets in the shops of Ichan-Kala',
+  'route.dep.free': 'A free morning: a last walk around the city, coffee and souvenirs to take home — ceramics, suzani, spices, magnets.',
   'route.dep.transfer': 'Transfer to Urgench airport',
   'route.dep.flight': 'Flight Urgench → Tashkent · {time}',
 }

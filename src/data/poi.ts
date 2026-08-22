@@ -7,9 +7,12 @@
 // Взяты 69 точек из 79: Ферганская долина (10 точек) в маршрут не входит.
 // Числа и названия перенесены КАК ЕСТЬ. Координаты, рейтинг и категория
 // не додумываются: нет данных — точки нет.
-// Названия точек — имена собственные, на всех трёх языках показываются
-// по-русски: перевода у заказчика нет. Переведены только категории,
-// ключи poi.cat.* в /src/i18n.
+// Названия точек переведены на английский и китайский решением заказчика
+// от 22.08.2026. Переводы лежат ОТДЕЛЬНО, в poi-names.ts: этот файл
+// генерируется из xlsx, и перегенерация не должна их затирать.
+// Категории переводятся ключами poi.cat.* в /src/i18n.
+import { locale } from '@/composables/useI18n'
+import { POI_NAMES } from './poi-names'
 import type { CityId } from './pricing'
 
 /** Категории точек — ровно те, что есть в файле заказчика. */
@@ -131,6 +134,16 @@ export const POI: Poi[] = [
   { id: 'khiva-10', cityId: 'khiva', name: 'Медресе Аллакули-хана', category: 'architecture', rating: 9, lat: 41.377497, lon: 60.362075 },
   { id: 'khiva-11', cityId: 'khiva', name: 'Мавзолей Сайида Алауддина', category: 'religion', rating: 9, lat: 41.377799, lon: 60.358535 },
 ]
+
+/** Название точки на языке интерфейса. Перевода нет — показываем русское:
+ *  пустая строка на экране хуже кириллицы. */
+export function poiName(p: Poi): string {
+  const tr = POI_NAMES[p.id]
+  if (!tr) return p.name
+  if (locale.value === 'en') return tr.en
+  if (locale.value === 'zh') return tr.zh
+  return p.name
+}
 
 const BY_CITY = new Map<CityId, Poi[]>()
 for (const p of POI) {

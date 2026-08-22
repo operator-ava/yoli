@@ -337,7 +337,7 @@ export const zh: Dict = {
   'calc.package': '套餐',
   'calc.route': '行程路线',
   'route.day': '第 {n} 天',
-  'route.departure': '返程',
+  'route.departure': '离开日',
   'start.title': '出发日期',
   'start.hint': '{date} 至 {end}',
   'start.done': '{date} 出发',
@@ -386,7 +386,7 @@ export const zh: Dict = {
   'route.hop.car': '出租车 {from} → {to}',
   'route.hop.flight': '航班 {from} → {to}',
   // 希瓦的返程日：没有景点，但这一天并非空白
-  'route.dep.free': '自由活动：在伊禅卡拉的店铺挑选纪念品、陶器、苏扎尼刺绣与冰箱贴',
+  'route.dep.free': '悠闲的上午：最后在城中漫步、喝杯咖啡，选些纪念品——陶器、苏扎尼刺绣、香料与冰箱贴。',
   'route.dep.transfer': '前往乌尔根奇机场的接送',
   'route.dep.flight': '乌尔根奇 → 塔什干航班 · {time}',
 }

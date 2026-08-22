@@ -5,6 +5,7 @@
 // у города не существует. Блок отвечает на вопрос «что я увижу», а не «сколько
 // это стоит» — на второй отвечает панель итога.
 import { computed } from 'vue'
+import { poiName } from '@/data/poi'
 import {
   city,
   cityName,
@@ -130,7 +131,7 @@ const departureLines = computed(() => [
 
         <ul v-else class="points">
           <li v-for="p in d.points" :key="p.id" class="point">
-            <span class="point-name">{{ p.name }}</span>
+            <span class="point-name">{{ poiName(p) }}</span>
             <span class="point-cat muted">{{ t(`poi.cat.${p.category}`) }}</span>
           </li>
         </ul>
