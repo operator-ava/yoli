@@ -57,9 +57,10 @@ const ctx = computed<InclusionContext>(() => {
   }
 })
 
-/** Цена пакета на человека: за ВЕСЬ тур, уже со скидкой за размер группы. */
+/** Цена пакета на человека: за ВЕСЬ тур, уже со скидкой за размер группы.
+ *  Вызывается только когда длительность выбрана — иначе пакетов на экране нет. */
 function price(level: Level): number {
-  return packagePrice(level, trip.nights, trip.people)
+  return trip.nights ? packagePrice(level, trip.nights, trip.people) : 0
 }
 
 /** Выбор тарифа прямо из открытого листа. */
@@ -71,11 +72,6 @@ function chooseFromSheet(level: Level) {
 /** Первый город тура — по нему листы показывают питание и размещение. */
 const firstCity = computed(() => trip.tour[0]?.cityId ?? 'tashkent')
 
-/** Диапазон дат первого города — его просит лист питания. */
-const firstRange = computed(() => {
-  const c = trip.tour[0]
-  return c ? { from: c.from, to: c.to } : null
-})
 </script>
 
 <template>
@@ -120,30 +116,41 @@ const firstRange = computed(() => {
     <h2>{{ t('calc.duration') }}</h2>
     <TourSetup :nights="trip.nights" :start-date="trip.startDate" @pick="trip.setNights($event)" />
 
-    <!-- Тариф выбирается ОДИН РАЗ на весь тур, цена — за весь тур на человека -->
-    <h2>{{ t('calc.package') }}</h2>
-    <TariffCarousel
-      :price="price"
-      :nights="trip.nights"
-      :selected="trip.tourLevel"
-      :ctx="ctx"
-      @choose="trip.setTourLevel($event)"
-      @open-item="itemSheet = { level: $event.level, key: $event.key }"
-    />
-    <p v-if="!trip.tourLevel" class="muted no-level">{{ t('calc.pickTariff') }}</p>
-
-    <!-- Маршрут: четыре города в жёстком порядке, дни с точками.
-         Цен здесь нет — пакет продаётся целиком. -->
-    <h2>{{ t('calc.route') }}</h2>
-    <div class="cities">
-      <RouteCity
-        v-for="c in trip.tour"
-        :key="c.cityId"
-        :plan="c"
-        :open="trip.isRouteOpen(c.cityId)"
-        @toggle="trip.toggleRoute(c.cityId)"
+    <!-- Пакеты и маршрут появляются вместе с длительностью: без неё нет
+         ни цены, ни программы. Даты в них подставляются, когда выбран вылет —
+         поэтому ждать даты, чтобы показать пакеты, незачем. -->
+    <template v-if="trip.hasNights">
+      <!-- Тариф выбирается ОДИН РАЗ на весь тур, цена — за весь тур на человека -->
+      <h2>{{ t('calc.package') }}</h2>
+      <TariffCarousel
+        :price="price"
+        :nights="trip.nights!"
+        :selected="trip.tourLevel"
+        :ctx="ctx"
+        @choose="trip.setTourLevel($event)"
+        @open-item="itemSheet = { level: $event.level, key: $event.key }"
       />
-    </div>
+      <p v-if="!trip.tourLevel" class="muted no-level">{{ t('calc.pickTariff') }}</p>
+
+      <!-- Маршрут: четыре города в жёстком порядке, дни с точками.
+           Цен здесь нет — пакет продаётся целиком. -->
+      <h2>{{ t('calc.route') }}</h2>
+      <div class="cities">
+        <RouteCity
+          v-for="(c, i) in trip.tour"
+          :key="c.cityId"
+          :plan="c"
+          :open="trip.isRouteOpen(c.cityId)"
+          :previous-city="i > 0 ? trip.tour[i - 1].cityId : null"
+          :level="trip.tourLevel"
+          @toggle="trip.toggleRoute(c.cityId)"
+        />
+      </div>
+    </template>
+
+    <!-- Длительность не выбрана: показывать нечего, и молчать тоже нельзя.
+         Одна строка объясняет, что произойдёт после выбора. -->
+    <p v-else class="waiting">{{ t('calc.waiting') }}</p>
   </section>
 
   <!-- Итог виден всегда, на любом шаге ввода -->
@@ -188,10 +195,8 @@ const firstRange = computed(() => {
       @close="itemSheet = null"
     />
     <MealSheet
-      v-else-if="itemSheet.key === 'food' && firstRange"
-      :city-id="firstCity"
+      v-else-if="itemSheet.key === 'food'"
       :level="itemSheet.level"
-      :range="firstRange"
       :selected-level="trip.tourLevel"
       @choose="chooseFromSheet"
       @close="itemSheet = null"
@@ -266,6 +271,17 @@ h2 {
 .count-label {
   font-size: 12px;
   color: var(--text-muted);
+}
+
+/* Ничего ещё не выбрано: строка на месте будущих пакетов и маршрута.
+   Не пустой экран и не заглушка с картинкой — одно предложение по делу. */
+.waiting {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  text-align: center;
+  margin: 22px auto 0;
+  max-width: 320px;
 }
 
 /* Тариф не выбран — подсказка под каруселью, как было в карточке города */

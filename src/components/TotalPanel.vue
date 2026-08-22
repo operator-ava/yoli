@@ -30,6 +30,9 @@ const alone = computed(() => trip.people === 1)
  *  это просто ночи плюс один. */
 const tripDates = computed(() => {
   const s = trip.tourRange
+  if (!s) return ''
+  // Длительность выбрана, а дата вылета — ещё нет: показываем только её.
+  if (!s.from || !s.to) return nightsDays(s.nights, s.days)
   return `${short(s.from)} – ${short(s.to)} · ${nightsDays(s.nights, s.days)}`
 })
 </script>

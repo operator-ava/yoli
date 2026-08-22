@@ -6,8 +6,8 @@ import { dayMonth } from '@/composables/dates'
 // человек сначала решает, когда летит, и только потом — сколько живёт.
 // Сам перелёт на цену не влияет: в расчёте его нет.
 defineProps<{
-  /** Дата вылета, ISO. Она же первый день путешествия. */
-  date: string
+  /** Дата вылета, ISO. null — ещё не выбрана, строка зовёт выбрать. */
+  date: string | null
 }>()
 
 const emit = defineEmits<{ open: [] }>()
@@ -26,10 +26,14 @@ const emit = defineEmits<{ open: [] }>()
       </svg>
     </span>
 
-    <!-- Дата стоит в самой строке: она главное, что здесь уже решено -->
+    <!-- Два состояния. Дата не выбрана — строка зовёт к действию.
+         Выбрана — показывает результат, и это главное, что здесь решено. -->
     <span class="col">
-      <span class="name">{{ t('flight.row') }}</span>
-      <span class="date muted">{{ dayMonth(date) }}</span>
+      <template v-if="date">
+        <span class="name">{{ t('flight.rowPicked') }}</span>
+        <span class="date">{{ dayMonth(date) }}</span>
+      </template>
+      <span v-else class="name call">{{ t('flight.rowEmpty') }}</span>
     </span>
 
     <span class="meta muted">
@@ -94,8 +98,10 @@ const emit = defineEmits<{ open: [] }>()
   white-space: nowrap;
 }
 
-.date::before {
-  content: '· ';
+/* Дата не выбрана — строка зовёт к действию, поэтому акцентный цвет.
+   Разделителя здесь нет: показывать нечего. */
+.call {
+  color: var(--accent-strong);
 }
 
 /* Остался только шеврон: подпись «Скоро» убрана решением заказчика.

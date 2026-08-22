@@ -122,7 +122,7 @@ export const zh: Dict = {
   'dates.monthTitle': '{year}年{month}',
 
   // 底部弹层
-  'meal.note': '每日菜系为参考安排。具体餐厅在预订确认后安排。我们保证用餐次数与菜系的多样性。',
+  'meal.note': '具体餐厅在预订确认后安排。我们保证用餐次数、餐厅档次与菜系的多样性。',
   'total.more': '查看明细',
   'total.details': '明细',
   'total.collapse': '收起',
@@ -286,20 +286,7 @@ export const zh: Dict = {
   'hotel.benefit.lux.10': '入住期间提供专人协助',
 
   // 餐饮
-  'meal.title': '餐饮 · {city}',
-  'meal.where': '早餐在您入住的酒店。午餐与晚餐在途中：位于观光路线沿途、靠近行程景点的餐厅。',
   'meal.byDays': '每日安排',
-  'meal.day': '第 {n} 天 · {date}',
-  'meal.breakfast': '早餐',
-  'meal.lunch': '午餐',
-  'meal.dinner': '晚餐',
-  'meal.venues.econom': '城市咖啡馆与茶馆',
-  'meal.venues.medium': '提供本地与欧陆菜式的餐厅',
-  'meal.venues.lux': '主厨餐厅与景观餐厅，晚餐含表演',
-  'cuisine.uzbek': '乌兹别克菜',
-  'cuisine.chinese': '中餐',
-  'cuisine.russian': '俄餐',
-  'cuisine.japanese': '日料',
   'course.first': '头道菜',
   'course.second': '主菜',
   'course.table': '佐餐',
@@ -356,7 +343,6 @@ export const zh: Dict = {
   'start.done': '{date} 出发',
 
   'route.arrival': '抵达',
-  'route.free': '自由活动日 — 该城市的行程已完成。',
 
   // 游览时长
   'dur.hm': '{h} 小时 {m} 分钟',
@@ -367,4 +353,40 @@ export const zh: Dict = {
   'flight.when': '出发日期',
   'flight.whenNote': '这是旅程的第一天。各城市的日期均由此推算。',
   'route.withTransfers': '{time}（含途中交通）',
+
+  'route.arrivalTransfer': '抵达与机场接送',
+
+  'flight.rowEmpty': '请选择出发日期',
+  'flight.rowPicked': '航班',
+  'flight.pickDate': '选择出发日期',
+
+  'calc.durationEmpty': '请选择行程天数',
+  'calc.waiting': '请选择行程天数，我们将显示套餐价格与每日行程。',
+
+  // 餐饮：原则而非日程表
+  'meal.title2': '餐饮',
+  'meal.threeADay': '每天三餐：早餐、午餐与晚餐',
+  'meal.breakfast.title': '早餐 — 在酒店',
+  'meal.breakfast.econom': '在您入住的酒店用早餐。欧式风格：面包、鸡蛋、粥、茶与咖啡。也有当地风味——几乎每天早上都有馕饼和新鲜水果。',
+  'meal.breakfast.medium': '在酒店享用自助早餐。欧式与当地菜肴：热菜、烘焙点心、奶酪、水果、现烤面包与咖啡。',
+  'meal.breakfast.lux': '在高端酒店享用早餐。自助餐并可点餐：厨师现场烹制，提供欧式、当地及清淡亚洲菜。',
+  'meal.lunch.title': '午餐 — 行程途中',
+  'meal.lunch.econom': '在行程景点附近的城市咖啡馆与茶馆用午餐。',
+  'meal.lunch.medium': '在提供民族与欧式菜单的餐厅用午餐，均在行程步行范围内。',
+  'meal.lunch.lux': '在主厨餐厅用午餐，其中包括可俯瞰历史城区的景观餐厅。',
+  'meal.dinner.title': '晚餐 — 傍晚，行程结束后',
+  'meal.dinner.econom': '在酒店附近口碑可靠的餐馆用晚餐：简单的家常菜，行程结束后从容用餐。',
+  'meal.dinner.medium': '在提供完整菜单与桌边服务的餐厅用晚餐：民族与欧式菜肴，为一天的行走画上安静的句号。',
+  'meal.dinner.lux': '在主厨餐厅用晚餐，部分配有现场音乐或民族表演：夜晚成为旅程的一部分，而非结束。',
+  'meal.cuisines.title': '菜系',
+  'meal.cuisines.text': '整趟旅程中您会尝到多种菜系。主要是乌兹别克菜：手抓饭、萨姆萨、拉条子、舒尔帕、曼特。中餐会经常出现。斯拉夫菜与日本料理较少。具体安排取决于当天所在城市与行程景点。',
+
+  // 城际交通：交通方式直接写在文字中，不使用图标
+  'route.hop.train': '火车 {from} → {to}',
+  'route.hop.car': '出租车 {from} → {to}',
+  'route.hop.flight': '航班 {from} → {to}',
+  // 希瓦的返程日：没有景点，但这一天并非空白
+  'route.dep.free': '自由活动：在伊禅卡拉的店铺挑选纪念品、陶器、苏扎尼刺绣与冰箱贴',
+  'route.dep.transfer': '前往乌尔根奇机场的接送',
+  'route.dep.flight': '乌尔根奇 → 塔什干航班 · {time}',
 }

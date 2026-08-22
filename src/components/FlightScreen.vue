@@ -11,10 +11,11 @@ import StartDateSheet from '@/components/StartDateSheet.vue'
 //
 // Расчёт при закрытии не трогается — экран только накрывает его сверху.
 const props = defineProps<{
-  /** Дата вылета, ISO. */
-  date: string
-  /** Длительность тура: календарь показывает, когда человек вернётся. */
-  nights: number
+  /** Дата вылета, ISO. null — ещё не выбрана. */
+  date: string | null
+  /** Длительность тура: календарь показывает, когда человек вернётся.
+   *  null — длительность тоже ещё не выбрана. */
+  nights: number | null
 }>()
 
 const emit = defineEmits<{ close: []; pick: [string] }>()
@@ -41,10 +42,15 @@ const PARAGRAPHS = ['flight.p1', 'flight.p2', 'flight.p3']
         <!-- Дата вылета — первое, что человек решает на этом экране -->
         <section class="when">
           <h2 class="when-title">{{ t('flight.when') }}</h2>
-          <div class="when-row">
+          <!-- Дата не выбрана — на её месте кнопка выбора: показывать
+               нечего, и звать надо прямо. -->
+          <div v-if="props.date" class="when-row">
             <span class="when-date">{{ dayMonth(props.date) }}</span>
             <button class="change" @click="calendar = true">{{ t('calc.change') }}</button>
           </div>
+          <button v-else class="pick" @click="calendar = true">
+            {{ t('flight.pickDate') }}
+          </button>
           <p class="when-note muted">{{ t('flight.whenNote') }}</p>
         </section>
 
@@ -181,6 +187,16 @@ const PARAGRAPHS = ['flight.p1', 'flight.p2', 'flight.p3']
   border-radius: 999px;
   background: var(--brand-yellow);
   font-size: 15px;
+  font-weight: 600;
+}
+
+/* Кнопка выбора вместо даты: то же место, тот же вес, но зовёт к действию */
+.pick {
+  width: 100%;
+  min-height: var(--tap-min);
+  border-radius: var(--radius-sm);
+  background: var(--brand-yellow);
+  font-size: 16px;
   font-weight: 600;
 }
 

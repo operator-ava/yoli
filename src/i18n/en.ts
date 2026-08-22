@@ -124,7 +124,7 @@ export const en: Dict = {
   'dates.monthTitle': '{month} {year}',
 
   // Bottom sheets
-  'meal.note': 'The cuisine by day is an indicative plan. The particular venues are selected once the booking is confirmed. We guarantee the number of meals and the variety of cuisine.',
+  'meal.note': 'The venues are selected once the booking is confirmed. We guarantee the number of meals, the level of the venues and the variety of cuisine.',
   'total.more': 'Show details',
   'total.details': 'Details',
   'total.collapse': 'Collapse',
@@ -288,20 +288,7 @@ export const en: Dict = {
   'hotel.benefit.lux.10': 'Personal assistance throughout the stay',
 
   // Meals
-  'meal.title': 'Meals · {city}',
-  'meal.where': 'Breakfast is at the hotel where you are staying. Lunch and dinner are on the way: at venues along the excursion route, near the points of the programme.',
   'meal.byDays': 'Day by day',
-  'meal.day': 'Day {n} · {date}',
-  'meal.breakfast': 'Breakfast',
-  'meal.lunch': 'Lunch',
-  'meal.dinner': 'Dinner',
-  'meal.venues.econom': 'City cafes and teahouses',
-  'meal.venues.medium': 'Restaurants with national and European menus',
-  'meal.venues.lux': 'Signature and rooftop restaurants, dinner with a programme',
-  'cuisine.uzbek': 'Uzbek cuisine',
-  'cuisine.chinese': 'Chinese cuisine',
-  'cuisine.russian': 'Russian cuisine',
-  'cuisine.japanese': 'Japanese cuisine',
   'course.first': 'Starter',
   'course.second': 'Main',
   'course.table': 'To share',
@@ -359,7 +346,6 @@ export const en: Dict = {
   'start.done': 'Start on {date}',
 
   'route.arrival': 'arrival',
-  'route.free': 'A free day — the city programme is already covered.',
 
   // Sightseeing time
   'dur.hm': '{h} h {m} min',
@@ -370,4 +356,40 @@ export const en: Dict = {
   'flight.when': 'Departure date',
   'flight.whenNote': 'This is the first day of your trip. All the city dates are counted from it.',
   'route.withTransfers': '{time} including transfers',
+
+  'route.arrivalTransfer': 'Arrival and airport transfer',
+
+  'flight.rowEmpty': 'Choose the departure date',
+  'flight.rowPicked': 'Flight',
+  'flight.pickDate': 'Choose the departure date',
+
+  'calc.durationEmpty': 'Choose the tour length',
+  'calc.waiting': 'Choose the tour length and we will show the package prices and the day-by-day route.',
+
+  // Meals: the principle, not a schedule
+  'meal.title2': 'Meals',
+  'meal.threeADay': 'Three meals every day: breakfast, lunch and dinner',
+  'meal.breakfast.title': 'Breakfast — at the hotel',
+  'meal.breakfast.econom': 'Breakfast at the hotel where you are staying. European format: pastries, eggs, porridge, tea and coffee. Local dishes too — flatbread and fresh fruit are on the table almost every morning.',
+  'meal.breakfast.medium': 'Breakfast at the hotel, buffet style. European and local cuisine: hot dishes, pastries, cheeses, fruit, fresh baking and coffee.',
+  'meal.breakfast.lux': 'Breakfast at a premium hotel. Buffet plus an à la carte menu: dishes are cooked in front of you, with European, local and light Asian cuisine.',
+  'meal.lunch.title': 'Lunch — on the way along the route',
+  'meal.lunch.econom': 'Lunch at city cafés and chaikhanas near the points of the programme.',
+  'meal.lunch.medium': 'Lunch at restaurants with a national and European menu, within walking distance of the route.',
+  'meal.lunch.lux': 'Lunch at signature restaurants, including rooftop ones overlooking the historic centre.',
+  'meal.dinner.title': 'Dinner — in the evening, after the programme',
+  'meal.dinner.econom': 'Dinner at trusted places near the hotel: simple home cooking, unhurried, once the day is done.',
+  'meal.dinner.medium': 'Dinner at restaurants with a full menu and table service: national and European cuisine, a calm evening after a day on your feet.',
+  'meal.dinner.lux': 'Dinner at signature restaurants, some with live music or a national programme: the evening becomes part of the trip rather than its end.',
+  'meal.cuisines.title': 'Cuisines',
+  'meal.cuisines.text': 'Over the trip you will try several cuisines. The main one is Uzbek: plov, samsa, lagman, shurpa, manti. Chinese comes up regularly. Slavic and Japanese appear less often. The exact choice depends on the city and on the points of the programme that day.',
+
+  // Intercity travel: the mode is named in the text, no icons
+  'route.hop.train': 'Train {from} → {to}',
+  'route.hop.car': 'Taxi {from} → {to}',
+  'route.hop.flight': 'Flight {from} → {to}',
+  // Departure day in Khiva: no sights, but the day is not empty
+  'route.dep.free': 'Free time: souvenirs, ceramics, suzani and fridge magnets in the shops of Ichan-Kala',
+  'route.dep.transfer': 'Transfer to Urgench airport',
+  'route.dep.flight': 'Flight Urgench → Tashkent · {time}',
 }

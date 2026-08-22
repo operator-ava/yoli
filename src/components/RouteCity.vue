@@ -5,7 +5,15 @@
 // у города не существует. Блок отвечает на вопрос «что я увижу», а не «сколько
 // это стоит» — на второй отвечает панель итога.
 import { computed } from 'vue'
-import { city, cityName } from '@/data'
+import {
+  city,
+  cityName,
+  hopMinutes,
+  hopMode,
+  RETURN_FLIGHT_MINUTES,
+  type CityId,
+  type Level,
+} from '@/data'
 import { dayMonth, duration, short } from '@/composables/dates'
 import { count, t } from '@/composables/useI18n'
 import type { ItineraryCity } from '@/composables/itinerary'
@@ -13,6 +21,10 @@ import type { ItineraryCity } from '@/composables/itinerary'
 const props = defineProps<{
   plan: ItineraryCity
   open: boolean
+  /** Предыдущий город маршрута. null — это первый город, туда прилетают. */
+  previousCity: CityId | null
+  /** Выбранный тариф: у люкса вместо поезда частная машина. */
+  level: Level | null
 }>()
 
 const emit = defineEmits<{ toggle: [] }>()
@@ -20,8 +32,36 @@ const emit = defineEmits<{ toggle: [] }>()
 const info = computed(() => city(props.plan.cityId))
 const name = computed(() => cityName(props.plan.cityId))
 
-/** «25.08 – 27.08» — числовой формат, одинаковый во всех языках. */
-const dates = computed(() => `${short(props.plan.from)} – ${short(props.plan.to)}`)
+/** «25.08 – 27.08» — числовой формат, одинаковый во всех языках.
+ *  null — дата вылета ещё не выбрана, программа известна, а чисел нет. */
+const dates = computed(() =>
+  props.plan.from && props.plan.to
+    ? `${short(props.plan.from)} – ${short(props.plan.to)}`
+    : null,
+)
+
+/** Дорога В ЭТОТ город: прилёт для первого, переезд для остальных.
+ *  Это ДРУГОЕ время, чем в сводке города: там переезды между точками
+ *  внутри города, здесь — дорога между городами. */
+const hop = computed(() => {
+  const prev = props.previousCity
+  if (!prev) return { arrival: true, mode: 'flight' as const, minutes: 0 }
+  return {
+    arrival: false,
+    mode: hopMode(prev, props.plan.cityId, props.level),
+    minutes: hopMinutes(prev, props.plan.cityId, props.level),
+  }
+})
+
+const hopFrom = computed(() => (props.previousCity ? cityName(props.previousCity) : ''))
+
+/** Строки дня вылета: свободное время, трансфер и сам перелёт.
+ *  Точек в этом дне нет — они разложены по предыдущим дням города. */
+const departureLines = computed(() => [
+  t('route.dep.free'),
+  t('route.dep.transfer'),
+  t('route.dep.flight', { time: duration(RETURN_FLIGHT_MINUTES) }),
+])
 </script>
 
 <template>
@@ -32,7 +72,9 @@ const dates = computed(() => `${short(props.plan.from)} – ${short(props.plan.t
       <img class="thumb" :src="info?.photo" :alt="name" loading="lazy" />
       <span class="col">
         <span class="name">{{ name }}</span>
-        <span class="muted sub">{{ dates }} · {{ count(plan.nights, 'u.night') }}</span>
+        <span class="muted sub">
+          <template v-if="dates">{{ dates }} · </template>{{ count(plan.nights, 'u.night') }}
+        </span>
         <!-- Только количество: сравнение «из N» убрано решением заказчика —
              оно подсвечивало то, чего человек НЕ увидит.
              Стоит отдельной строкой: рядом с датами на 375 px не помещается
@@ -47,6 +89,21 @@ const dates = computed(() => `${short(props.plan.from)} – ${short(props.plan.t
     <!-- Развёрнутый вид: дни с точками. Дни отделены друг от друга линией
          и воздухом, внутри дня строки идут списком без разлиновки. -->
     <div v-if="open" class="days">
+      <!-- Дорога МЕЖДУ городами. Отдельная плашка с иконкой и рамкой:
+           её нельзя спутать со сводкой осмотра ниже, где время переездов
+           ВНУТРИ города между точками. -->
+      <div class="hop">
+        <span class="hop-text">
+          <template v-if="hop.arrival">{{ t('route.arrivalTransfer') }}</template>
+          <template v-else>
+            <!-- Вид транспорта назван словом в самом тексте: «Поезд Ташкент →
+                 Самарканд». Значков нет — они читаются хуже слова. -->
+            {{ t(`route.hop.${hop.mode}`, { from: hopFrom, to: name }) }}
+            <span class="hop-time">· {{ duration(hop.minutes) }}</span>
+          </template>
+        </span>
+      </div>
+
       <!-- Сводка города: сколько увидит и сколько это займёт вместе
            с переездами между точками. -->
       <p class="note">
@@ -54,10 +111,10 @@ const dates = computed(() => `${short(props.plan.from)} – ${short(props.plan.t
         {{ t('route.withTransfers', { time: duration(plan.minutes) }) }}
       </p>
 
-      <section v-for="d in plan.days" :key="d.date" class="day">
+      <section v-for="d in plan.days" :key="d.index" class="day">
         <h4 class="day-head">
           <span class="day-num">{{ t('route.day', { n: d.index }) }}</span>
-          <span class="day-date muted sep">{{ dayMonth(d.date) }}</span>
+          <span v-if="d.date" class="day-date muted sep">{{ dayMonth(d.date) }}</span>
           <!-- Время дня рядом с датой: видно, насколько день плотный -->
           <span v-if="d.minutes" class="day-time muted sep">{{ duration(d.minutes) }}</span>
           <!-- Прилёт и вылет — половинные дни, и это надо назвать -->
@@ -65,9 +122,11 @@ const dates = computed(() => `${short(props.plan.from)} – ${short(props.plan.t
           <span v-else-if="d.departure" class="day-tag">{{ t('route.departure') }}</span>
         </h4>
 
-        <!-- Точки города кончились раньше дней. Программа не растягивается
-             искусственно: день честно называется свободным. -->
-        <p v-if="!d.points.length" class="free muted">{{ t('route.free') }}</p>
+        <!-- День вылета: точек нет, но день не пустой — человек проводит
+             его в городе и улетает вечером. Три строки вместо списка. -->
+        <ul v-if="d.departure && !d.points.length" class="lines">
+          <li v-for="(line, i) in departureLines" :key="i" class="line">{{ line }}</li>
+        </ul>
 
         <ul v-else class="points">
           <li v-for="p in d.points" :key="p.id" class="point">
@@ -138,6 +197,30 @@ const dates = computed(() => `${short(props.plan.from)} – ${short(props.plan.t
   font-size: 12px;
 }
 
+/* Дорога между городами. Плашка на подложке с иконкой — визуально это
+   не текст программы, а то, что происходит ДО неё. Сводка осмотра ниже
+   идёт обычной строкой без подложки: два времени рядом, и спутать их нельзя. */
+.hop {
+  display: flex;
+  align-items: flex-start;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  margin: 0 0 12px;
+}
+
+.hop-text {
+  font-size: 13px;
+  line-height: 1.35;
+  font-weight: 600;
+}
+
+/* Время дороги — тем же кеглем, но приглушённое: главное здесь маршрут */
+.hop-time {
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
 /* Сводка города: не пояснение мелким шрифтом, а содержательная строка —
    кегль как у дат, цвет обычный. */
 .note {
@@ -147,10 +230,19 @@ const dates = computed(() => `${short(props.plan.from)} – ${short(props.plan.t
   margin: 0 0 14px;
 }
 
-/* День без программы: не пустое место, а названное состояние */
-.free {
-  font-size: 14px;
+/* День вылета: строки идут списком, как точки, но без правой колонки */
+.lines {
+  list-style: none;
   margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.line {
+  font-size: 15px;
+  line-height: 1.35;
 }
 
 .days {

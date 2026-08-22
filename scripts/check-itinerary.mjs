@@ -8,7 +8,7 @@ const server = await createServer({ server: { middlewareMode: true }, appType: '
 const { planTour, travelMinutes, visitMinutes } =
   await server.ssrLoadModule('/src/composables/itinerary.ts')
 const { poiByCity, POI } = await server.ssrLoadModule('/src/data/poi.ts')
-const { DEFAULT_START_DATE, DEFAULT_CITY_ORDER } = await server.ssrLoadModule('/src/data/pricing.ts')
+const { CALENDAR_START_DATE, DEFAULT_CITY_ORDER } = await server.ssrLoadModule('/src/data/pricing.ts')
 
 const NAME = { tashkent: 'Ташкент', samarkand: 'Самарканд', bukhara: 'Бухара', khiva: 'Хива' }
 const hhmm = (m) => `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`
@@ -24,7 +24,7 @@ const empty = []
 console.log('ЧТО ВХОДИТ В ПАКЕТ — точек из всего в городе')
 console.table(
   [7, 10, 15].map((nights) => {
-    const tour = planTour(nights, DEFAULT_START_DATE)
+    const tour = planTour(nights, CALENDAR_START_DATE)
     const row = { ночей: nights }
     let sel = 0
     let tot = 0
@@ -41,7 +41,7 @@ console.table(
 // ── Дни: нормы, пустые дни, дубли ───────────────────────────────────────────
 for (const nights of [7, 10, 15]) {
   console.log(`══ ПАКЕТ ${nights} НОЧЕЙ ══`)
-  const tour = planTour(nights, DEFAULT_START_DATE)
+  const tour = planTour(nights, CALENDAR_START_DATE)
   const rows = []
   const seen = new Set()
 
@@ -54,10 +54,10 @@ for (const nights of [7, 10, 15]) {
             `${hhmm(d.minutes)} при норме ${hhmm(d.limit)}`,
         )
       }
-      if (!d.points.length) {
-        // Пустой день — НЕ ошибка алгоритма: точки города кончились раньше,
-        // чем дни. Программа не растягивается искусственно, день показывается
-        // свободным. Решение по таким дням за заказчиком.
+      if (!d.points.length && !d.departure) {
+        // День без точек и не день вылета — это ОШИБКА раскладки: человек
+        // платит за день и должен видеть, что в нём происходит.
+        ok = false
         empty.push(`${NAME[city.cityId]}, день ${d.index} (${d.date})`)
       }
       for (const p of d.points) {
@@ -84,7 +84,7 @@ for (const nights of [7, 10, 15]) {
 }
 
 // ── Детерминированность ─────────────────────────────────────────────────────
-if (JSON.stringify(planTour(10, DEFAULT_START_DATE)) !== JSON.stringify(planTour(10, DEFAULT_START_DATE))) {
+if (JSON.stringify(planTour(10, CALENDAR_START_DATE)) !== JSON.stringify(planTour(10, CALENDAR_START_DATE))) {
   ok = false
   console.log('РАСЧЁТ НЕ ДЕТЕРМИНИРОВАН: два прогона разошлись.')
 }
@@ -107,9 +107,13 @@ for (const c of DEFAULT_CITY_ORDER) {
 }
 
 if (empty.length) {
-  console.log(`СВОБОДНЫХ ДНЕЙ (точки города кончились раньше дней): ${empty.length}`)
+  console.log(`ДНЕЙ БЕЗ ТОЧЕК, КРОМЕ ДНЯ ВЫЛЕТА: ${empty.length}`)
   for (const e of empty) console.log(`  ${e}`)
-  console.log('Программа не растягивается: такие дни показываются свободными.\n')
+  console.log('')
+} else {
+  console.log('Пустых дней нет: точки разложены на все дни каждого города.')
+  console.log('День вылета из Хивы точек не содержит по правилу — в нём')
+  console.log('свободное время, трансфер в аэропорт и перелёт.\n')
 }
 
 console.log(ok ? 'Раскладка сходится: нормы дня соблюдены, дублей нет.' : 'ЕСТЬ ПРОБЛЕМЫ — смотри выше.')

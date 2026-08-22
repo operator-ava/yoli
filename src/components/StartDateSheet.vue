@@ -7,24 +7,31 @@
 import { computed, ref } from 'vue'
 import { addDays, dayMonth, monthGrid, monthTitle, todayISO } from '@/composables/dates'
 import { count, list, t } from '@/composables/useI18n'
+import { CALENDAR_START_DATE } from '@/data'
 
 const props = defineProps<{
-  /** Текущая дата начала, ISO. */
-  value: string
-  /** Сколько ночей длится тур — показываем в подсказке. */
-  nights: number
+  /** Выбранная дата вылета, ISO. null — ещё не выбрана: календарь
+   *  открывается на дате по умолчанию, но выбранной она не считается. */
+  value: string | null
+  /** Сколько ночей длится тур — показываем в подсказке.
+   *  null — длительность ещё не выбрана, границы поездки неизвестны. */
+  nights: number | null
 }>()
 
 const emit = defineEmits<{ apply: [string]; close: [] }>()
 
 const MONTHS_AHEAD = 12
 
-const picked = ref(props.value)
+// Дата не выбрана — открываемся на дате по умолчанию, но пока человек
+// не нажмёт «Начать», выбранной она не становится.
+const picked = ref(props.value ?? CALENDAR_START_DATE)
 const today = todayISO()
 
 /** День возвращения: выбранная дата плюс все ночи тура. Человеку важно
  *  видеть обе границы сразу — он сверяет их с отпуском. */
-const endDate = computed(() => addDays(picked.value, props.nights))
+const endDate = computed(() =>
+  props.nights ? addDays(picked.value, props.nights) : null,
+)
 
 const months = computed(() => {
   const now = new Date()
@@ -54,10 +61,12 @@ function pick(day: string) {
     <header class="head">
       <div>
         <h2 class="title">{{ t('start.title') }}</h2>
-        <p class="hint muted">
+        <!-- Границы поездки видны только когда известна длительность -->
+        <p v-if="nights && endDate" class="hint muted">
           {{ t('start.hint', { date: dayMonth(picked), end: dayMonth(endDate) }) }} ·
           {{ count(nights, 'u.night') }}
         </p>
+        <p v-else class="hint muted">{{ dayMonth(picked) }}</p>
       </div>
       <button class="close" :aria-label="t('sheet.close')" @click="emit('close')">✕</button>
     </header>

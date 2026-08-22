@@ -4,7 +4,6 @@ import {
   CITIES,
   cityName,
   DEFAULT_CITY_ORDER,
-  DEFAULT_START_DATE,
   MAX_PEOPLE,
   MIN_PEOPLE,
   PACKAGES,
@@ -24,8 +23,11 @@ const STORAGE_KEY = 'yoli.trip'
  *  v2 — добавлено сворачивание карточек городов.
  *  v3 — пакетные туры: длительность, один тариф на тур, дата начала.
  *       Расчёты, сохранённые конструктором, не подхватываются: в них нет
- *       ни пакета, ни общей даты начала. */
-const SCHEMA_VERSION = 3
+ *       ни пакета, ни общей даты начала.
+ *  v4 — длительность и дата вылета больше НЕ имеют значения по умолчанию:
+ *       человек выбирает их сам. Сохранённое от v3 подставило бы 7 ночей
+ *       и 25 августа как выбранные — поэтому версия поднята. */
+const SCHEMA_VERSION = 4
 
 /** Диапазон дат пребывания в городе: заезд включительно, выезд — день отъезда. */
 export interface DateRange {
@@ -48,18 +50,21 @@ const PACKAGE_NIGHTS: PackageNights[] = PACKAGES.map((p) => p.nights)
 
 function load(): {
   people: number
-  nights: PackageNights
-  startDate: string
+  nights: PackageNights | null
+  startDate: string | null
   tourLevel: Level | null
   routeOpen: Partial<Record<CityId, boolean>>
   ranges: Partial<Record<CityId, DateRange>>
   levels: Partial<Record<CityId, Level>>
   collapsed: Partial<Record<CityId, boolean>>
 } {
+  // Ни длительности, ни даты по умолчанию: пока человек их не выбрал,
+  // считать нечего и маршрута нет. Подставлять что-то за него — значит
+  // показать цену тура, которого он не выбирал.
   const empty = {
     people: MIN_PEOPLE,
-    nights: PACKAGE_NIGHTS[0],
-    startDate: DEFAULT_START_DATE,
+    nights: null,
+    startDate: null,
     tourLevel: null,
     routeOpen: {},
     ranges: {},
@@ -102,8 +107,8 @@ function load(): {
     }
 
     // Пакет: длительность только из списка утверждённых, дата — только ISO.
-    const nights = PACKAGE_NIGHTS.includes(data.nights) ? (data.nights as PackageNights) : empty.nights
-    const startDate = ISO.test(data.startDate ?? '') ? (data.startDate as string) : empty.startDate
+    const nights = PACKAGE_NIGHTS.includes(data.nights) ? (data.nights as PackageNights) : null
+    const startDate = ISO.test(data.startDate ?? '') ? (data.startDate as string) : null
     const tourLevel = LEVEL_IDS.includes(data.tourLevel) ? (data.tourLevel as Level) : null
 
     // Развёрнутые города блока «Маршрут». Записи нет — город свёрнут.
@@ -134,12 +139,15 @@ export const useTripStore = defineStore('trip', () => {
   // Приложение — витрина трёх пакетов. Длительность одна на весь тур,
   // тариф выбирается ОДИН РАЗ, даты считаются подряд от одной даты начала.
 
-  /** Длительность выбранного пакета в ночах: 7, 10 или 15. */
-  const nights = ref<PackageNights>(saved.nights)
+  /** Длительность выбранного пакета в ночах: 7, 10 или 15.
+   *  null — человек ещё не выбрал: цен и маршрута тогда нет. */
+  const nights = ref<PackageNights | null>(saved.nights)
 
-  /** Дата начала тура, ISO. Пересечений дат больше не бывает: города идут
-   *  подряд, дата выезда из города — она же дата заезда в следующий. */
-  const startDate = ref(saved.startDate)
+  /** Дата вылета, ISO. Выбирается в блоке «Перелёт».
+   *  null — не выбрана: маршрут показывается без дат.
+   *  Пересечений дат не бывает: города идут подряд, дата выезда из города —
+   *  она же дата заезда в следующий. */
+  const startDate = ref<string | null>(saved.startDate)
 
   /** Тариф на ВЕСЬ тур. null — не выбран, панель итога пустая. */
   const tourLevel = ref<Level | null>(saved.tourLevel)
@@ -160,6 +168,12 @@ export const useTripStore = defineStore('trip', () => {
     nights.value = value
   }
 
+  /** Выбрана ли длительность. Без неё нет ни пакета, ни маршрута. */
+  const hasNights = computed(() => nights.value !== null)
+
+  /** Выбрана ли дата вылета. Без неё маршрут показывается без дат. */
+  const hasDate = computed(() => startDate.value !== null)
+
   function setStartDate(iso: string) {
     startDate.value = iso
   }
@@ -170,18 +184,28 @@ export const useTripStore = defineStore('trip', () => {
 
   /** Маршрут тура: четыре города с настоящими датами и разложенными по дням
    *  точками. Считается из данных, по дням ничего не захардкожено. */
-  const tour = computed(() => planTour(nights.value, startDate.value))
+  const tour = computed(() =>
+    nights.value ? planTour(nights.value, startDate.value) : [],
+  )
 
   /** Границы тура: от даты начала до дня вылета. Дни — по календарю. */
   const tourRange = computed(() => {
+    if (!nights.value) return null
     const from = startDate.value
-    const to = addDays(from, nights.value)
-    return { from, to, nights: nights.value, days: nights.value + 1, cities: tour.value.length }
+    // Дат нет, пока не выбран вылет: длительность известна, границы — нет.
+    const to = from ? addDays(from, nights.value) : null
+    return {
+      from,
+      to,
+      nights: nights.value,
+      days: nights.value + 1,
+      cities: tour.value.length,
+    }
   })
 
   /** Расчёт пакета. Тариф не выбран — считать нечего. */
   const packageResult = computed(() =>
-    tourLevel.value
+    tourLevel.value && nights.value
       ? calculatePackage({ people: people.value, level: tourLevel.value, nights: nights.value })
       : null,
   )
@@ -311,8 +335,8 @@ export const useTripStore = defineStore('trip', () => {
     people.value = MIN_PEOPLE
     // Пакет возвращается к исходному: длительность первая, дата по умолчанию,
     // тариф не выбран. Маршрут при этом остаётся виден — он и есть витрина.
-    nights.value = PACKAGE_NIGHTS[0]
-    startDate.value = DEFAULT_START_DATE
+    nights.value = null
+    startDate.value = null
     tourLevel.value = null
     routeOpen.value = {}
     ranges.value = {}
@@ -364,6 +388,8 @@ export const useTripStore = defineStore('trip', () => {
     isRouteOpen,
     toggleRoute,
     setNights,
+    hasNights,
+    hasDate,
     setStartDate,
     setTourLevel,
     tour,

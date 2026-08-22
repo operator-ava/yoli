@@ -111,8 +111,9 @@ export function orderPoi(points: Poi[]): Poi[] {
 
 /** Один день программы. */
 export interface ItineraryDay {
-  /** Дата дня, ISO. */
-  date: string
+  /** Дата дня, ISO. null — дата вылета ещё не выбрана, программа известна,
+   *  а числа календаря нет. */
+  date: string | null
   /** Номер дня внутри города, с единицы. */
   index: number
   points: Poi[]
@@ -129,10 +130,10 @@ export interface ItineraryDay {
 /** Город тура: даты, ночи и разложенная по дням программа. */
 export interface ItineraryCity {
   cityId: CityId
-  /** Дата заезда, ISO. */
-  from: string
+  /** Дата заезда, ISO. null — дата вылета не выбрана. */
+  from: string | null
   /** Дата выезда, ISO. Она же дата заезда в следующий город. */
-  to: string
+  to: string | null
   nights: number
   days: ItineraryDay[]
   /** Сколько точек вошло в программу города. */
@@ -145,68 +146,25 @@ export interface ItineraryCity {
   minutes: number
 }
 
-/** Нормы дней города, в минутах.
+/** Нормы дней ОСМОТРА, в минутах.
  *
- *  Обычный день — 8 часов. Половинных дней ровно два на весь тур:
- *  первый день ПЕРВОГО города (прилёт и заселение) и день вылета из Хивы.
- *  В остальных городах день заезда — это переезд из соседнего города,
- *  дорога между ними в норму дня не входит.
+ *  Обычный день — 8 часов. Половинный ровно один: первый день ПЕРВОГО города,
+ *  день прилёта, — человек добирается из аэропорта и заселяется. В остальных
+ *  городах день заезда это переезд из соседнего города, и дорога между ними
+ *  в норму дня не входит.
  *
- *  Дней программы столько же, сколько ночей: день выезда — это переезд
- *  в следующий город. В городе вылета добавляется ещё один день, сам вылет. */
-export function dayLimits(cityId: CityId, nights: number, isFirstCity: boolean): number[] {
-  const limits = Array.from({ length: nights }, (_, i) =>
+ *  Дней осмотра в городе столько же, сколько ночей: день выезда — это переезд
+ *  в следующий город. День вылета из Хивы сюда НЕ входит: он идёт отдельно
+ *  и точек не содержит, см. planCity(). */
+export function dayLimits(nights: number, isFirstCity: boolean): number[] {
+  return Array.from({ length: nights }, (_, i) =>
     isFirstCity && i === 0 ? HALF_DAY_MINUTES : FULL_DAY_MINUTES,
   )
-  if (cityId === DEPARTURE_CITY) limits.push(HALF_DAY_MINUTES)
-  return limits
 }
 
-/** Набрать точки по дням города.
- *
- *  Идём по цепочке — она уже упорядочена по рейтингу и близости — и набираем
- *  точки в день, пока он не заполнен своей нормой. Что не поместилось в дни
- *  города, В ПАКЕТ НЕ ВХОДИТ: растягивать день сверх нормы нельзя, а тащить
- *  точку в другой город бессмысленно.
- *
- *  Первая точка дня переезда не тянет: день начинается от гостиницы,
- *  а дорога до неё в норму не входит. */
-export function fillDays(chain: Poi[], limits: number[]): { days: Poi[][]; dropped: Poi[] } {
-  const days: Poi[][] = limits.map(() => [])
-  if (!limits.length) return { days, dropped: [...chain] }
-
-  let day = 0
-  let spent = 0
-
-  for (let i = 0; i < chain.length; i++) {
-    const p = chain[i]
-    const last = days[day][days[day].length - 1]
-    const cost = visitMinutes(p) + (last ? travelMinutes(last, p) : 0)
-
-    if (days[day].length > 0 && spent + cost > limits[day]) {
-      // День заполнен — переходим к следующему. Дни кончились: остальные
-      // точки в пакет не входят.
-      day += 1
-      if (day >= limits.length) return { days, dropped: chain.slice(i) }
-      spent = 0
-    }
-
-    const first = days[day].length === 0
-    const actual = first ? visitMinutes(p) : cost
-
-    // Точка, которая не влезает даже в пустой день, пропускается:
-    // норма дня важнее полноты списка.
-    if (first && actual > limits[day]) continue
-
-    days[day].push(p)
-    spent += actual
-  }
-
-  return { days, dropped: [] }
-}
-
-/** Занятое время дня, минуты: осмотр плюс переезды внутри дня. */
-function dayMinutes(points: Poi[]): number {
+/** Время цепочки точек подряд, минуты: осмотр каждой плюс переезд от
+ *  предыдущей. Первая точка дороги не тянет — день начинается от гостиницы. */
+function chainMinutes(points: Poi[]): number {
   let sum = 0
   points.forEach((p, i) => {
     sum += visitMinutes(p)
@@ -215,31 +173,141 @@ function dayMinutes(points: Poi[]): number {
   return sum
 }
 
-/** Программа города: точки набраны по дням, у каждого дня настоящая дата. */
+/** Сколько точек с начала цепочки помещается в общий бюджет города.
+ *
+ *  Это ОТБОР: чем раньше точка в цепочке, тем выше её рейтинг и тем вернее
+ *  она попадёт в короткий пакет. Что не поместилось — в пакет не входит. */
+function selectCount(chain: Poi[], budget: number): number {
+  let count = 0
+  for (let k = 1; k <= chain.length; k++) {
+    if (chainMinutes(chain.slice(0, k)) > budget) break
+    count = k
+  }
+  return count
+}
+
+/** Разложить точки по дням РАВНОМЕРНО.
+ *
+ *  Раньше дни набирались по порядку до нормы, и в длинных пакетах последние
+ *  дни оставались пустыми. Человек платит за каждый день и должен видеть,
+ *  что в нём происходит, поэтому теперь сначала считается доля дня, а потом
+ *  идёт раскладка: точек мало — дни становятся легче, но пустых нет.
+ *
+ *  Доля дня пропорциональна его норме: день прилёта вдвое короче обычного
+ *  и получает вдвое меньше программы. Норму доля не превышает — восемь часов
+ *  остаются потолком, а не средним.
+ *
+ *  Возвращает и то, что не поместилось: эти точки в пакет не входят. */
+export function fillDays(chain: Poi[], limits: number[]): { days: Poi[][]; dropped: Poi[] } {
+  const days: Poi[][] = limits.map(() => [])
+  if (!limits.length) return { days, dropped: [...chain] }
+
+  const budget = limits.reduce((a, b) => a + b, 0)
+  const selected = chain.slice(0, selectCount(chain, budget))
+  if (!selected.length) return { days, dropped: [...chain] }
+
+  const total = chainMinutes(selected)
+  const targets = limits.map((limit) => Math.min(limit, (total * limit) / budget))
+
+  let day = 0
+  let spent = 0
+  let placed = 0
+
+  /** Сколько времени добавит точка к текущему дню. Первая точка дня
+   *  дороги не тянет — день начинается от гостиницы. */
+  const costOf = (p: Poi) => {
+    const last = days[day][days[day].length - 1]
+    return visitMinutes(p) + (last ? travelMinutes(last, p) : 0)
+  }
+
+  for (const p of selected) {
+    // Доля дня набрана — переходим к следующему, если он есть и если
+    // оставшихся точек хватит, чтобы ни один день не остался пустым.
+    const daysLeft = limits.length - day - 1
+    const pointsLeft = selected.length - placed
+    if (
+      days[day].length > 0 &&
+      daysLeft > 0 &&
+      pointsLeft > daysLeft &&
+      spent + costOf(p) > targets[day]
+    ) {
+      day += 1
+      spent = 0
+    }
+
+    // Норма дня — ЖЁСТКИЙ потолок, а не средний ориентир. Точка, которая
+    // в него не влезает, уезжает в следующий день, а если дней больше нет —
+    // в пакет не входит вовсе.
+    while (days[day].length > 0 && spent + costOf(p) > limits[day]) {
+      if (day + 1 >= limits.length) return { days, dropped: selected.slice(placed) }
+      day += 1
+      spent = 0
+    }
+
+    // Точка, которая не влезает даже в пустой день, пропускается.
+    if (days[day].length === 0 && visitMinutes(p) > limits[day]) {
+      placed += 1
+      continue
+    }
+
+    spent += costOf(p)
+    days[day].push(p)
+    placed += 1
+  }
+
+  return { days, dropped: [] }
+}
+
+/** Занятое время дня, минуты: осмотр плюс переезды внутри дня. */
+function dayMinutes(points: Poi[]): number {
+  return chainMinutes(points)
+}
+
+/** Программа города: точки разложены по дням, у каждого дня настоящая дата.
+ *
+ *  У города вылета в конце добавляется ещё один день — сам день вылета.
+ *  Точек в нём нет: они уходят на предыдущие дни города. Пустым он при этом
+ *  не остаётся — экран показывает в нём свободное время, трансфер в аэропорт
+ *  Ургенча и перелёт. */
 export function planCity(
   cityId: CityId,
   nights: number,
-  from: string,
+  from: string | null,
   isFirstCity: boolean,
 ): ItineraryCity {
   const all = poiByCity(cityId)
-  const limits = dayLimits(cityId, nights, isFirstCity)
+  const limits = dayLimits(nights, isFirstCity)
   const { days: filled } = fillDays(orderPoi(all), limits)
 
   const days: ItineraryDay[] = filled.map((points, i) => ({
-    date: addDays(from, i),
+    date: from ? addDays(from, i) : null,
     index: i + 1,
     points,
     minutes: dayMinutes(points),
     limit: limits[i],
     arrival: isFirstCity && i === 0,
-    departure: cityId === DEPARTURE_CITY && i === limits.length - 1,
+    departure: false,
   }))
+
+  // День вылета идёт сверх дней осмотра: человек ночует последнюю ночь
+  // и улетает наутро. По календарю это отдельный день, и он должен быть
+  // виден — иначе поездка на экране кончается на день раньше, чем в жизни.
+  if (cityId === DEPARTURE_CITY) {
+    days.push({
+      date: from ? addDays(from, nights) : null,
+      index: days.length + 1,
+      points: [],
+      minutes: 0,
+      limit: HALF_DAY_MINUTES,
+      arrival: false,
+      departure: true,
+    })
+  }
 
   return {
     cityId,
     from,
-    to: addDays(from, nights),
+    to: from ? addDays(from, nights) : null,
     nights,
     days,
     selected: filled.reduce((sum, d) => sum + d.length, 0),
@@ -250,12 +318,16 @@ export function planCity(
 
 /** Весь тур: четыре города подряд от одной даты начала.
  *  Порядок жёсткий — Ташкент → Самарканд → Бухара → Хива. */
-export function planTour(nights: PackageNights, startDate: string): ItineraryCity[] {
+export function planTour(
+  nights: PackageNights,
+  startDate: string | null,
+): ItineraryCity[] {
   const stops = packageStops(nights)
   const byId = new Map(stops.map((s) => [s.cityId, s.nights]))
 
   const cities: ItineraryCity[] = []
-  let cursor = startDate
+  // Дата вылета не выбрана — программа считается всё равно, просто без дат.
+  let cursor: string | null = startDate
   for (const cityId of DEFAULT_CITY_ORDER) {
     const cityNights = byId.get(cityId)
     if (!cityNights) continue
@@ -270,3 +342,4 @@ export function planTour(nights: PackageNights, startDate: string): ItineraryCit
 export function tourEnd(nights: PackageNights, startDate: string): string {
   return addDays(startDate, nights)
 }
+

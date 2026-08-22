@@ -1,21 +1,23 @@
 <script setup lang="ts">
-// Длительность тура: выпадающий список и период поездки под ним.
+// Длительность тура — одна строка в двух состояниях.
 //
-// Нативный список открывается системным колесом на iPad и iPhone, работает
-// офлайн и доступен с клавиатуры. Своя реализация выпадашки не даёт здесь
-// ничего, кроме риска.
+// Не выбрана: «Выберите длительность тура ⌄».
+// Выбрана: слева даты поездки, справа длительность — «25 августа – 1 сентября
+// | 7 ночей · 8 дней ⌄». Отдельной строки с периодом под списком нет,
+// период стоит в самой строке. Решение заказчика 22.08.2026.
 //
-// Даты вылета ЗДЕСЬ НЕТ: она живёт в блоке «Перелёт». Человек сначала решает,
-// когда летит, и только потом — сколько живёт. Решение заказчика 22.08.2026.
+// Даты вылета здесь НЕТ: она живёт в блоке «Перелёт». Пока она не выбрана,
+// строка показывает только длительность — даты брать неоткуда.
 import { computed } from 'vue'
 import { PACKAGES, type PackageNights } from '@/data'
-import { count, t } from '@/composables/useI18n'
+import { t } from '@/composables/useI18n'
 import { addDays, dayMonth, nightsDays } from '@/composables/dates'
 
 const props = defineProps<{
-  nights: PackageNights
-  /** Дата вылета — приходит из блока «Перелёт», здесь только читается. */
-  startDate: string
+  /** Выбранная длительность. null — человек ещё не выбрал. */
+  nights: PackageNights | null
+  /** Дата вылета из блока «Перелёт». null — не выбрана. */
+  startDate: string | null
 }>()
 
 const emit = defineEmits<{ pick: [PackageNights] }>()
@@ -26,8 +28,19 @@ const options = computed(() =>
   PACKAGES.map((p) => ({ nights: p.nights, label: nightsDays(p.nights, p.nights + 1) })),
 )
 
-/** День возвращения: дата вылета плюс все ночи тура. */
-const endDate = computed(() => addDays(props.startDate, props.nights))
+/** Подпись выбранной длительности. */
+const durationLabel = computed(() =>
+  props.nights ? nightsDays(props.nights, props.nights + 1) : '',
+)
+
+/** Период поездки. null — нет даты вылета или нет длительности. */
+const period = computed(() => {
+  if (!props.nights || !props.startDate) return null
+  return t('calc.tourRange', {
+    from: dayMonth(props.startDate),
+    to: dayMonth(addDays(props.startDate, props.nights)),
+  })
+})
 
 function onChange(e: Event) {
   const value = Number((e.target as HTMLSelectElement).value) as PackageNights
@@ -38,21 +51,25 @@ function onChange(e: Event) {
 <template>
   <div class="card">
     <label class="row">
-      <span class="label">{{ t('calc.durationLabel') }}</span>
+      <!-- Не выбрано — призыв к действию во всю строку.
+           Выбрано — слева период, справа длительность. -->
+      <span v-if="!nights" class="call">{{ t('calc.durationEmpty') }}</span>
+      <!-- Даты вылета ещё нет: длительность встаёт слева, на место периода.
+           Звать выбрать дату отсюда незачем — этим занят блок «Перелёт». -->
+      <span v-else class="period">{{ period ?? durationLabel }}</span>
+
       <span class="control">
-        <select class="select" :value="nights" @change="onChange">
+        <span v-if="nights && period" class="value">{{ durationLabel }}</span>
+        <!-- Нативный список поверх строки: он открывается системным колесом
+             на iPad и iPhone, работает офлайн и доступен с клавиатуры.
+             Свою выпадашку здесь городить незачем. -->
+        <select class="select" :value="nights ?? ''" @change="onChange">
+          <option v-if="!nights" value="" disabled>{{ t('calc.durationEmpty') }}</option>
           <option v-for="o in options" :key="o.nights" :value="o.nights">{{ o.label }}</option>
         </select>
         <span class="chev chev-down muted" aria-hidden="true">⌄</span>
       </span>
     </label>
-
-    <!-- Итоговый период: считается от даты вылета плюс выбранная длительность.
-         Человек видит обе границы сразу и сверяет их с отпуском. -->
-    <p class="range">
-      {{ t('calc.tourRange', { from: dayMonth(startDate), to: dayMonth(endDate) }) }} ·
-      {{ count(nights, 'u.night') }} · {{ count(nights + 1, 'u.day') }}
-    </p>
   </div>
 </template>
 
@@ -62,11 +79,12 @@ function onChange(e: Event) {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow-card);
-  padding: 0 12px 10px;
+  padding: 0 12px;
 }
 
 /* Строка держит общий токен высоты — как счётчик людей и «Перелёт» */
 .row {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -76,9 +94,19 @@ function onChange(e: Event) {
   text-align: left;
 }
 
-.label {
+/* Ничего не выбрано — строка зовёт к действию */
+.call {
   font-size: 16px;
   font-weight: 600;
+  color: var(--accent-strong);
+}
+
+/* Период поездки: главный ответ строки, поэтому обычным цветом */
+.period {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+  min-width: 0;
 }
 
 .control {
@@ -88,31 +116,22 @@ function onChange(e: Event) {
   flex-shrink: 0;
 }
 
-/* Нативный список без системной рамки: рамку рисуем сами, стрелку тоже —
-   иначе на iOS и в Chrome он выглядит по-разному. */
-.select {
-  appearance: none;
-  -webkit-appearance: none;
-  background: transparent;
-  border: 0;
-  font: inherit;
+.value {
   font-size: 15px;
   font-weight: 600;
-  color: var(--text);
-  padding: 0 2px 0 0;
-  min-height: var(--tap-min);
-  text-align: right;
-  text-align-last: right;
+  white-space: nowrap;
 }
 
-/* Период — не подпись к списку, а результат: кегль тот же, что у строк,
-   цвет обычный. Приглушать его нельзя, это главный ответ блока. */
-.range {
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1.4;
-  margin: 8px 0 0;
-  padding-top: 10px;
-  border-top: 1px solid var(--border);
+/* Сам список прозрачный и растянут на всю строку: тап в любое место
+   строки открывает выбор, а видимый текст рисуют .value и .period. */
+.select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  font: inherit;
 }
 </style>
