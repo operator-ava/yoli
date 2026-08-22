@@ -211,11 +211,15 @@ function onScroll() {
   padding: 9px;
 }
 
+/* Высота шапки задана жёстко по галочке выбранного тарифа: без неё строка
+   названия давала 21 px, с ней 22, и содержимое выбранной карточки уезжало
+   на пиксель вниз против соседних. Строки чек-листа обязаны совпадать. */
 .top {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  min-height: 22px;
 }
 
 .name {
