@@ -199,7 +199,7 @@ export const zh: Dict = {
   'limit.h3': '3 小时',
   'limit.h7': '7 小时',
   'limit.unlimited': '不限',
-  'limit.freeRoute': '可调整路线',
+  'limit.freeRoute': '可调整',
   'limit.gb180': '180 GB',
   'limit.gb200': '200 GB',
   'limit.gb350': '350 GB',
@@ -221,6 +221,7 @@ export const zh: Dict = {
   'service.excursions.econom': '主要参观地点提前规划——行程在出发前已确定并经过审定。',
   'service.excursions.medium': '主要参观地点提前规划——行程在出发前已确定并经过审定。',
   'service.excursions.lux': '路线可以调整：如果您想增加地点或取消某个景点，行程可与经理和导游商定后重新安排。',
+  'service.excursions.seeBelow': '每座城市的游览路线列在下方“游览路线”一节中。那里可以看到您在旅程每一天将参观哪些景点，以及各需多少时间。',
   'service.excursions.note': '观光内容在预订确认前告知。',
 
   // 当地 SIM 卡。不标示价格，只承诺所含内容。
@@ -335,12 +336,11 @@ export const zh: Dict = {
   'calc.startLabel': '开始日期',
   'calc.tourRange': '{from} – {to}',
   'calc.package': '套餐',
-  'calc.route': '行程路线',
+  'calc.route': '游览路线',
   'route.day': '第 {n} 天',
   'route.departure': '离开日',
-  'start.title': '出发日期',
+  'start.title': '抵达日期',
   'start.hint': '{date} 至 {end}',
-  'start.done': '{date} 出发',
 
   'route.arrival': '抵达',
 
@@ -350,15 +350,15 @@ export const zh: Dict = {
   'dur.m': '{m} 分钟',
   'u.poi': ['个景点', '个景点', '个景点'],
 
-  'flight.when': '出发日期',
+  'flight.when': '抵达日期',
   'flight.whenNote': '这是旅程的第一天。各城市的日期均由此推算。',
   'route.withTransfers': '{time}（含途中交通）',
 
   'route.arrivalTransfer': '抵达与机场接送',
 
-  'flight.rowEmpty': '请选择出发日期',
-  'flight.rowPicked': '航班',
-  'flight.pickDate': '选择出发日期',
+  'flight.rowEmpty': '请选择抵达日期',
+  'flight.rowPicked': '抵达',
+  'flight.pickDate': '选择抵达日期',
 
   'calc.durationEmpty': '请选择行程天数',
   'calc.waiting': '请选择行程天数，我们将显示套餐价格与每日行程。',

@@ -130,7 +130,8 @@ const firstCity = computed(() => trip.tour[0]?.cityId ?? 'tashkent')
         @choose="trip.setTourLevel($event)"
         @open-item="itemSheet = { level: $event.level, key: $event.key }"
       />
-      <p v-if="!trip.tourLevel" class="muted no-level">{{ t('calc.pickTariff') }}</p>
+      <!-- Подсказки «Выберите тариф» здесь нет: липкая панель внизу
+           говорит то же самое, и дважды это не нужно. -->
 
       <!-- Маршрут: четыре города в жёстком порядке, дни с точками.
            Цен здесь нет — пакет продаётся целиком. -->
@@ -282,13 +283,6 @@ h2 {
   text-align: center;
   margin: 22px auto 0;
   max-width: 320px;
-}
-
-/* Тариф не выбран — подсказка под каруселью, как было в карточке города */
-.no-level {
-  font-size: 13px;
-  margin: 8px 0 2px;
-  text-align: center;
 }
 
 .cities {

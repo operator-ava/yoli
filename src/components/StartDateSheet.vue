@@ -1,9 +1,11 @@
 <script setup lang="ts">
-// Выбор ОДНОЙ даты — дня вылета. Он же первый день путешествия: даты городов
-// считаются от него подряд, поэтому пересечений не бывает и гасить занятые
-// дни, как это делал календарь конструктора, больше не нужно.
+// Выбор ОДНОЙ даты — дня ПРИЛЁТА в Узбекистан. Он же первый день путешествия:
+// даты городов считаются от него подряд, поэтому пересечений не бывает
+// и гасить занятые дни, как это делал календарь конструктора, не нужно.
 //
-// Вызывается с экрана «Перелёт»: человек пришёл сюда выбирать именно вылет.
+// Тап по числу СРАЗУ применяет дату и закрывает всё: и календарь, и экран
+// «Перелёт», с которого он вызван. Кнопки «Готово» нет — подтверждать нечего,
+// человек и так видит результат в строке «Прилёт 26 августа».
 import { computed, ref } from 'vue'
 import { addDays, dayMonth, monthGrid, monthTitle, todayISO } from '@/composables/dates'
 import { count, list, t } from '@/composables/useI18n'
@@ -53,6 +55,8 @@ function isPast(day: string): boolean {
 function pick(day: string) {
   if (isPast(day)) return
   picked.value = day
+  // Одного тапа достаточно: дата применяется и лист закрывается сам.
+  emit('apply', day)
 }
 </script>
 
@@ -95,11 +99,6 @@ function pick(day: string) {
       </section>
     </div>
 
-    <footer class="foot">
-      <button class="btn primary" @click="emit('apply', picked)">
-        {{ t('start.done', { date: dayMonth(picked) }) }}
-      </button>
-    </footer>
   </div>
 </template>
 
@@ -197,26 +196,4 @@ function pick(day: string) {
   color: var(--border);
 }
 
-.foot {
-  padding: 10px 0 calc(8px + var(--safe-bottom));
-  display: flex;
-  gap: 8px;
-}
-
-/* Класс .btn в проекте локальный для каждого листа — общего нет.
-   Стиль тот же, что в календаре конструктора. */
-.btn {
-  flex: 1;
-  min-height: var(--tap-min);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  font-size: 15px;
-  font-weight: 600;
-  background: var(--card);
-}
-
-.btn.primary {
-  background: var(--brand-yellow);
-  border-color: var(--brand-yellow);
-}
 </style>

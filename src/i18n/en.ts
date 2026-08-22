@@ -201,7 +201,7 @@ export const en: Dict = {
   'limit.h3': '3 hours',
   'limit.h7': '7 hours',
   'limit.unlimited': 'unlimited',
-  'limit.freeRoute': 'flexible route',
+  'limit.freeRoute': 'flexible',
   'limit.gb180': '180 GB',
   'limit.gb200': '200 GB',
   'limit.gb350': '350 GB',
@@ -223,6 +223,7 @@ export const en: Dict = {
   'service.excursions.econom': 'The main places to visit are planned in advance — the programme is worked out and approved before the trip starts.',
   'service.excursions.medium': 'The main places to visit are planned in advance — the programme is worked out and approved before the trip starts.',
   'service.excursions.lux': 'The routes can be changed: if you want to add a place or drop a point, the programme is rebuilt in agreement with your manager and guide.',
+  'service.excursions.seeBelow': 'The excursion routes for every city are set out below, in the Excursion routes section. It shows which sights you will visit on each day of the trip and how long that takes.',
   'service.excursions.note': 'The set of excursions is confirmed before the booking is finalised.',
 
   // Local SIM card. The price is not stated — we promise the contents.
@@ -338,12 +339,11 @@ export const en: Dict = {
   'calc.startLabel': 'Start',
   'calc.tourRange': '{from} – {to}',
   'calc.package': 'Package',
-  'calc.route': 'Route',
+  'calc.route': 'Excursion routes',
   'route.day': 'Day {n}',
   'route.departure': 'Departure day',
-  'start.title': 'Departure date',
+  'start.title': 'Arrival date',
   'start.hint': 'From {date} to {end}',
-  'start.done': 'Start on {date}',
 
   'route.arrival': 'arrival',
 
@@ -353,15 +353,15 @@ export const en: Dict = {
   'dur.m': '{m} min',
   'u.poi': ['sight', 'sights', 'sights'],
 
-  'flight.when': 'Departure date',
+  'flight.when': 'Arrival date',
   'flight.whenNote': 'This is the first day of your trip. All the city dates are counted from it.',
   'route.withTransfers': '{time} including transfers',
 
   'route.arrivalTransfer': 'Arrival and airport transfer',
 
-  'flight.rowEmpty': 'Choose the departure date',
-  'flight.rowPicked': 'Flight',
-  'flight.pickDate': 'Choose the departure date',
+  'flight.rowEmpty': 'Choose the arrival date',
+  'flight.rowPicked': 'Arrival',
+  'flight.pickDate': 'Choose the arrival date',
 
   'calc.durationEmpty': 'Choose the tour length',
   'calc.waiting': 'Choose the tour length and we will show the package prices and the day-by-day route.',

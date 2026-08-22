@@ -110,12 +110,20 @@ export function hasLevelParagraph(key: InclusionKey): boolean {
   return LEVEL_PARAGRAPH.includes(key)
 }
 
+/** Услуги, у которых последним абзацем идёт отсылка к другому месту экрана.
+ *  У экскурсий это раздел «Экскурсионные маршруты» ниже по странице:
+ *  лист рассказывает про услугу, а разбивку по дням человек видит там. */
+const SEE_BELOW: InclusionKey[] = ['excursions']
+
 /** Абзацы пояснения для общего листа услуги: сперва общие, затем — если у
- *  услуги есть разница по тарифам — абзац этого тарифа. Пустые отсеиваются. */
+ *  услуги есть разница по тарифам — абзац этого тарифа, затем отсылка.
+ *  Пустые отсеиваются. */
 export function serviceParagraphs(key: InclusionKey, level: Level): string[] {
   const n = PARAGRAPH_COUNT[key] ?? 2
   const paragraphs = Array.from({ length: n }, (_, i) => t(`service.${key}.d${i + 1}`))
   if (hasLevelParagraph(key)) paragraphs.push(t(`service.${key}.${level}`))
+  // Отсылка стоит последней, перед сноской: сперва про услугу, потом куда идти.
+  if (SEE_BELOW.includes(key)) paragraphs.push(t(`service.${key}.seeBelow`))
   return paragraphs.filter(Boolean)
 }
 
