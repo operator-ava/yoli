@@ -192,7 +192,20 @@ function pick(day: string) {
   gap: 8px;
 }
 
-.foot .btn {
+/* Класс .btn в проекте локальный для каждого листа — общего нет.
+   Стиль тот же, что в календаре конструктора. */
+.btn {
   flex: 1;
+  min-height: var(--tap-min);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  font-size: 15px;
+  font-weight: 600;
+  background: var(--card);
+}
+
+.btn.primary {
+  background: var(--brand-yellow);
+  border-color: var(--brand-yellow);
 }
 </style>
