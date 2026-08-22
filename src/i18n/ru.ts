@@ -181,7 +181,7 @@ export const ru: Dict = {
   'guide.note': 'Конкретный гид назначается после подтверждения бронирования. Мы гарантируем уровень сопровождения и перечисленные условия.',
   'art.transportAll': 'Транспорт и трансферы',
   'art.services': 'Сопровождение и включённые услуги',
-  'total.empty.head': 'Выберите количество человек, город и даты',
+  'total.empty.head': 'Выберите длительность тура и тариф',
   // Число цифрой. Возможны только 5 и 6 — форма слова одна.
   'row.group': '{n} доп. услуг',
   'row.included': 'Что включено',
@@ -327,4 +327,38 @@ export const ru: Dict = {
   'showcase.food.title': 'Питание',
   'showcase.food.note': 'Питание по городам маршрута. Меню — после согласования.',
   'showcase.food.text': 'Питание по программе. Меню и заведения — после согласования.',
+
+  // Категории точек маршрута. Названия самих точек — имена собственные,
+  // они не переводятся и во всех трёх языках стоят по-русски.
+  'poi.cat.architecture': 'Архитектура',
+  'poi.cat.crafts': 'Ремёсла',
+  'poi.cat.culture': 'Культура',
+  'poi.cat.entertainment': 'Развлечение',
+  'poi.cat.ethno': 'Этно',
+  'poi.cat.gastro': 'Гастро',
+  'poi.cat.history': 'История',
+  'poi.cat.market': 'Рынок',
+  'poi.cat.museum': 'Музей',
+  'poi.cat.park': 'Парк',
+  'poi.cat.religion': 'Религия',
+  'poi.cat.viewpoint': 'Смотровая',
+  'poi.cat.walk': 'Прогулка',
+
+  // Пакетный тур
+  'calc.duration': 'Длительность тура',
+  'calc.durationLabel': 'Тур длится',
+  'calc.startLabel': 'Начало',
+  'calc.tourRange': '{from} – {to}',
+  'calc.package': 'Пакет',
+  'calc.route': 'Маршрут',
+  'route.day': 'День {n}',
+  'route.departure': 'вылет',
+  'start.title': 'Когда начинается тур',
+  'start.hint': 'С {date} по {end}',
+  'start.done': 'Начать {date}',
+
+  'route.of': '{n} из {total}',
+  'route.note': 'Точек в программе: {n} из {total}. Отбор по рейтингу, день рассчитан на 8 часов осмотра с переездами.',
+  'route.arrival': 'прилёт',
+  'route.free': 'Свободный день — программа города уже пройдена.',
 }

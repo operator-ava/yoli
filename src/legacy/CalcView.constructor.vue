@@ -1,30 +1,22 @@
 <script setup lang="ts">
-// Главный и единственный экран: витрина трёх пакетных туров.
-//
-// Порядок блоков задан заказчиком и держится жёстко:
-//   заголовок → кто путешествует → перелёт → длительность → пакет → маршрут.
-//
-// Свободный конструктор (даты и тариф по каждому городу) ОТЛОЖЕН, а не удалён:
-// его экран и компоненты лежат в src/legacy, состояние — в сторе. Вернём
-// вторым режимом по решению заказчика.
 import { computed, ref } from 'vue'
 import { useTripStore } from '@/stores/trip'
 import {
+  cityName,
   cityNameGen,
   MAX_PEOPLE,
   MIN_PEOPLE,
+  type CityId,
   type InclusionContext,
   type InclusionKey,
   type Level,
 } from '@/data'
-import { packagePrice } from '@/composables/calc'
-import { plural, t } from '@/composables/useI18n'
+import { count, plural, t } from '@/composables/useI18n'
+import { rangeLabel } from '@/composables/dates'
+import CityCard from '@/components/CityCard.vue'
 import TotalPanel from '@/components/TotalPanel.vue'
 import BottomSheet from '@/components/BottomSheet.vue'
-import StartDateSheet from '@/components/StartDateSheet.vue'
-import TourSetup from '@/components/TourSetup.vue'
-import TariffCarousel from '@/components/TariffCarousel.vue'
-import RouteCity from '@/components/RouteCity.vue'
+import DateRangeSheet from '@/components/DateRangeSheet.vue'
 import HotelSheet from '@/components/HotelSheet.vue'
 import MealSheet from '@/components/MealSheet.vue'
 import TransferSheet from '@/components/TransferSheet.vue'
@@ -38,9 +30,9 @@ import FlightScreen from '@/components/FlightScreen.vue'
 
 const trip = useTripStore()
 
-// Какой лист открыт: календарь начала тура или подробности пункта состава.
-const startSheet = ref(false)
-const itemSheet = ref<{ level: Level; key: InclusionKey } | null>(null)
+// Какой лист открыт: календарь города или подробности пункта состава.
+const dateSheet = ref<CityId | null>(null)
+const itemSheet = ref<{ cityId: CityId; level: Level; key: InclusionKey } | null>(null)
 
 // Экран благодарности после «Оплатить». Расчёт под ним остаётся нетронутым.
 const paid = ref(false)
@@ -48,34 +40,32 @@ const paid = ref(false)
 // Экран «Перелёт — скоро». Заглушка, в расчёт не входит.
 const flight = ref(false)
 
-/** Контекст состава для листов. Тур всегда начинается трансфером из аэропорта
- *  в Ташкент, а переезды между городами идут дальше по жёсткому маршруту. */
-const ctx = computed<InclusionContext>(() => {
-  const first = trip.tour[0]
-  return {
-    transfer: 'airport',
-    previousCity: first ? cityNameGen(first.cityId) : undefined,
-  }
-})
 
-/** Цена пакета на человека: за ВЕСЬ тур, уже со скидкой за размер группы. */
-function price(level: Level): number {
-  return packagePrice(level, trip.nights, trip.people)
+const busy = computed(() => (dateSheet.value ? trip.busyNights(dateSheet.value) : new Map()))
+
+/** Контекст города: вид трансфера и предыдущий город по хронологии. */
+function ctxFor(id: CityId): InclusionContext {
+  const prev = trip.previousCity(id)
+  return { transfer: trip.transferKind(id), previousCity: prev ? cityNameGen(prev) : undefined }
 }
 
 /** Выбор тарифа прямо из открытого листа. */
 function chooseFromSheet(level: Level) {
-  trip.setTourLevel(level)
+  if (!itemSheet.value) return
+  trip.setLevel(itemSheet.value.cityId, level)
   itemSheet.value = null
 }
 
-/** Первый город тура — по нему листы показывают питание и размещение. */
-const firstCity = computed(() => trip.tour[0]?.cityId ?? 'tashkent')
-
-/** Диапазон дат первого города — его просит лист питания. */
-const firstRange = computed(() => {
-  const c = trip.tour[0]
-  return c ? { from: c.from, to: c.to } : null
+const summaryLine = computed(() => {
+  const s = trip.summary
+  if (!s) return ''
+  // Ночи и дни ПО КАЛЕНДАРЮ: даты городов накладываются, суммой не считаем
+  return t('calc.trip', {
+    range: rangeLabel(s.from, s.to),
+    nights: count(s.nights, 'u.night'),
+    days: count(s.days, 'u.day'),
+    cities: count(s.cities, 'u.city'),
+  })
 })
 </script>
 
@@ -115,38 +105,23 @@ const firstRange = computed(() => {
     <h2>{{ t('calc.flight') }}</h2>
     <FlightRow @open="flight = true" />
 
-    <!-- Длительность одна на весь тур, дата начала тоже одна.
-         Даты городов считаются от неё подряд — пересечений не бывает. -->
-    <h2>{{ t('calc.duration') }}</h2>
-    <TourSetup
-      :nights="trip.nights"
-      :start-date="trip.startDate"
-      @pick="trip.setNights($event)"
-      @open-date="startSheet = true"
-    />
+    <h2>{{ t('calc.cities') }}</h2>
+    <!-- Порядок вычисляется из дат заезда, стрелок нет -->
+    <p v-if="summaryLine" class="summary">{{ summaryLine }}</p>
 
-    <!-- Тариф выбирается ОДИН РАЗ на весь тур, цена — за весь тур на человека -->
-    <h2>{{ t('calc.package') }}</h2>
-    <TariffCarousel
-      :price="price"
-      :nights="trip.nights"
-      :selected="trip.tourLevel"
-      :ctx="ctx"
-      @choose="trip.setTourLevel($event)"
-      @open-item="itemSheet = { level: $event.level, key: $event.key }"
-    />
-    <p v-if="!trip.tourLevel" class="muted no-level">{{ t('calc.pickTariff') }}</p>
-
-    <!-- Маршрут: четыре города в жёстком порядке, дни с точками.
-         Цен здесь нет — пакет продаётся целиком. -->
-    <h2>{{ t('calc.route') }}</h2>
     <div class="cities">
-      <RouteCity
-        v-for="c in trip.tour"
-        :key="c.cityId"
-        :plan="c"
-        :open="trip.isRouteOpen(c.cityId)"
-        @toggle="trip.toggleRoute(c.cityId)"
+      <CityCard
+        v-for="id in trip.orderedCities"
+        :key="id"
+        :city-id="id"
+        :range="trip.ranges[id]"
+        :level="trip.levels[id] ?? null"
+        :ctx="ctxFor(id)"
+        :collapsed="trip.isCollapsed(id)"
+        @pick-dates="dateSheet = id"
+        @toggle="trip.toggleCollapsed(id)"
+        @choose="trip.setLevel(id, $event)"
+        @open-item="itemSheet = { cityId: id, level: $event.level, key: $event.key }"
       />
     </div>
   </section>
@@ -160,17 +135,24 @@ const firstRange = computed(() => {
   <!-- Перелётов пока нет: экран-заглушка -->
   <FlightScreen v-if="flight" @close="flight = false" />
 
-  <BottomSheet v-if="startSheet" @close="startSheet = false">
-    <StartDateSheet
-      :value="trip.startDate"
-      :nights="trip.nights"
+  <BottomSheet v-if="dateSheet" @close="dateSheet = null">
+    <DateRangeSheet
+      :city-name="cityName(dateSheet)"
+      :value="trip.ranges[dateSheet]"
+      :busy="busy"
       @apply="
-        (d) => {
-          trip.setStartDate(d)
-          startSheet = false
+        (r) => {
+          trip.setRange(dateSheet!, r)
+          dateSheet = null
         }
       "
-      @close="startSheet = false"
+      @clear="
+        () => {
+          trip.clearRange(dateSheet!)
+          dateSheet = null
+        }
+      "
+      @close="dateSheet = null"
     />
   </BottomSheet>
 
@@ -178,34 +160,34 @@ const firstRange = computed(() => {
   <BottomSheet v-if="itemSheet" @close="itemSheet = null">
     <HotelSheet
       v-if="itemSheet.key === 'hotel'"
-      :city-id="firstCity"
+      :city-id="itemSheet.cityId"
       :level="itemSheet.level"
-      :selected-level="trip.tourLevel"
+      :selected-level="trip.levels[itemSheet.cityId] ?? null"
       @choose="chooseFromSheet"
       @close="itemSheet = null"
     />
     <TransferSheet
       v-else-if="itemSheet.key === 'transfer'"
       :level="itemSheet.level"
-      :kind="ctx.transfer"
-      :previous-city="ctx.previousCity"
-      :selected-level="trip.tourLevel"
+      :kind="ctxFor(itemSheet.cityId).transfer"
+      :previous-city="ctxFor(itemSheet.cityId).previousCity"
+      :selected-level="trip.levels[itemSheet.cityId] ?? null"
       @choose="chooseFromSheet"
       @close="itemSheet = null"
     />
     <GuideSheet
       v-else-if="itemSheet.key === 'guide'"
       :level="itemSheet.level"
-      :selected-level="trip.tourLevel"
+      :selected-level="trip.levels[itemSheet.cityId] ?? null"
       @choose="chooseFromSheet"
       @close="itemSheet = null"
     />
     <MealSheet
-      v-else-if="itemSheet.key === 'food' && firstRange"
-      :city-id="firstCity"
+      v-else-if="itemSheet.key === 'food' && trip.ranges[itemSheet.cityId]"
+      :city-id="itemSheet.cityId"
       :level="itemSheet.level"
-      :range="firstRange"
-      :selected-level="trip.tourLevel"
+      :range="trip.ranges[itemSheet.cityId]!"
+      :selected-level="trip.levels[itemSheet.cityId] ?? null"
       @choose="chooseFromSheet"
       @close="itemSheet = null"
     />
@@ -215,7 +197,7 @@ const firstRange = computed(() => {
       v-else
       :item-key="itemSheet.key"
       :level="itemSheet.level"
-      :selected-level="trip.tourLevel"
+      :selected-level="trip.levels[itemSheet.cityId] ?? null"
       @choose="chooseFromSheet"
       @close="itemSheet = null"
     />
@@ -281,11 +263,16 @@ h2 {
   color: var(--text-muted);
 }
 
-/* Тариф не выбран — подсказка под каруселью, как было в карточке города */
-.no-level {
+
+
+
+/* margin-inline: auto ОБЯЗАТЕЛЕН: правило `.app-content > *` центрирует
+   колонку в 720 px, а сокращённая запись margin его перебивала — строка
+   уезжала к левому краю экрана и не совпадала с карточками городов. */
+.summary {
   font-size: 13px;
-  margin: 8px 0 2px;
-  text-align: center;
+  font-weight: 600;
+  margin: 0 auto 10px;
 }
 
 .cities {

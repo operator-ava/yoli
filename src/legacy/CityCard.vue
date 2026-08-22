@@ -9,6 +9,7 @@ import {
   type InclusionKey,
   type Level,
 } from '@/data'
+import { cityPrice } from '@/composables/calc'
 import { nightsBetween, short } from '@/composables/dates'
 import { formatUnits } from '@/composables/format'
 import { useTotals } from '@/composables/totals'
@@ -108,7 +109,7 @@ const citySum = computed(() => totals.value.cityUnits(props.cityId))
     </header>
 
     <TariffCarousel
-      :city-id="cityId"
+      :price="(l: Level) => cityPrice(l, nights, ctx.transfer)"
       :nights="nights"
       :selected="level"
       :ctx="ctx"

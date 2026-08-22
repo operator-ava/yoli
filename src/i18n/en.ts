@@ -182,7 +182,7 @@ export const en: Dict = {
   'guide.note': 'The particular guide is assigned once the booking is confirmed. We guarantee the level of accompaniment and the conditions listed above.',
   'art.transportAll': 'Transport and transfers',
   'art.services': 'Guiding and included services',
-  'total.empty.head': 'Choose the number of people, a city and dates',
+  'total.empty.head': 'Choose the tour length and a tariff',
   // The number is a digit. Only 5 and 6 are possible — the wording does not change.
   'row.group': '{n} extra services',
   'row.included': 'What is included',
@@ -328,4 +328,38 @@ export const en: Dict = {
   'showcase.food.title': 'Meals',
   'showcase.food.note': 'Meals by city along the route. Menus to be confirmed.',
   'showcase.food.text': 'Meals as per the programme. Menus and venues to be confirmed.',
+
+  // Categories of route points. The point names themselves are proper nouns:
+  // they are not translated and stay in Russian in all three languages.
+  'poi.cat.architecture': 'Architecture',
+  'poi.cat.crafts': 'Crafts',
+  'poi.cat.culture': 'Culture',
+  'poi.cat.entertainment': 'Entertainment',
+  'poi.cat.ethno': 'Ethno',
+  'poi.cat.gastro': 'Gastronomy',
+  'poi.cat.history': 'History',
+  'poi.cat.market': 'Market',
+  'poi.cat.museum': 'Museum',
+  'poi.cat.park': 'Park',
+  'poi.cat.religion': 'Religion',
+  'poi.cat.viewpoint': 'Viewpoint',
+  'poi.cat.walk': 'Promenade',
+
+  // Package tour
+  'calc.duration': 'Tour length',
+  'calc.durationLabel': 'The tour lasts',
+  'calc.startLabel': 'Start',
+  'calc.tourRange': '{from} – {to}',
+  'calc.package': 'Package',
+  'calc.route': 'Route',
+  'route.day': 'Day {n}',
+  'route.departure': 'departure',
+  'start.title': 'When the tour starts',
+  'start.hint': 'From {date} to {end}',
+  'start.done': 'Start on {date}',
+
+  'route.of': '{n} of {total}',
+  'route.note': 'Points in the programme: {n} of {total}. Selected by rating; a day is planned for 8 hours of sightseeing including transfers.',
+  'route.arrival': 'arrival',
+  'route.free': 'A free day — the city programme is already covered.',
 }

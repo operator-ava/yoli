@@ -7,22 +7,23 @@ import {
   itemNote,
   LEVELS,
   levelName,
-  type CityId,
   type InclusionContext,
   type InclusionKey,
   type Level,
 } from '@/data'
-import { cityPrice } from '@/composables/calc'
 import { money } from '@/composables/format'
 import { count, t } from '@/composables/useI18n'
 import { useTripStore } from '@/stores/trip'
 import { useIsWide } from '@/composables/useBreakpoint'
 
 const props = defineProps<{
-  cityId: CityId
   nights: number
   selected: Level | null
   ctx: InclusionContext
+  /** Цена тарифа на ОДНОГО человека, в долларах. Карусель цену не считает
+   *  сама: свободный конструктор передаёт цену города, пакетный режим —
+   *  цену всего тура. Так один компонент обслуживает оба режима. */
+  price: (level: Level) => number
 }>()
 
 const emit = defineEmits<{
@@ -58,10 +59,6 @@ function onScroll() {
   if (!card) return
   active.value = Math.round(el.scrollLeft / (card.offsetWidth + 10))
 }
-
-function price(level: Level) {
-  return cityPrice(level, props.nights, props.ctx.transfer)
-}
 </script>
 
 <template>
@@ -79,7 +76,7 @@ function price(level: Level) {
           <span v-if="selected === l.id" class="check" :aria-label="t('tariff.selected')">✓</span>
         </header>
 
-        <div class="price tnum">{{ money(price(l.id)) }}</div>
+        <div class="price tnum">{{ money(props.price(l.id)) }}</div>
         <div class="per muted">{{ t('tariff.per', { nights: count(nights, 'u.night'), days: count(nights + 1, 'u.day') }) }}</div>
 
         <!-- Чек-лист: галочка у каждой строки, разница видна в подписи справа -->

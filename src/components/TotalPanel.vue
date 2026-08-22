@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useTripStore } from '@/stores/trip'
-import { cityName, levelName } from '@/data'
 import { nightsDays, short } from '@/composables/dates'
 import { formatUnits, percent } from '@/composables/format'
 import { useTotals } from '@/composables/totals'
-import { count, t } from '@/composables/useI18n'
+import { t } from '@/composables/useI18n'
 
 const trip = useTripStore()
 const open = ref(false)
@@ -13,7 +12,8 @@ const open = ref(false)
 // Оплата — макет: экран благодарности открывает экран расчёта.
 const emit = defineEmits<{ pay: [] }>()
 
-const r = computed(() => trip.result)
+// Расчёт пакета. Тариф не выбран — null, панель показывает одну подсказку.
+const r = computed(() => trip.packageResult)
 
 // Числа для экрана считаются один раз на всё приложение: панель и свёрнутые
 // строки городов берут их отсюда, а не считают каждая своё.
@@ -25,12 +25,11 @@ const empty = computed(() => view.value.empty)
 /** Едет один человек: «группы» нет, и цена на человека равна итогу. */
 const alone = computed(() => trip.people === 1)
 
-/** Даты всей поездки и её длительность. Дни — ПО КАЛЕНДАРЮ, от самой ранней
- *  даты заезда до самой поздней даты выезда: даты городов накладываются,
- *  и суммой по городам дни считать нельзя. */
+/** Даты всего тура и его длительность: от даты начала до дня вылета.
+ *  Пересечений больше не бывает — города идут подряд, поэтому дни тура
+ *  это просто ночи плюс один. */
 const tripDates = computed(() => {
-  const s = trip.summary
-  if (!s) return ''
+  const s = trip.tourRange
   return `${short(s.from)} – ${short(s.to)} · ${nightsDays(s.nights, s.days)}`
 })
 </script>
@@ -94,19 +93,13 @@ const tripDates = computed(() => {
         <span>{{ t(`art.${a.key}`) }}</span>
         <span class="tnum">{{ formatUnits(a.units) }}</span>
       </div>
-      <div v-if="r.discount > 0" class="row minus">
+      <div v-if="r && r.discount > 0" class="row minus">
         <span>{{ t('art.discount', { rate: percent(r.discountRate) }) }}</span>
         <span class="tnum">−{{ formatUnits(view.discountUnits) }}</span>
       </div>
-
-      <h3>{{ t('total.byCities') }}</h3>
-      <p v-if="!r.byCity.length" class="muted empty">{{ t('total.empty') }}</p>
-      <div v-for="c in view.cities" :key="c.cityId" class="row">
-        <span>
-          {{ cityName(c.cityId) }} · {{ count(c.nights, 'u.night') }} · {{ levelName(c.level) }}
-        </span>
-        <span class="tnum">{{ formatUnits(c.units) }}</span>
-      </div>
+      <!-- Раздела «По городам» здесь больше нет: пакет продаётся целиком,
+           отдельной цены у города не существует. Дни и точки города
+           показывает блок «Маршрут». -->
     </div>
   </div>
 </template>

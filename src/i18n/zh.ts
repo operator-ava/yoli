@@ -180,7 +180,7 @@ export const zh: Dict = {
   'guide.note': '具体导游在预订确认后安排。我们保证陪同服务的等级及以上所列条件。',
   'art.transportAll': '交通与接送',
   'art.services': '陪同与所含服务',
-  'total.empty.head': '请选择人数、城市和日期',
+  'total.empty.head': '请选择行程天数与套餐等级',
   // 数量用数字表示。只可能是 5 或 6，中文量词不变。
   'row.group': '{n} 项附加服务',
   'row.included': '包含内容',
@@ -326,4 +326,37 @@ export const zh: Dict = {
   'showcase.food.title': '餐饮',
   'showcase.food.note': '沿途各城市的餐饮安排。菜单待确认。',
   'showcase.food.text': '按行程安排的餐饮。菜单与餐厅待确认。',
+
+  // 行程景点的类别。景点名称本身是专有名词，三种语言均保留俄文原名。
+  'poi.cat.architecture': '建筑',
+  'poi.cat.crafts': '手工艺',
+  'poi.cat.culture': '文化',
+  'poi.cat.entertainment': '娱乐',
+  'poi.cat.ethno': '民俗',
+  'poi.cat.gastro': '美食',
+  'poi.cat.history': '历史',
+  'poi.cat.market': '集市',
+  'poi.cat.museum': '博物馆',
+  'poi.cat.park': '公园',
+  'poi.cat.religion': '宗教',
+  'poi.cat.viewpoint': '观景台',
+  'poi.cat.walk': '漫步',
+
+  // 套餐行程
+  'calc.duration': '行程天数',
+  'calc.durationLabel': '行程时长',
+  'calc.startLabel': '开始日期',
+  'calc.tourRange': '{from} – {to}',
+  'calc.package': '套餐',
+  'calc.route': '行程路线',
+  'route.day': '第 {n} 天',
+  'route.departure': '返程',
+  'start.title': '行程从哪天开始',
+  'start.hint': '{date} 至 {end}',
+  'start.done': '{date} 出发',
+
+  'route.of': '{n}/{total}',
+  'route.note': '行程内景点：{total} 个中的 {n} 个。按评分优先，每天约 8 小时，含途中交通。',
+  'route.arrival': '抵达',
+  'route.free': '自由活动日 — 该城市的行程已完成。',
 }

@@ -16,5 +16,9 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"],
+
+  /* Отложенный свободный конструктор: код сохранён целиком, но из сборки
+     и проверки типов выключен. Вернём вторым режимом — тогда и вернём сюда. */
+  "exclude": ["src/legacy/**"]
 }
