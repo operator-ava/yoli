@@ -13,7 +13,7 @@ const { steppedUnits, allocate } = await server.ssrLoadModule('/src/composables/
 const { locale } = await server.ssrLoadModule('/src/composables/useI18n.ts')
 
 // Те же четыре группы статей, что показывает панель.
-const GROUPS = [['stay'], ['food'], ['transfer', 'flight'], ['guide', 'dedBobo', 'tickets', 'insurance', 'sim', 'audio']]
+const GROUPS = [['stay'], ['food'], ['taxi', 'transfer', 'flight'], ['guide', 'dedBobo', 'tickets', 'insurance', 'sim', 'audio']]
 
 const LOCALES = [['ru', 'рубли'], ['en', 'доллары'], ['zh', 'юани']]
 const PEOPLE = [1, 2, 3, 5, 7, 12, 20]

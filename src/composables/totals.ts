@@ -21,9 +21,10 @@ import type { Article } from './calc'
 const GROUPS: { key: string; items: Article[] }[] = [
   { key: 'stay', items: ['stay'] },
   { key: 'food', items: ['food'] },
-  // Отдельной статьи «транспорт по городу» в новой модели нет: остались
-  // трансферы и перелёт Ургенч–Ташкент — обоим отдельной строки не даём
-  { key: 'transportAll', items: ['transfer', 'flight'] },
+  // Всё, что везёт: такси по городу, трансферы между городами и перелёт
+  // Ургенч–Ташкент. Отдельной строки не даём ни одному — наружу выходят
+  // четыре укрупнённые статьи, не семь внутренних.
+  { key: 'transportAll', items: ['taxi', 'transfer', 'flight'] },
   { key: 'services', items: ['guide', 'dedBobo', 'tickets', 'insurance', 'sim', 'audio'] },
 ]
 
