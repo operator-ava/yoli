@@ -6,7 +6,7 @@
 // это стоит» — на второй отвечает панель итога.
 import { computed } from 'vue'
 import { city, cityName } from '@/data'
-import { dayMonth, short } from '@/composables/dates'
+import { dayMonth, duration, short } from '@/composables/dates'
 import { count, t } from '@/composables/useI18n'
 import type { ItineraryCity } from '@/composables/itinerary'
 
@@ -33,28 +33,33 @@ const dates = computed(() => `${short(props.plan.from)} – ${short(props.plan.t
       <span class="col">
         <span class="name">{{ name }}</span>
         <span class="muted sub">{{ dates }} · {{ count(plan.nights, 'u.night') }}</span>
+        <!-- Только количество: сравнение «из N» убрано решением заказчика —
+             оно подсвечивало то, чего человек НЕ увидит.
+             Стоит отдельной строкой: рядом с датами на 375 px не помещается
+             и ужимает их до трёх строк. -->
+        <span class="muted count">{{ count(plan.selected, 'u.poi') }}</span>
       </span>
-      <!-- Сколько точек входит из скольких. Без этого числа человек решит,
-           что часть достопримечательностей просто забыли. -->
-      <span class="meta">
-        <span class="muted count">{{ t('route.of', { n: plan.selected, total: plan.total }) }}</span>
-        <span class="chev muted" :class="open ? 'chev-up' : 'chev-down'" aria-hidden="true">{{
-          open ? '⌃' : '⌄'
-        }}</span>
-      </span>
+      <span class="chev muted" :class="open ? 'chev-up' : 'chev-down'" aria-hidden="true">{{
+        open ? '⌃' : '⌄'
+      }}</span>
     </button>
 
     <!-- Развёрнутый вид: дни с точками. Дни отделены друг от друга линией
          и воздухом, внутри дня строки идут списком без разлиновки. -->
     <div v-if="open" class="days">
-      <!-- Развёрнутый вид повторяет то же число словами: отбор идёт
-           по рейтингу, и это надо назвать прямо, а не оставлять догадкой. -->
-      <p class="note muted">{{ t('route.note', { n: plan.selected, total: plan.total }) }}</p>
+      <!-- Сводка города: сколько увидит и сколько это займёт вместе
+           с переездами между точками. -->
+      <p class="note">
+        {{ count(plan.selected, 'u.poi') }} ·
+        {{ t('route.withTransfers', { time: duration(plan.minutes) }) }}
+      </p>
 
       <section v-for="d in plan.days" :key="d.date" class="day">
         <h4 class="day-head">
           <span class="day-num">{{ t('route.day', { n: d.index }) }}</span>
-          <span class="day-date muted">{{ dayMonth(d.date) }}</span>
+          <span class="day-date muted sep">{{ dayMonth(d.date) }}</span>
+          <!-- Время дня рядом с датой: видно, насколько день плотный -->
+          <span v-if="d.minutes" class="day-time muted sep">{{ duration(d.minutes) }}</span>
           <!-- Прилёт и вылет — половинные дни, и это надо назвать -->
           <span v-if="d.arrival" class="day-tag">{{ t('route.arrival') }}</span>
           <span v-else-if="d.departure" class="day-tag">{{ t('route.departure') }}</span>
@@ -84,7 +89,9 @@ const dates = computed(() => `${short(props.plan.from)} – ${short(props.plan.t
   overflow: hidden;
 }
 
-/* Свёрнутая строка держит тот же токен высоты, что и остальные строки экрана */
+/* Строка выше общего токена 74 px: под датами стоит ещё одна строка —
+   количество достопримечательностей. Ужать всё в 74 px не выходит,
+   на 375 px даты тогда ломаются на три строки. */
 .head {
   display: flex;
   align-items: center;
@@ -122,26 +129,20 @@ const dates = computed(() => `${short(props.plan.from)} – ${short(props.plan.t
 
 .head .chev {
   font-size: 15px;
-}
-
-/* Правая колонка свёрнутой строки: число точек над стрелкой.
-   Прижата вправо, поэтому стрелка стоит на месте при любом числе. */
-.meta {
   flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
   margin-right: 4px;
 }
 
+/* Третья строка колонки: сколько достопримечательностей человек увидит */
 .count {
   font-size: 12px;
-  white-space: nowrap;
 }
 
-/* Пояснение к отбору: один раз на город, над первым днём */
+/* Сводка города: не пояснение мелким шрифтом, а содержательная строка —
+   кегль как у дат, цвет обычный. */
 .note {
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 600;
   line-height: 1.4;
   margin: 0 0 14px;
 }
@@ -164,6 +165,8 @@ const dates = computed(() => `${short(props.plan.from)} – ${short(props.plan.t
   border-top: 1px solid var(--border);
 }
 
+/* Части заголовка дня разделены точками. Точка нарисована псевдоэлементом
+   и уезжает вместе со своей частью при переносе — на конце строки не виснет. */
 .day-head {
   display: flex;
   align-items: baseline;
@@ -182,6 +185,15 @@ const dates = computed(() => `${short(props.plan.from)} – ${short(props.plan.t
 
 .day-date {
   font-size: 14px;
+}
+
+/* Время дня — третьим в строке заголовка, тем же приглушённым */
+.day-time {
+  font-size: 13px;
+}
+
+.sep::before {
+  content: '· ';
 }
 
 /* День вылета: половина программы, и человек должен это видеть заранее */

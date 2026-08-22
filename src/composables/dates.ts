@@ -45,6 +45,17 @@ export function nightsOf(from: string, to: string): string[] {
   return out
 }
 
+/** «14 ч 20 мин» — длительность из минут. Единицы берутся из словаря:
+ *  в китайском они пишутся иероглифами, а не сокращением латиницей.
+ *  Ровный час выводится без минут, меньше часа — без часов. */
+export function duration(minutes: number): string {
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  if (h && m) return t('dur.hm', { h, m })
+  if (h) return t('dur.h', { h })
+  return t('dur.m', { m })
+}
+
 /** «12.08» — числовой формат, одинаковый в обоих языках. */
 export function short(iso: string): string {
   const d = parseISO(iso)

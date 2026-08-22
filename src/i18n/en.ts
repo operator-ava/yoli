@@ -354,12 +354,20 @@ export const en: Dict = {
   'calc.route': 'Route',
   'route.day': 'Day {n}',
   'route.departure': 'departure',
-  'start.title': 'When the tour starts',
+  'start.title': 'Departure date',
   'start.hint': 'From {date} to {end}',
   'start.done': 'Start on {date}',
 
-  'route.of': '{n} of {total}',
-  'route.note': 'Points in the programme: {n} of {total}. Selected by rating; a day is planned for 8 hours of sightseeing including transfers.',
   'route.arrival': 'arrival',
   'route.free': 'A free day — the city programme is already covered.',
+
+  // Sightseeing time
+  'dur.hm': '{h} h {m} min',
+  'dur.h': '{h} h',
+  'dur.m': '{m} min',
+  'u.poi': ['sight', 'sights', 'sights'],
+
+  'flight.when': 'Departure date',
+  'flight.whenNote': 'This is the first day of your trip. All the city dates are counted from it.',
+  'route.withTransfers': '{time} including transfers',
 }

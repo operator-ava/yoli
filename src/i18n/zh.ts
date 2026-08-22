@@ -351,12 +351,20 @@ export const zh: Dict = {
   'calc.route': '行程路线',
   'route.day': '第 {n} 天',
   'route.departure': '返程',
-  'start.title': '行程从哪天开始',
+  'start.title': '出发日期',
   'start.hint': '{date} 至 {end}',
   'start.done': '{date} 出发',
 
-  'route.of': '{n}/{total}',
-  'route.note': '行程内景点：{total} 个中的 {n} 个。按评分优先，每天约 8 小时，含途中交通。',
   'route.arrival': '抵达',
   'route.free': '自由活动日 — 该城市的行程已完成。',
+
+  // 游览时长
+  'dur.hm': '{h} 小时 {m} 分钟',
+  'dur.h': '{h} 小时',
+  'dur.m': '{m} 分钟',
+  'u.poi': ['个景点', '个景点', '个景点'],
+
+  'flight.when': '出发日期',
+  'flight.whenNote': '这是旅程的第一天。各城市的日期均由此推算。',
+  'route.withTransfers': '{time}（含途中交通）',
 }

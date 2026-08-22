@@ -1,9 +1,12 @@
 <script setup lang="ts">
-// Длительность тура и дата начала — две строки одного блока.
+// Длительность тура: выпадающий список и период поездки под ним.
 //
-// Длительность — нативный выпадающий список: он открывается системным
-// колесом на iPad и iPhone, работает офлайн и доступен с клавиатуры.
-// Своя реализация выпадашки не даёт здесь ничего, кроме риска.
+// Нативный список открывается системным колесом на iPad и iPhone, работает
+// офлайн и доступен с клавиатуры. Своя реализация выпадашки не даёт здесь
+// ничего, кроме риска.
+//
+// Даты вылета ЗДЕСЬ НЕТ: она живёт в блоке «Перелёт». Человек сначала решает,
+// когда летит, и только потом — сколько живёт. Решение заказчика 22.08.2026.
 import { computed } from 'vue'
 import { PACKAGES, type PackageNights } from '@/data'
 import { count, t } from '@/composables/useI18n'
@@ -11,10 +14,11 @@ import { addDays, dayMonth, nightsDays } from '@/composables/dates'
 
 const props = defineProps<{
   nights: PackageNights
+  /** Дата вылета — приходит из блока «Перелёт», здесь только читается. */
   startDate: string
 }>()
 
-const emit = defineEmits<{ pick: [PackageNights]; openDate: [] }>()
+const emit = defineEmits<{ pick: [PackageNights] }>()
 
 /** Варианты списка: «7 ночей · 8 дней». Дни у пакета считаются просто —
  *  города идут подряд, пересечений дат не бывает. */
@@ -22,7 +26,7 @@ const options = computed(() =>
   PACKAGES.map((p) => ({ nights: p.nights, label: nightsDays(p.nights, p.nights + 1) })),
 )
 
-/** День вылета: дата начала плюс все ночи тура. */
+/** День возвращения: дата вылета плюс все ночи тура. */
 const endDate = computed(() => addDays(props.startDate, props.nights))
 
 function onChange(e: Event) {
@@ -33,7 +37,6 @@ function onChange(e: Event) {
 
 <template>
   <div class="card">
-    <!-- Строка 1: длительность -->
     <label class="row">
       <span class="label">{{ t('calc.durationLabel') }}</span>
       <span class="control">
@@ -44,19 +47,11 @@ function onChange(e: Event) {
       </span>
     </label>
 
-    <!-- Строка 2: дата начала. Даты городов считаются от неё подряд -->
-    <button class="row tap" @click="emit('openDate')">
-      <span class="label">{{ t('calc.startLabel') }}</span>
-      <span class="control">
-        <span class="value">{{ dayMonth(startDate) }}</span>
-        <span class="chev chev-next" aria-hidden="true">›</span>
-      </span>
-    </button>
-
-    <!-- Итоговые границы тура: человек видит, когда вернётся -->
-    <p class="range muted">
+    <!-- Итоговый период: считается от даты вылета плюс выбранная длительность.
+         Человек видит обе границы сразу и сверяет их с отпуском. -->
+    <p class="range">
       {{ t('calc.tourRange', { from: dayMonth(startDate), to: dayMonth(endDate) }) }} ·
-      {{ count(nights, 'u.night') }}
+      {{ count(nights, 'u.night') }} · {{ count(nights + 1, 'u.day') }}
     </p>
   </div>
 </template>
@@ -70,7 +65,7 @@ function onChange(e: Event) {
   padding: 0 12px 10px;
 }
 
-/* Обе строки держат общий токен высоты — как счётчик людей и «Перелёт» */
+/* Строка держит общий токен высоты — как счётчик людей и «Перелёт» */
 .row {
   display: flex;
   align-items: center;
@@ -79,10 +74,6 @@ function onChange(e: Event) {
   width: 100%;
   min-height: var(--row-height);
   text-align: left;
-}
-
-.row + .row {
-  border-top: 1px solid var(--border);
 }
 
 .label {
@@ -95,11 +86,6 @@ function onChange(e: Event) {
   align-items: center;
   gap: 6px;
   flex-shrink: 0;
-}
-
-.value {
-  font-size: 15px;
-  font-weight: 600;
 }
 
 /* Нативный список без системной рамки: рамку рисуем сами, стрелку тоже —
@@ -119,10 +105,14 @@ function onChange(e: Event) {
   text-align-last: right;
 }
 
+/* Период — не подпись к списку, а результат: кегль тот же, что у строк,
+   цвет обычный. Приглушать его нельзя, это главный ответ блока. */
 .range {
-  font-size: 13px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
   margin: 8px 0 0;
-  padding-top: 8px;
+  padding-top: 10px;
   border-top: 1px solid var(--border);
 }
 </style>

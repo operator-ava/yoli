@@ -1,9 +1,32 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { t } from '@/composables/useI18n'
+import { dayMonth } from '@/composables/dates'
+import BottomSheet from '@/components/BottomSheet.vue'
+import StartDateSheet from '@/components/StartDateSheet.vue'
 
-// Экран «Перелёт — скоро». Рейсов нет, сроков не обещаем: только «скоро».
+// Экран «Перелёт». Сверху — ДАТА ВЫЛЕТА, ниже прежний текст «скоро»:
+// рейсов нет, сроков не обещаем. Дата живёт здесь, потому что человек
+// сначала решает, когда летит, и только потом — сколько живёт.
+//
 // Расчёт при закрытии не трогается — экран только накрывает его сверху.
-const emit = defineEmits<{ close: [] }>()
+const props = defineProps<{
+  /** Дата вылета, ISO. */
+  date: string
+  /** Длительность тура: календарь показывает, когда человек вернётся. */
+  nights: number
+}>()
+
+const emit = defineEmits<{ close: []; pick: [string] }>()
+
+// Календарь поверх экрана. Лист лежит выше полноэкранных экранов — см.
+// z-index в BottomSheet.
+const calendar = ref(false)
+
+function apply(iso: string) {
+  emit('pick', iso)
+  calendar.value = false
+}
 
 const PARAGRAPHS = ['flight.p1', 'flight.p2', 'flight.p3']
 </script>
@@ -15,6 +38,18 @@ const PARAGRAPHS = ['flight.p1', 'flight.p2', 'flight.p3']
 
     <div class="scroll">
       <div class="inner">
+        <!-- Дата вылета — первое, что человек решает на этом экране -->
+        <section class="when">
+          <h2 class="when-title">{{ t('flight.when') }}</h2>
+          <div class="when-row">
+            <span class="when-date">{{ dayMonth(props.date) }}</span>
+            <button class="change" @click="calendar = true">{{ t('calc.change') }}</button>
+          </div>
+          <p class="when-note muted">{{ t('flight.whenNote') }}</p>
+        </section>
+
+        <hr class="sep" />
+
         <!-- Контурный самолёт: графитовый контур, жёлтые акценты.
              Ширина ограничена, поэтому рисунок не растягивается на планшете. -->
         <svg class="plane" viewBox="0 0 320 220" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -55,6 +90,17 @@ const PARAGRAPHS = ['flight.p1', 'flight.p2', 'flight.p3']
     <footer class="foot">
       <button class="btn" @click="emit('close')">{{ t('flight.back') }}</button>
     </footer>
+
+    <!-- Тот же календарь, что выбирал дату начала тура: одна дата, прошедшие
+         дни погашены. Лежит поверх этого экрана. -->
+    <BottomSheet v-if="calendar" @close="calendar = false">
+      <StartDateSheet
+        :value="props.date"
+        :nights="props.nights"
+        @apply="apply"
+        @close="calendar = false"
+      />
+    </BottomSheet>
   </div>
 </template>
 
@@ -98,7 +144,56 @@ const PARAGRAPHS = ['flight.p1', 'flight.p2', 'flight.p3']
 .inner {
   max-width: 640px;
   margin-inline: auto;
-  padding-top: 44px;
+  /* Отступ сверху держит крестик: он стоит в углу и не должен накрывать
+     заголовок «Дата вылета». */
+  padding-top: 60px;
+}
+
+/* Блок даты вылета: первое решение на экране, поэтому стоит выше рисунка */
+.when-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0 0 10px;
+}
+
+.when-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: var(--tap-min);
+}
+
+/* Дата крупно: это ответ, а не подпись */
+.when-date {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.change {
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: var(--brand-yellow);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.when-note {
+  font-size: 13px;
+  line-height: 1.45;
+  margin: 6px 0 0;
+}
+
+.sep {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 22px 0;
 }
 
 /* Рисунок лёгкий и без подложки: занимает верх экрана, но не давит */

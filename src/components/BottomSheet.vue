@@ -45,7 +45,9 @@ function onEnd() {
 .backdrop {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  /* Выше полноэкранных экранов «Перелёт» и «После оплаты» (60): календарь
+     вызывается С экрана перелёта и обязан лежать поверх него. */
+  z-index: 70;
   background: rgba(24, 24, 24, 0.4);
   display: flex;
   align-items: flex-end;

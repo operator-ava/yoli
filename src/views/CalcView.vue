@@ -21,7 +21,6 @@ import { packagePrice } from '@/composables/calc'
 import { plural, t } from '@/composables/useI18n'
 import TotalPanel from '@/components/TotalPanel.vue'
 import BottomSheet from '@/components/BottomSheet.vue'
-import StartDateSheet from '@/components/StartDateSheet.vue'
 import TourSetup from '@/components/TourSetup.vue'
 import TariffCarousel from '@/components/TariffCarousel.vue'
 import RouteCity from '@/components/RouteCity.vue'
@@ -38,8 +37,8 @@ import FlightScreen from '@/components/FlightScreen.vue'
 
 const trip = useTripStore()
 
-// Какой лист открыт: календарь начала тура или подробности пункта состава.
-const startSheet = ref(false)
+// Открытый лист подробностей пункта состава. Календарь даты вылета живёт
+// на экране «Перелёт», а не здесь.
 const itemSheet = ref<{ level: Level; key: InclusionKey } | null>(null)
 
 // Экран благодарности после «Оплатить». Расчёт под ним остаётся нетронутым.
@@ -111,19 +110,15 @@ const firstRange = computed(() => {
       </div>
     </div>
 
-    <!-- Заглушка: на цену и расчёт не влияет, в стор ничего не пишет -->
+    <!-- Рейсов нет, но дата вылета живёт здесь: человек сначала решает,
+         когда летит, и только потом — сколько живёт. На цену не влияет. -->
     <h2>{{ t('calc.flight') }}</h2>
-    <FlightRow @open="flight = true" />
+    <FlightRow :date="trip.startDate" @open="flight = true" />
 
-    <!-- Длительность одна на весь тур, дата начала тоже одна.
+    <!-- Только длительность: дата вылета выбирается блоком выше.
          Даты городов считаются от неё подряд — пересечений не бывает. -->
     <h2>{{ t('calc.duration') }}</h2>
-    <TourSetup
-      :nights="trip.nights"
-      :start-date="trip.startDate"
-      @pick="trip.setNights($event)"
-      @open-date="startSheet = true"
-    />
+    <TourSetup :nights="trip.nights" :start-date="trip.startDate" @pick="trip.setNights($event)" />
 
     <!-- Тариф выбирается ОДИН РАЗ на весь тур, цена — за весь тур на человека -->
     <h2>{{ t('calc.package') }}</h2>
@@ -157,22 +152,14 @@ const firstRange = computed(() => {
   <!-- Оплата не производится: макет экрана после заказа -->
   <PaidScreen v-if="paid" @close="paid = false" />
 
-  <!-- Перелётов пока нет: экран-заглушка -->
-  <FlightScreen v-if="flight" @close="flight = false" />
-
-  <BottomSheet v-if="startSheet" @close="startSheet = false">
-    <StartDateSheet
-      :value="trip.startDate"
-      :nights="trip.nights"
-      @apply="
-        (d) => {
-          trip.setStartDate(d)
-          startSheet = false
-        }
-      "
-      @close="startSheet = false"
-    />
-  </BottomSheet>
+  <!-- Рейсов пока нет, но дата вылета выбирается здесь -->
+  <FlightScreen
+    v-if="flight"
+    :date="trip.startDate"
+    :nights="trip.nights"
+    @pick="trip.setStartDate($event)"
+    @close="flight = false"
+  />
 
   <!-- У гостиницы и питания свои листы, остальное — общий -->
   <BottomSheet v-if="itemSheet" @close="itemSheet = null">

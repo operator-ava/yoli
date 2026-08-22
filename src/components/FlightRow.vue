@@ -1,10 +1,15 @@
 <script setup lang="ts">
 import { t } from '@/composables/useI18n'
+import { dayMonth } from '@/composables/dates'
 
-// Заглушка «Перелёт». Оформлена как карточка города без дат, но на цену
-// и на расчёт не влияет никак: в сторе её нет, в calc.ts тоже.
-// Подпись «Скоро» обязательна — ожидание задаётся до нажатия, иначе человек
-// нажмёт в расчёте на выбор рейсов и получит извинение.
+// Блок «Перелёт». Рейсов по-прежнему нет, но ЗДЕСЬ ЖЕ живёт дата вылета:
+// человек сначала решает, когда летит, и только потом — сколько живёт.
+// Сам перелёт на цену не влияет: в расчёте его нет.
+defineProps<{
+  /** Дата вылета, ISO. Она же первый день путешествия. */
+  date: string
+}>()
+
 const emit = defineEmits<{ open: [] }>()
 </script>
 
@@ -21,8 +26,10 @@ const emit = defineEmits<{ open: [] }>()
       </svg>
     </span>
 
+    <!-- Дата стоит в самой строке: она главное, что здесь уже решено -->
     <span class="col">
       <span class="name">{{ t('flight.row') }}</span>
+      <span class="date muted">{{ dayMonth(date) }}</span>
     </span>
 
     <span class="meta muted">
@@ -67,11 +74,28 @@ const emit = defineEmits<{ open: [] }>()
 .col {
   flex: 1;
   min-width: 0;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  column-gap: 8px;
 }
 
 .name {
   font-size: 16px;
   font-weight: 600;
+}
+
+/* Дата идёт следом за названием через точку-разделитель, а на узком экране
+   переносится под него целиком: точка уезжает вместе с датой и не повисает
+   на конце первой строки. */
+.date {
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.date::before {
+  content: '· ';
 }
 
 /* Остался только шеврон: подпись «Скоро» убрана решением заказчика.

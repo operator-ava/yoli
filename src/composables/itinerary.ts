@@ -20,9 +20,10 @@
 // пакет показывает главное, длинный — больше, разница между 7 и 15 ночами
 // становится видимой.
 //
-// Сколько точек вошло и сколько всего есть в городе — в полях `selected`
-// и `total`. Экран обязан показывать оба числа: иначе человек решит, что
-// часть достопримечательностей просто забыли.
+// Сколько точек вошло — в поле `selected`, время программы — в `minutes`.
+// Наружу выводится ТОЛЬКО количество вошедших: сравнение «10 из 19»
+// убрано решением заказчика от 22.08.2026, оно подсвечивало то, чего человек
+// не увидит, вместо того, что увидит. Поле `total` осталось для проверок.
 import { poiByCity, VISIT_MINUTES, type Poi } from '@/data/poi'
 import { DEFAULT_CITY_ORDER, type CityId, type PackageNights } from '@/data/pricing'
 import { packageStops } from './calc'
@@ -136,8 +137,12 @@ export interface ItineraryCity {
   days: ItineraryDay[]
   /** Сколько точек вошло в программу города. */
   selected: number
-  /** Сколько точек есть в городе всего. */
+  /** Сколько точек есть в городе всего. Наружу это число не выводится:
+   *  экран показывает только то, что человек увидит, а не то, чего не увидит. */
   total: number
+  /** Время программы города, минуты: осмотр всех вошедших точек плюс
+   *  переезды между ними. Дорога между городами сюда не входит. */
+  minutes: number
 }
 
 /** Нормы дней города, в минутах.
@@ -180,7 +185,7 @@ export function fillDays(chain: Poi[], limits: number[]): { days: Poi[][]; dropp
 
     if (days[day].length > 0 && spent + cost > limits[day]) {
       // День заполнен — переходим к следующему. Дни кончились: остальные
-      // точки в пакет не входят, и это видно в интерфейсе числом «N из M».
+      // точки в пакет не входят.
       day += 1
       if (day >= limits.length) return { days, dropped: chain.slice(i) }
       spent = 0
@@ -239,6 +244,7 @@ export function planCity(
     days,
     selected: filled.reduce((sum, d) => sum + d.length, 0),
     total: all.length,
+    minutes: days.reduce((sum, d) => sum + d.minutes, 0),
   }
 }
 
